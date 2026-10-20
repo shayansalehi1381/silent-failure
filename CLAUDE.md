@@ -12,11 +12,12 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
   Do NOT change dataset versions or resolutions without asking.
 - PathMNIST pool = official train+val (100k, near-duplicate-cluster split); official test = family X (`nct7k_test`).
   Camelyon17 is fetched from the HF mirror (never disable TLS verification) or a local archive.
-- Sub-dataset (stratified, group-aware by hospital/slide, fixed seed, saved as manifest)
+- Sub-dataset (stratified, group-aware by hospital/PATIENT for Camelyon17, fixed seed, saved as manifest)
   is used; its size is a config parameter (decided after the Phase 0 benchmark).
-- Model: ResNet-18 trained FROM SCRATCH (no ImageNet weights, to avoid a pretraining confound),
-  5 seeds for core experiments, max 12 epochs with early stopping on source val loss
-  (patience 3, see `configs/full.yaml`), temperature scaling on source val.
+- Model: ResNet-18 initialised from ImageNet (torchvision IMAGENET1K_V1; replaces the earlier from-scratch
+  decision: standard in medical imaging, faster convergence, comparable with the group partner's setup),
+  5 seeds for core experiments, max 8 epochs with early stopping on source val loss
+  (patience 2, see `configs/full.yaml`), temperature scaling on source val.
   PathMNIST core runs use the FULL train set (~90k); val/test stay untouched.
 - Families: A = MedMNIST-C severity 1-5; B = Camelyon17 held-out hospitals;
   C = synthetic shortcut cue (reversed at test); X (supplement) = PathMNIST test (CRC-VAL-HE-7K).
