@@ -1,0 +1,38 @@
+# Main run. Placeholders for later stages; subset sizes TBD (Camelyon) after Phase 0.
+name: full
+seed: 0
+paths:
+  data_dir: data
+  out_dir: outputs/full
+data:
+  pathmnist_size: 128
+  camelyon_size: 96
+  subset:
+    pathmnist_train_frac: null      # null = FULL PathMNIST train (~90k); decided 2026-10-20
+    camelyon_max_train: null        # TBD
+    camelyon_max_per_ood_hospital: null
+model:
+  arch: resnet18
+  pretrained: false                 # from scratch: avoids an ImageNet-pretraining confound
+  num_classes: 9
+train:
+  seeds: [0, 1, 2, 3, 4]
+  epochs: 12                        # maximum; early stopping may end sooner
+  early_stopping:
+    metric: val_loss                # source val split
+    patience: 3
+  batch_size: 128
+  grad_accum: 1
+  amp: true
+  channels_last: true
+  max_train_images: null
+bench:
+  n_images: 20000                   # short benchmark (scripts/bench.py)
+  sustained_seconds: 240            # sustained benchmark (scripts/bench_sustained.py)
+  sample_period_s: 5
+  temp_stop_c: 83
+  min_free_ram_gb: 6
+stats:
+  bootstrap_resamples: 2000
+  fdr: BH
+stages: [0]

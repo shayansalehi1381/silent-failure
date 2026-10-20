@@ -1,0 +1,20 @@
+﻿# Direct dependencies, pinned (Python 3.11, Windows 11, conda env 'sfd').
+# torch / torchvision are NOT listed: install the CUDA 12.8 build first, exactly as
+#   pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
+# (installed builds: torch 2.11.0+cu128, torchvision 0.26.0+cu128)
+numpy==2.4.6
+pillow==12.3.0
+pandas==3.0.6
+pyarrow==26.0.0
+scipy==1.17.1
+scikit-learn==1.9.1
+statsmodels==0.15.0
+matplotlib==3.11.2
+seaborn==0.13.2
+tqdm==4.70.1
+pyyaml==6.0.3
+medmnist==3.0.2
+wilds==2.0.0
+grad-cam==1.5.7
+jupyter==1.1.1
+pytest==9.1.1
