@@ -11,3 +11,9 @@ pathmnist,nct7k_test_to_pool,0.01,0,,,,,False,,0.0,7180.0
 pathmnist,nct7k_test_to_pool,0.02,53926,,,,,False,,364.0,7180.0
 pathmnist,nct7k_test_to_pool,0.03,619073,,,,,False,,661.0,7180.0
 pathmnist,nct7k_test_to_pool,0.05,2101928,,,,,False,,1195.0,7180.0
+camelyon17,subset_self_join,0.0,0,69000.0,0.0,0.0,1.0,False,,,
+camelyon17,subset_self_join,0.005,176,68945.0,5.0,60.0,52.0,False,0.0,,
+camelyon17,subset_self_join,0.01,1388,68899.0,13.0,114.0,76.0,False,0.0,,
+camelyon17,subset_self_join,0.02,2802,68853.0,29.0,176.0,87.0,False,0.0,,
+camelyon17,subset_self_join,0.03,3689,68794.0,38.0,244.0,88.0,False,0.0,,
+camelyon17,subset_self_join,0.05,511575,65902.0,33.0,3131.0,2843.0,False,2.0,,
