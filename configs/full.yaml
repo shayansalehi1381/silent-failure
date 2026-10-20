@@ -1,16 +1,48 @@
-# Main run. Placeholders for later stages; subset sizes TBD (Camelyon) after Phase 0.
+﻿# Main run. Placeholders for later stages; subset sizes TBD (Camelyon) after Phase 0.
 name: full
 seed: 0
 paths:
   data_dir: data
-  out_dir: outputs/full
+  out_dir: outputs                  # stage outputs go to outputs/stage<N>/
 data:
   pathmnist_size: 128
   camelyon_size: 96
   subset:
-    pathmnist_train_frac: null      # null = FULL PathMNIST train (~90k); decided 2026-10-20
-    camelyon_max_train: null        # TBD
-    camelyon_max_per_ood_hospital: null
+    pathmnist_train_frac: null      # null = FULL PathMNIST pool; decided 2026-10-20
+pathmnist:
+  pool_splits: [train, val]         # official train + val = the 100k pool (NCT-CRC-HE-100K)
+  max_per_source_split: null        # null = all (smoke uses a tiny number)
+  max_test: null                    # official test = CRC-VAL-HE-7K = shift family X ("nct7k_test")
+  thumb_size: 16
+  dedup:
+    rms_threshold: 0.02             # within-pool clustering: RMS of 16x16x3 thumbnails <= this -> same cluster/split
+    cross_exclusion_rms: 0.01       # nct7k_test images this close to a pool image are excluded (stricter: at 0.02
+                                    # this removes 363 blank BACK tiles = 43% of that class and biases family X)
+    sensitivity: [0.0, 0.005, 0.01, 0.02, 0.03, 0.05]
+    chunk: 2048
+    pair_cap: 30000000
+    device: auto
+  split_fractions: {train: 0.80, val_es: 0.05, val_cal: 0.05, id_test: 0.10}
+  split_tolerance: 0.01             # max |actual - target| fraction per split (cluster granularity)
+camelyon:
+  source: hf_mirror                 # hf_mirror | local_archive | synthetic (smoke only)
+  repo: wltjr1007/Camelyon17-WILDS  # unofficial mirror; official host has an expired TLS certificate
+  archive_path: null                # path to the original WILDS archive (alternative source)
+  fetch_images: false               # set true after the user approved the ~9.9 GB transfer
+  subset_npz: data/camelyon17_subset_96.npz   # extracted uint8 patches (git-ignored)
+  source_hospitals: [0, 3, 4]
+  ood_hospitals: {ood_c1: 1, ood_c2: 2}
+  sizes: {train: 40000, val_es: 3000, val_cal: 5000, id_test: 5000, ood_c1: 8000, ood_c2: 8000}
+  patch_px: 96
+  nontissue_min_tissue_frac: 0.10   # flag (not drop) patches with less tissue than this
+  dark_mean_intensity: 40           # flag patches with mean intensity below this (artefact)
+  thumb_size: 16
+  dedup:
+    rms_threshold: 0.02
+    sensitivity: [0.0, 0.005, 0.01, 0.02, 0.03, 0.05]
+    chunk: 2048
+    pair_cap: 30000000
+    device: auto
 model:
   arch: resnet18
   pretrained: false                 # from scratch: avoids an ImageNet-pretraining confound
@@ -37,4 +69,6 @@ bench:
 stats:
   bootstrap_resamples: 2000
   fdr: BH
-stages: [0]
+stages: [0, 1]
+
+

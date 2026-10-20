@@ -1,4 +1,4 @@
-# Fast end-to-end smoke test (minutes). Results are meaningless by design.
+﻿# Fast end-to-end smoke test (minutes). Results are meaningless by design.
 name: smoke
 seed: 0
 paths:
@@ -7,11 +7,40 @@ paths:
 data:
   pathmnist_size: 128
   camelyon_size: 96
-  # sub-dataset size is NOT decided yet (set after Phase 0 benchmark)
   subset:
     pathmnist_train_frac: null
-    camelyon_max_train: null
-    camelyon_max_per_ood_hospital: null
+pathmnist:
+  pool_splits: [val]                # only the small official val split is decompressed in smoke
+  max_per_source_split: 4000
+  max_test: 1000
+  thumb_size: 16
+  dedup:
+    rms_threshold: 0.02
+    cross_exclusion_rms: 0.01
+    sensitivity: [0.0, 0.01, 0.02, 0.05]
+    chunk: 1024
+    pair_cap: 5000000
+    device: auto
+  split_fractions: {train: 0.80, val_es: 0.05, val_cal: 0.05, id_test: 0.10}
+  split_tolerance: 0.03
+camelyon:
+  source: synthetic                 # random tiles with WILDS-like metadata: exercises the code path only
+  repo: wltjr1007/Camelyon17-WILDS
+  archive_path: null
+  fetch_images: true
+  source_hospitals: [0, 3, 4]
+  ood_hospitals: {ood_c1: 1, ood_c2: 2}
+  sizes: {train: 600, val_es: 60, val_cal: 80, id_test: 80, ood_c1: 100, ood_c2: 100}
+  patch_px: 96
+  nontissue_min_tissue_frac: 0.10
+  dark_mean_intensity: 40
+  thumb_size: 16
+  dedup:
+    rms_threshold: 0.02
+    sensitivity: [0.0, 0.01, 0.02, 0.05]
+    chunk: 1024
+    pair_cap: 5000000
+    device: auto
 model:
   arch: resnet18
   pretrained: false
@@ -33,4 +62,5 @@ bench:
   start_temp_c: 60
   cooldown_max_s: 300
   min_free_ram_gb: 6
-stages: [0]   # stages enabled so far (placeholders for later phases)
+stages: [0, 1]
+

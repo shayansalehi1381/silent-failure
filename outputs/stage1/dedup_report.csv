@@ -1,0 +1,13 @@
+dataset,scope,rms_threshold,n_pairs,n_clusters,n_dup_clusters,n_images_in_dup_clusters,max_cluster_size,pairs_saturated,n_label_mixed_clusters,n_images_with_neighbor,n_images
+pathmnist,pool_self_join,0.0,0,100000.0,0.0,0.0,1.0,False,,,
+pathmnist,pool_self_join,0.005,195609,98547.0,18.0,1471.0,611.0,False,0.0,,
+pathmnist,pool_self_join,0.01,840891,96437.0,43.0,3606.0,1067.0,False,1.0,,
+pathmnist,pool_self_join,0.02,2690968,92873.0,43.0,7170.0,4750.0,False,1.0,,
+pathmnist,pool_self_join,0.03,5973179,90134.0,24.0,9890.0,5628.0,False,3.0,,
+pathmnist,pool_self_join,0.05,13890805,79546.0,33.0,20487.0,20278.0,False,2.0,,
+pathmnist,nct7k_test_to_pool,0.0,0,,,,,False,,0.0,7180.0
+pathmnist,nct7k_test_to_pool,0.005,0,,,,,False,,0.0,7180.0
+pathmnist,nct7k_test_to_pool,0.01,0,,,,,False,,0.0,7180.0
+pathmnist,nct7k_test_to_pool,0.02,53926,,,,,False,,364.0,7180.0
+pathmnist,nct7k_test_to_pool,0.03,619073,,,,,False,,661.0,7180.0
+pathmnist,nct7k_test_to_pool,0.05,2101928,,,,,False,,1195.0,7180.0

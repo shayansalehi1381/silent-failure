@@ -1,0 +1,201 @@
+{
+  "checks": [
+    {
+      "check": "uid unique (all datasets)",
+      "passed": true,
+      "value": null
+    },
+    {
+      "check": "pathmnist: no near-duplicate cluster crosses splits",
+      "passed": true,
+      "value": null
+    },
+    {
+      "check": "pathmnist: split fractions within tolerance",
+      "passed": true,
+      "value": {
+        "train": 0.79755,
+        "val_es": 0.04999,
+        "val_cal": 0.04999,
+        "id_test": 0.10247
+      }
+    },
+    {
+      "check": "pathmnist: every split has all 9 classes",
+      "passed": true,
+      "value": null
+    },
+    {
+      "check": "pathmnist: 0 near-duplicate pairs across pool splits",
+      "passed": true,
+      "value": 0
+    },
+    {
+      "check": "pathmnist: 0 near-duplicate pairs between nct7k_test and the pool (after exclusion)",
+      "passed": true,
+      "value": 0
+    },
+    {
+      "check": "camelyon: no slide crosses splits",
+      "passed": true,
+      "value": null
+    },
+    {
+      "check": "camelyon: source splits use source hospitals only",
+      "passed": true,
+      "value": true
+    },
+    {
+      "check": "camelyon: OOD splits are exactly their held-out hospital",
+      "passed": true,
+      "value": true
+    },
+    {
+      "check": "camelyon: OOD hospitals absent from source splits",
+      "passed": true,
+      "value": true
+    },
+    {
+      "check": "camelyon: every split has both classes",
+      "passed": true,
+      "value": null
+    },
+    {
+      "check": "camelyon: realised split sizes vs requested",
+      "passed": true,
+      "value": {
+        "train": [
+          40000,
+          40000
+        ],
+        "val_es": [
+          3000,
+          3000
+        ],
+        "val_cal": [
+          5000,
+          5000
+        ],
+        "id_test": [
+          5000,
+          5000
+        ],
+        "ood_c1": [
+          8000,
+          8000
+        ],
+        "ood_c2": [
+          8000,
+          8000
+        ]
+      }
+    }
+  ],
+  "n_failed": 0,
+  "exact_duplicates": {
+    "pool_images_in_exact_duplicate_groups": 0,
+    "test_images_exactly_in_pool": 0
+  },
+  "repro": {
+    "pathmnist_hash": "ae710a5dc1c729ac12c8368d1ef97af21c388e9d45649ba4d87e6d58aa18e9bd",
+    "camelyon_hash": "7fed1b19f8275366e8938e63f28549323753eb0c8a6647f1e5f071f66d7e0c7e",
+    "identical_on_rebuild": true
+  },
+  "camelyon_metadata": {
+    "n_rows": 455954,
+    "n_slides": 50,
+    "per_hospital": {
+      "0": 59436,
+      "1": 34904,
+      "2": 85054,
+      "3": 129838,
+      "4": 146722
+    },
+    "slides_per_hospital": {
+      "0": 10,
+      "1": 10,
+      "2": 10,
+      "3": 10,
+      "4": 10
+    },
+    "tumor_frac_per_hospital": {
+      "0": 0.5,
+      "1": 0.5,
+      "2": 0.5,
+      "3": 0.5,
+      "4": 0.5
+    }
+  },
+  "camelyon_images_extracted": false,
+  "camelyon_overlap_all": {
+    "n_slides": 50,
+    "mean_frac_patches_overlapping": 0.6896,
+    "max_frac_patches_overlapping": 0.9818
+  },
+  "camelyon_overlap_subset": {
+    "n_slides": 50,
+    "mean_frac_patches_overlapping": 0.3815,
+    "max_frac_patches_overlapping": 0.9124
+  },
+  "pathmnist_excluded_from_nct7k": 0,
+  "pathmnist_thresholds": {
+    "within_pool_clustering_rms": 0.02,
+    "cross_exclusion_rms": 0.01
+  },
+  "pathmnist_nct7k_exclusions_by_threshold": {
+    "0.0": {
+      "n_excluded": 0,
+      "by_class": {}
+    },
+    "0.005": {
+      "n_excluded": 0,
+      "by_class": {}
+    },
+    "0.01": {
+      "n_excluded": 0,
+      "by_class": {}
+    },
+    "0.02": {
+      "n_excluded": 364,
+      "by_class": {
+        "adipose": 1,
+        "background": 363
+      }
+    },
+    "0.03": {
+      "n_excluded": 661,
+      "by_class": {
+        "adipose": 1,
+        "background": 643,
+        "mucus": 17
+      }
+    },
+    "0.05": {
+      "n_excluded": 1195,
+      "by_class": {
+        "adipose": 53,
+        "background": 757,
+        "debris": 64,
+        "mucus": 204,
+        "smooth_muscle": 75,
+        "stroma": 31,
+        "tumor_epithelium": 11
+      }
+    }
+  },
+  "pathmnist_excluded_by_class": {},
+  "pathmnist_nct7k_by_class_before_exclusion": {
+    "adipose": 1338,
+    "background": 847,
+    "debris": 339,
+    "lymphocytes": 634,
+    "mucus": 1035,
+    "smooth_muscle": 592,
+    "normal_mucosa": 741,
+    "stroma": 421,
+    "tumor_epithelium": 1233
+  },
+  "pair_figure_pairs": 8,
+  "nontissue_flagged": 0,
+  "dark_flagged": 0
+}
