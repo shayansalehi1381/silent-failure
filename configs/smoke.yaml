@@ -28,6 +28,7 @@ camelyon:
   repo: wltjr1007/Camelyon17-WILDS
   archive_path: null
   fetch_images: true
+  group_by: patient                 # grouping unit that never crosses splits (patient; a patient can own several slides)
   source_hospitals: [0, 3, 4]
   ood_hospitals: {ood_c1: 1, ood_c2: 2}
   sizes: {train: 600, val_es: 60, val_cal: 80, id_test: 80, ood_c1: 100, ood_c2: 100}
@@ -63,4 +64,5 @@ bench:
   cooldown_max_s: 300
   min_free_ram_gb: 6
 stages: [0, 1]
+
 

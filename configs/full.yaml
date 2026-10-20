@@ -28,8 +28,9 @@ camelyon:
   source: hf_mirror                 # hf_mirror | local_archive | synthetic (smoke only)
   repo: wltjr1007/Camelyon17-WILDS  # unofficial mirror; official host has an expired TLS certificate
   archive_path: null                # path to the original WILDS archive (alternative source)
-  fetch_images: false               # set true after the user approved the ~9.9 GB transfer
+  fetch_images: true                # set true after the user approved the ~9.9 GB transfer
   subset_npz: data/camelyon17_subset_96.npz   # extracted uint8 patches (git-ignored)
+  group_by: patient                 # grouping unit that never crosses splits (patient; a patient can own several slides)
   source_hospitals: [0, 3, 4]
   ood_hospitals: {ood_c1: 1, ood_c2: 2}
   sizes: {train: 40000, val_es: 3000, val_cal: 5000, id_test: 5000, ood_c1: 8000, ood_c2: 8000}
@@ -45,14 +46,23 @@ camelyon:
     device: auto
 model:
   arch: resnet18
-  pretrained: false                 # from scratch: avoids an ImageNet-pretraining confound
-  num_classes: 9
+  pretrained: true                  # ImageNet weights (torchvision IMAGENET1K_V1, ~45 MB, downloaded in Phase 2).
+  weights: IMAGENET1K_V1            # Why: standard practice in medical imaging, faster convergence, and
+                                    # comparable with the group partner's setup (replaces the earlier from-scratch plan)
+  num_classes: 9                    # PathMNIST; Camelyon17 uses 2 (head is replaced either way)
 train:
   seeds: [0, 1, 2, 3, 4]
-  epochs: 12                        # maximum; early stopping may end sooner
+  epochs: 8                         # maximum; early stopping may end sooner (pretrained converges faster)
   early_stopping:
-    metric: val_loss                # source val split
-    patience: 3
+    metric: val_loss                # source val_es split only
+    patience: 2
+  optimizer:                        # PROPOSED defaults, validated on val_es in Phase 2 (never on shifted data)
+    name: sgd
+    lr: 0.01                        # lower than the 0.05 used for from-scratch benchmarking: fine-tuning
+    momentum: 0.9
+    weight_decay: 5.0e-4
+    schedule: cosine                # over the max epochs
+    label_smoothing: 0.0            # keep off: it distorts calibration, which the study measures
   batch_size: 128
   grad_accum: 1
   amp: true
@@ -70,5 +80,7 @@ stats:
   bootstrap_resamples: 2000
   fdr: BH
 stages: [0, 1]
+
+
 
 

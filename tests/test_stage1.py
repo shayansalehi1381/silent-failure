@@ -68,6 +68,14 @@ def test_balanced_sample_balances_labels_and_caps_by_availability():
     assert s.index.equals(balanced_sample(df, 400, "g", "y", seed=0).index)
 
 
+def test_read_npz_rows_matches_np_load(tmp_path):
+    from sfd.data.pathmnist import read_npz_rows
+    a = np.random.default_rng(0).integers(0, 255, (50, 8, 8, 3), dtype=np.uint8)
+    np.savez_compressed(tmp_path / "x.npz", train_images=a)
+    got = read_npz_rows(tmp_path / "x.npz", "train_images", [0, 7, 49, 23], chunk_rows=6)
+    assert sorted(got) == [0, 7, 23, 49] and all(np.array_equal(got[i], a[i]) for i in got)
+
+
 # ---------------------------------------------------------------- near-duplicates ------------
 def test_dedup_finds_planted_duplicates_and_clusters_them():
     rng = np.random.default_rng(0)
@@ -155,7 +163,10 @@ def test_camelyon_plan_group_aware_and_deterministic():
     b = camelyon.plan_subset(meta, cfg, 0)
     assert audit.manifest_hash(a, ["uid", "split", "group"]) == audit.manifest_hash(b, ["uid", "split", "group"])
     audit.assert_unique_uid(a)
-    audit.assert_group_disjoint(a, "group")                                   # no slide crosses splits
+    assert cfg["camelyon"]["group_by"] == "patient"
+    audit.assert_group_disjoint(a, "group")                                   # grouping unit never crosses splits
+    audit.assert_group_disjoint(a, "patient")                                 # no patient crosses splits
+    audit.assert_group_disjoint(a, "slide")                                   # nor any slide
     src = a[a["split"].isin(camelyon.SPLIT_NAMES)]
     assert set(src["hospital"]) <= {0, 3, 4}
     assert set(a.loc[a["split"] == "ood_c1", "hospital"]) == {1} and set(a.loc[a["split"] == "ood_c2", "hospital"]) == {2}
@@ -219,6 +230,8 @@ def test_frozen_splits_integrity():
     pm, cam = sp[sp["dataset"] == "pathmnist"], sp[sp["dataset"] == "camelyon17"]
     audit.assert_group_disjoint(pm, "group")
     audit.assert_group_disjoint(cam, "group")
+    audit.assert_group_disjoint(cam, "patient")
+    audit.assert_group_disjoint(cam, "slide")
     audit.assert_splits_nonempty_all_classes(pm, 9, ["train", "val_es", "val_cal", "id_test", "nct7k_test"])
     audit.assert_splits_nonempty_all_classes(cam, 2, ["train", "val_es", "val_cal", "id_test", "ood_c1", "ood_c2"])
     audit.assert_fractions(pm[pm["split"].isin(camelyon.SPLIT_NAMES)], cfg["pathmnist"]["split_fractions"],

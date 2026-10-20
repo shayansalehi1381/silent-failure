@@ -21,15 +21,16 @@ def test_config_loads(path):
     for key in ("seed", "paths", "data", "model", "train", "stages"):
         assert key in cfg
     assert cfg["data"]["pathmnist_size"] == 128 and cfg["data"]["camelyon_size"] == 96
-    assert cfg["model"]["pretrained"] is False
+    assert isinstance(cfg["model"]["pretrained"], bool)       # smoke avoids the weight download
     assert resolve(cfg, "data_dir").is_absolute()
 
 
 def test_full_config_decisions():
     t = load_config(FULL)["train"]
     assert t["seeds"] == [0, 1, 2, 3, 4]
-    assert t["epochs"] == 12
-    assert t["early_stopping"] == {"metric": "val_loss", "patience": 3}
+    assert load_config(FULL)["model"]["pretrained"] is True and load_config(FULL)["model"]["weights"] == "IMAGENET1K_V1"
+    assert t["epochs"] == 8
+    assert t["early_stopping"] == {"metric": "val_loss", "patience": 2}
     assert (t["batch_size"], t["grad_accum"], t["amp"], t["channels_last"]) == (128, 1, True, True)
 
 

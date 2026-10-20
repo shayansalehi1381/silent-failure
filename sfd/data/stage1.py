@@ -20,6 +20,7 @@ import pandas as pd
 
 from sfd.config import ROOT, resolve
 from sfd.data import audit, camelyon, dedup, remote
+from sfd.data.pathmnist import read_npz_rows
 from sfd.data.splits import group_stratified_split
 from sfd.sysinfo import process_mem_gb, ram_gb
 
@@ -203,10 +204,10 @@ def run(cfg: dict, out_dir: Path, log=print) -> dict:
                                cam_df["label"].values, csat)
 
     # ---- assemble splits.parquet (small columns only)
-    pm_out = pm_df.assign(flag_nontissue=False, flag_dark=False)[
-        ["uid", "dataset", "split", "group", "label", "hospital", "src_index", "reason", "flag_nontissue", "flag_dark"]]
-    cam_out = cam_df.assign(src_index=cam_df["image_id"], reason="")[
-        ["uid", "dataset", "split", "group", "label", "hospital", "src_index", "reason", "flag_nontissue", "flag_dark"]]
+    cols = ["uid", "dataset", "split", "group", "slide", "patient", "label", "hospital", "src_index", "reason",
+            "flag_nontissue", "flag_dark"]
+    pm_out = pm_df.assign(flag_nontissue=False, flag_dark=False, slide=-1, patient=-1)[cols]
+    cam_out = cam_df.assign(src_index=cam_df["image_id"], reason="")[cols]
     splits = pd.concat([pm_out, cam_out], ignore_index=True)
     splits["src_index"] = splits["src_index"].astype("int64")
 
@@ -242,7 +243,10 @@ def run(cfg: dict, out_dir: Path, log=print) -> dict:
           lambda: _zero(audit.assert_no_pair_across(pairs["cross_i"], pairs["cross_j"], pairs["cross_r"], thr_x,
                                                     test_split, pool_split)))
     src_h, ood = set(cam["source_hospitals"]), cam["ood_hospitals"]
-    check("camelyon: no slide crosses splits", lambda: audit.assert_group_disjoint(cax, "group"))
+    check(f"camelyon: no {cam.get('group_by', 'slide')} (grouping unit) crosses splits",
+          lambda: audit.assert_group_disjoint(cax, "group"))
+    check("camelyon: no patient crosses splits", lambda: audit.assert_group_disjoint(cax, "patient"))
+    check("camelyon: no slide crosses splits", lambda: audit.assert_group_disjoint(cax, "slide"))
     check("camelyon: source splits use source hospitals only",
           lambda: _all(cax[cax["split"].isin(POOL_SPLITS)]["hospital"].isin(src_h)))
     check("camelyon: OOD splits are exactly their held-out hospital",
@@ -398,12 +402,10 @@ def _pair_figure(cfg, fp, pairs, thr, thr_x, out_png: Path, log, n_max: int = 8)
         for g in (a, b):
             need.setdefault(str(fp["src_split"][g]), set()).add(int(fp["src_index"][g]))
     path = resolve(cfg, "data_dir") / f"pathmnist_{cfg['data']['pathmnist_size']}.npz"
-    z, got = np.load(path), {}
-    for s, idxs in need.items():
-        arr = z[f"{s}_images"]
-        for i in idxs:
-            got[(s, i)] = arr[i].copy()
-        del arr
+    got = {}
+    for s, idxs in need.items():                       # streamed: never holds a whole split in RAM
+        for i, im in read_npz_rows(path, f"{s}_images", idxs).items():
+            got[(s, i)] = im
     pairs_img = []
     for r, a, b, kind in cand:
         ia, ib = got[(str(fp["src_split"][a]), int(fp["src_index"][a]))], got[(str(fp["src_split"][b]), int(fp["src_index"][b]))]

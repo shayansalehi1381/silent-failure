@@ -1,4 +1,4 @@
-"""Camelyon17-WILDS v1.0 (96x96) metadata, group-aware subset planning and patch extraction.
+﻿"""Camelyon17-WILDS v1.0 (96x96) metadata, group-aware subset planning and patch extraction.
 
 Sources (cfg camelyon.source):
   hf_mirror     - unofficial HF parquet mirror `wltjr1007/Camelyon17-WILDS` (the official WILDS host has
@@ -102,7 +102,8 @@ def synthetic_metadata(n_per_slide: int = 200, seed: int = 0) -> pd.DataFrame:
             x = rng.integers(0, 4000, n_per_slide)
             y = rng.integers(0, 4000, n_per_slide)
             for i in range(n_per_slide):
-                rows.append((len(rows), int(rng.random() < 0.5), h, slide // 2, slide % 5, x[i], y[i], slide))
+                patient = h * 5 + min(k, 4)          # 5 patients per hospital; the last patient owns 2 slides
+                rows.append((len(rows), int(rng.random() < 0.5), h, patient, slide % 5, x[i], y[i], slide))
     meta = pd.DataFrame(rows, columns=META_COLS).rename(columns={"center": "hospital"})
     meta = meta.rename(columns={"center": "hospital"})
     meta["shard"], meta["row_in_shard"], meta["mirror_split"] = "synthetic", np.arange(len(meta)), "train"
@@ -127,12 +128,15 @@ def validate_metadata(meta: pd.DataFrame, expect: dict | None = None) -> dict:
 
 # ------------------------------------------------------------------ planning --------------
 def plan_subset(meta: pd.DataFrame, cfg: dict, seed: int) -> pd.DataFrame:
-    """Slide-disjoint split of source hospitals + patch sampling; OOD hospitals sampled per patch.
+    """Group-disjoint split of source hospitals + patch sampling; OOD hospitals sampled per patch.
 
-    Returns the manifest rows (one per selected patch) with columns split, group (=slide), hospital...
+    The grouping unit that never crosses splits is cfg camelyon.group_by (patient | slide); the
+    manifest column `group` holds it. Returns one row per selected patch.
     """
     c = cfg["camelyon"]
     sizes, src_h = c["sizes"], list(c["source_hospitals"])
+    gcol = c.get("group_by", "slide")
+    assert gcol in ("patient", "slide"), "camelyon.group_by must be 'patient' or 'slide'"
     rng_seed = int(seed)
     parts = []
 
@@ -141,14 +145,14 @@ def plan_subset(meta: pd.DataFrame, cfg: dict, seed: int) -> pd.DataFrame:
     tot = sum(sizes[s] for s in SPLIT_NAMES)
     fractions = {s: sizes[s] / tot for s in SPLIT_NAMES}
     # rows = (slide, label) with the patch count as weight, so the greedy assignment balances each label
-    slide_tbl = src.groupby(["hospital", "slide", "label"]).size().rename("n").reset_index()
+    slide_tbl = src.groupby(["hospital", gcol, "label"]).size().rename("n").reset_index()
     slide_split = {}
     for h in src_h:
         st = slide_tbl[slide_tbl["hospital"] == h].reset_index(drop=True)
-        assigned = group_stratified_split(st["slide"].values, st["label"].values, fractions, rng_seed + h,
+        assigned = group_stratified_split(st[gcol].values, st["label"].values, fractions, rng_seed + h,
                                           weights=st["n"].values, min_groups=1)
-        slide_split.update(dict(zip(st["slide"], assigned)))
-    src = src.assign(split=src["slide"].map(slide_split))
+        slide_split.update(dict(zip(st[gcol], assigned)))
+    src = src.assign(split=src[gcol].map(slide_split))
     # 2) subsample patches inside each split: hospitals proportional to availability, labels balanced
     for s in SPLIT_NAMES:
         pool = src[src["split"] == s]
@@ -159,7 +163,7 @@ def plan_subset(meta: pd.DataFrame, cfg: dict, seed: int) -> pd.DataFrame:
         parts.append(balanced_sample(pool, sizes[name], "slide", "label", rng_seed + 200 + int(h)))
     man = pd.concat(parts, ignore_index=True)
     man["uid"] = "camelyon17/" + man["image_id"].astype(str)
-    man["group"] = man["slide"].astype(int)
+    man["group"] = man[gcol].astype(int)
     man["dataset"] = "camelyon17"
     return man.sort_values("image_id", kind="stable").reset_index(drop=True)
 
@@ -241,17 +245,17 @@ def extract_images(man: pd.DataFrame, cfg: dict, out_npz: Path, cache_dir: Path,
             part = cache_dir / (Path(shard).stem + ".npz")
             if part.exists():
                 z = np.load(part)
-                if np.array_equal(z["uid"], grp["uid"].values.astype(str)):
+                if np.array_equal(z["uid"], grp["uid"].to_numpy(dtype=str)):
                     imgs[grp.index.to_numpy()] = z["images"]
                     log(f"  {shard}: loaded from cache")
                     continue
             url = f"https://huggingface.co/datasets/{c['repo']}/resolve/main/{shard}"
             _extract_hf_shard(remote.RangeClient(url), grp, imgs)
-            np.savez(part, images=imgs[grp.index.to_numpy()], uid=grp["uid"].values.astype(str))
+            np.savez(part, images=imgs[grp.index.to_numpy()], uid=grp["uid"].to_numpy(dtype=str))
             log(f"  {shard}: {len(grp)} patches (transferred {remote.DOWNLOADED_BYTES / 2**30:.2f} GiB)")
     fl = tissue_flags(imgs, c["nontissue_min_tissue_frac"], c["dark_mean_intensity"])
     out_npz.parent.mkdir(parents=True, exist_ok=True)
-    np.savez(out_npz, images=imgs, uid=man["uid"].values.astype(str))
+    np.savez(out_npz, images=imgs, uid=man["uid"].to_numpy(dtype=str))
     return pd.concat([man, fl], axis=1)
 
 
@@ -275,3 +279,5 @@ def spatial_overlap_report(meta: pd.DataFrame, patch: int = 96) -> pd.DataFrame:
 def save_json(obj, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, indent=2, default=str), encoding="utf-8")
+
+
