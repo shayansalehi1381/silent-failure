@@ -24,7 +24,13 @@ def stage0(cfg: dict, out_dir: Path) -> None:
     print(f"  GPU: {rec.get('gpu', 'none')}, cuda_available={rec['cuda_available']}")
 
 
-STAGES = {0: stage0}  # later phases register stage1..stage9 here
+def stage1(cfg: dict, out_dir: Path) -> None:
+    from sfd.data import stage1 as s1
+
+    s1.run(cfg, out_dir)
+
+
+STAGES = {0: stage0, 1: stage1}  # later phases register stage2..stage9 here
 
 
 def main() -> None:
