@@ -127,11 +127,15 @@ def validate_metadata(meta: pd.DataFrame, expect: dict | None = None) -> dict:
 
 
 # ------------------------------------------------------------------ planning --------------
-def plan_subset(meta: pd.DataFrame, cfg: dict, seed: int) -> pd.DataFrame:
+def plan_subset(meta: pd.DataFrame, cfg: dict, seed: int, assignment: dict | None = None,
+                prefer_ids: set | None = None) -> pd.DataFrame:
     """Group-disjoint split of source hospitals + patch sampling; OOD hospitals sampled per patch.
 
     The grouping unit that never crosses splits is cfg camelyon.group_by (patient | slide); the
     manifest column `group` holds it. Returns one row per selected patch.
+    Optional (used by the Phase 1b analysis only; the frozen plan uses neither): `assignment` maps every
+    source group to a split name instead of the greedy assignment; `prefer_ids` is a set of image_id whose
+    rows are drawn first when sampling the source splits (e.g. already-downloaded patches).
     """
     c = cfg["camelyon"]
     sizes, src_h = c["sizes"], list(c["source_hospitals"])
@@ -147,16 +151,22 @@ def plan_subset(meta: pd.DataFrame, cfg: dict, seed: int) -> pd.DataFrame:
     # rows = (slide, label) with the patch count as weight, so the greedy assignment balances each label
     slide_tbl = src.groupby(["hospital", gcol, "label"]).size().rename("n").reset_index()
     slide_split = {}
-    for h in src_h:
-        st = slide_tbl[slide_tbl["hospital"] == h].reset_index(drop=True)
-        assigned = group_stratified_split(st[gcol].values, st["label"].values, fractions, rng_seed + h,
-                                          weights=st["n"].values, min_groups=1)
-        slide_split.update(dict(zip(st[gcol], assigned)))
+    if assignment is not None:
+        assert set(assignment) == set(src[gcol].unique()), "assignment must cover exactly the source groups"
+        slide_split = dict(assignment)
+    else:
+        for h in src_h:
+            st = slide_tbl[slide_tbl["hospital"] == h].reset_index(drop=True)
+            assigned = group_stratified_split(st[gcol].values, st["label"].values, fractions, rng_seed + h,
+                                              weights=st["n"].values, min_groups=1)
+            slide_split.update(dict(zip(st[gcol], assigned)))
     src = src.assign(split=src[gcol].map(slide_split))
     # 2) subsample patches inside each split: hospitals proportional to availability, labels balanced
+    prefer = set(src.index[src["image_id"].isin(prefer_ids)]) if prefer_ids else None
     for s in SPLIT_NAMES:
         pool = src[src["split"] == s]
-        parts.append(balanced_sample(pool, sizes[s], "hospital", "label", rng_seed + 100 + SPLIT_NAMES.index(s)))
+        parts.append(balanced_sample(pool, sizes[s], "hospital", "label", rng_seed + 100 + SPLIT_NAMES.index(s),
+                                     prefer=prefer))
     # 3) OOD hospitals: slides proportional to availability, labels balanced
     for name, h in c["ood_hospitals"].items():
         pool = meta[meta["hospital"] == h].assign(split=name)

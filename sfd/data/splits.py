@@ -85,9 +85,12 @@ def stratified_sample(df: pd.DataFrame, n: int, strata_cols: list[str], seed: in
     return df.loc[sorted(picked)].copy()
 
 
-def balanced_sample(df: pd.DataFrame, n: int, group_col: str, label_col: str, seed: int) -> pd.DataFrame:
+def balanced_sample(df: pd.DataFrame, n: int, group_col: str, label_col: str, seed: int,
+                    prefer: set | None = None) -> pd.DataFrame:
     """Sample n rows: groups (e.g. hospital or slide) proportionally to availability, and within each
-    group as close to 50/50 between the labels as availability allows (shortfall goes to the other label)."""
+    group as close to 50/50 between the labels as availability allows (shortfall goes to the other label).
+    `prefer` (a set of index labels, default None = off) makes the draw take those rows first, e.g. rows whose
+    images are already cached; the allocation of counts is identical either way."""
     if n >= len(df):
         return df.copy()
     g_cnt = df[group_col].value_counts().sort_index()
@@ -102,5 +105,14 @@ def balanced_sample(df: pd.DataFrame, n: int, group_col: str, label_col: str, se
         lq = lq + _allocate(avail - lq, q - lq.sum())          # remainder to labels with room
         for l, k in zip(labs, lq):
             idx = np.sort(sub.index[sub[label_col] == l].to_numpy())
-            picked.extend(rng.choice(idx, size=int(k), replace=False).tolist())
+            if prefer:
+                pref = np.array([i for i in idx if i in prefer], dtype=idx.dtype)
+                rest = np.array([i for i in idx if i not in prefer], dtype=idx.dtype)
+                take = min(int(k), len(pref))
+                chosen = rng.choice(pref, size=take, replace=False).tolist() if take else []
+                if int(k) > take:
+                    chosen += rng.choice(rest, size=int(k) - take, replace=False).tolist()
+                picked.extend(chosen)
+            else:
+                picked.extend(rng.choice(idx, size=int(k), replace=False).tolist())
     return df.loc[sorted(picked)].copy()
