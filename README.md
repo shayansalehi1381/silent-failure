@@ -1,4 +1,4 @@
-# Silent failure in medical image classifiers under distribution shift
+﻿# Silent failure in medical image classifiers under distribution shift
 
 Do representation drift and Grad-CAM explanation drift detect *silent failures*
 (wrong prediction with high calibrated confidence) beyond calibrated uncertainty, and do
@@ -41,21 +41,24 @@ The first call that needs PathMNIST downloads `data/pathmnist_128.npz` (4.26 GB,
 RTX 3060 Laptop GPU, 6 GB VRAM, 15.6 GB RAM (often mostly used), Windows. No DataLoader workers:
 uint8 data stays in RAM (PathMNIST 128px train is ~4.4 GB), augmentation runs on the GPU,
 `torch.autocast` fp16 + `channels_last`, batch 128 (fallback 64 x 2 accumulation). The laptop runs hot:
-keep it on AC power with good airflow; benchmarks stop at 83 C.
+keep it on AC power with good airflow; the sustained benchmark aborts at 99 C (card slowdown temp 102 C minus 3 C; shutdown 105 C).
 
 ## Phase 0 benchmark results (measured, ResNet-18, batch 128, AMP, channels_last)
 | Benchmark | Images/s | Epoch (90k) | Peak VRAM (alloc/reserved) | GPU temp max | Throttling |
 |---|---|---|---|---|---|
 | Short (`bench.json`; 2000 images, 5 GPU samples) | 475 | 3.16 min | 0.62 / 0.73 GB | 76 C | not recorded |
-| Sustained attempt (`bench_sustained.json`) | 435 (overall, 29 s only) | 3.45 min (extrapolated) | 0.62 / 0.73 GB | **84 C** | SW power cap (0x4) seen |
+| Sustained (`bench_sustained.json`; 240.8 s, 102,400 images, 48 samples at 5 s) | first min 444.3, last min 406.1 (per minute: 444, 438, 413, 406) | 3.69 min (from last minute) | 0.62 / 0.72 GB | 87 C (mean 84.1) | SW power cap and **SW thermal slowdown** (no HW thermal) |
 
-**The sustained benchmark is INCOMPLETE:** it started at 76 C, rose ~1 C per 5 s without a plateau, and was
-stopped automatically at 84 C after 29 s. There is no first-minute vs last-minute comparison. Rough
-5-seed x 12-epoch training time from the two numbers above: ~190-207 min of GPU time, if thermal limits permit.
-Free RAM was 7.2 GB before and 3.0 GB after loading the train set.
+Sustained run details: started at 60 C after a 211 s cooldown from 77 C; abort threshold 99 C (never reached).
+From about 90 s the GPU sat at its 87 C target temperature, SW thermal slowdown (0x20) was active for the rest
+of the run, the SM clock fell from ~1790 to ~1220-1500 MHz and power from ~78 W to ~55 W, costing ~9 % throughput
+(444 -> 406 img/s, still slowly declining in minute 4). Training is safe at this operating point (15 C under the card's
+slowdown temperature) but ~9 % slower than a cold start. Estimated GPU time for 5 seeds x 12 epochs (maximum, early
+stopping may shorten it): ~222 min; x 10 epochs: ~185 min. Free RAM: 7.2 GB before, 3.1 GB after loading the train set.
+Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max operating/shutdown 105 C.
 
 ## Status
 | Phase | Content | Status |
 |---|---|---|
-| 0 | Repo, env, requirements, configs, PathMNIST loader, benchmarks, tests, smoke | done except the sustained benchmark (thermal stop) |
+| 0 | Repo, env, requirements, configs, PathMNIST loader, benchmarks, tests, smoke | done |
 | 1-9 | Stages 1-9 of the roadmap | not started |

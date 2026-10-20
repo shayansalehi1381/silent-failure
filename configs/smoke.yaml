@@ -29,6 +29,8 @@ bench:
   n_images: 2000
   sustained_seconds: 20
   sample_period_s: 5
-  temp_stop_c: 83
+  temp_stop_c: 99
+  start_temp_c: 60
+  cooldown_max_s: 300
   min_free_ram_gb: 6
 stages: [0]   # stages enabled so far (placeholders for later phases)

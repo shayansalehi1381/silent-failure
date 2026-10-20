@@ -96,8 +96,8 @@ def main() -> None:
     ram = _ram_gb()
     print(f"free RAM before loading: {ram.get('available')} GB of {ram.get('total')} GB")
     if ram.get("available", 99) < b["min_free_ram_gb"]:
-        print(f"WARNING: free RAM below {b['min_free_ram_gb']} GB; close other programs "
-              f"(the uint8 train set needs ~4.4 GB)")
+        raise SystemExit(f"STOP: free RAM {ram.get('available')} GB < {b['min_free_ram_gb']} GB; "
+                         f"close other programs (the uint8 train set needs ~4.4 GB)")
 
     imgs, labels = load_pathmnist(resolve(cfg, "data_dir"), cfg["data"]["pathmnist_size"],
                                   splits=("train",), download=False)["train"]
@@ -133,6 +133,21 @@ def main() -> None:
         step(torch.randperm(n_full)[:bs])
     torch.cuda.synchronize()
     torch.cuda.reset_peak_memory_stats()
+
+    # cooldown: wait (up to cooldown_max_s) until the GPU is below start_temp_c, logging temperatures
+    cooldown_log, tc0 = [], time.time()
+    while True:
+        cur = float(subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader,nounits"],
+            text=True).strip())
+        cooldown_log.append([round(time.time() - tc0), cur])
+        print(f"[cooldown] t={cooldown_log[-1][0]}s temp={cur} C")
+        if cur <= b["start_temp_c"] or time.time() - tc0 >= b["cooldown_max_s"]:
+            break
+        time.sleep(10)
+    start_temp = cooldown_log[-1][1]
+    if start_temp > b["start_temp_c"]:
+        print(f"NOTE: starting at {start_temp} C (> {b['start_temp_c']} C) after the cooldown limit")
 
     sampler = Sampler(b["sample_period_s"], b["temp_stop_c"])
     sampler.start()
@@ -185,7 +200,8 @@ def main() -> None:
     res = {
         "seconds_run": round(elapsed, 1), "images_processed": int(done),
         "epochs_started": epochs_started, "batch": bs, "grad_accum": accum,
-        "stopped_for_heat": stopped_for_heat,
+        "stopped_for_heat": stopped_for_heat, "abort_temp_c": b["temp_stop_c"],
+        "start_temp_c": start_temp, "cooldown_log_s_temp": cooldown_log,
         "images_per_sec": {"first_minute": first_min, "last_minute": last_min,
                            "overall": overall, "per_minute": per_minute},
         "gpu": {
@@ -200,6 +216,7 @@ def main() -> None:
             "throttle_reason_masks_seen": [hex(r) for r in reasons],
             "throttling_occurred": bool(throttle_flags),
             "throttle_flags": throttle_flags,
+            "thermal_throttle_occurred": any("thermal" in f for f in throttle_flags),
             "n_samples": len(rows), "sample_period_s": b["sample_period_s"],
         },
         "torch_peak_vram_gb": {

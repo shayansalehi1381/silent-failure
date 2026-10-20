@@ -150,8 +150,9 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(res, indent=2), encoding="utf-8")
     t = res["gpu_sampled"].get("temp_c_max", 0)
-    if t > 83:
-        print(f"WARNING: GPU reached {t} C (> 83 C)")
+    limit = cfg["bench"].get("temp_stop_c", 99)
+    if t > limit:
+        print(f"WARNING: GPU reached {t} C (> {limit} C)")
 
 
 if __name__ == "__main__":

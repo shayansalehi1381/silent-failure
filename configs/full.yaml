@@ -30,7 +30,9 @@ bench:
   n_images: 20000                   # short benchmark (scripts/bench.py)
   sustained_seconds: 240            # sustained benchmark (scripts/bench_sustained.py)
   sample_period_s: 5
-  temp_stop_c: 83
+  temp_stop_c: 99                   # card slowdown temp 102 C (nvidia-smi -q -d TEMPERATURE) - 3 C
+  start_temp_c: 60                  # wait for the GPU to cool below this before timing
+  cooldown_max_s: 300
   min_free_ram_gb: 6
 stats:
   bootstrap_resamples: 2000
