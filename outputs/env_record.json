@@ -1,0 +1,40 @@
+{
+  "python": "3.11.17",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "torch": "2.11.0+cu128",
+  "torch_cuda": "12.8",
+  "cudnn": 91900,
+  "cuda_available": true,
+  "nvidia_smi": "NVIDIA GeForce RTX 3060 Laptop GPU, 610.62, 6144 MiB, [N/A]",
+  "ram_gb": {
+    "total": 15.63,
+    "available": 7.23
+  },
+  "disk_free_gb": 616.7,
+  "git_commit": null,
+  "seed": 0,
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "vram_gb": 6.0,
+    "capability": "8.6"
+  },
+  "packages": {
+    "torchvision": "0.26.0+cu128",
+    "numpy": "2.4.6",
+    "pillow": "12.3.0",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.17.1",
+    "medmnist": "3.0.2",
+    "wilds": "2.0.0",
+    "grad-cam": "1.5.7",
+    "statsmodels": "0.15.0",
+    "pyarrow": "26.0.0",
+    "matplotlib": "3.11.2",
+    "seaborn": "0.13.2",
+    "tqdm": "4.70.1",
+    "pyyaml": "6.0.3",
+    "jupyter": "1.1.1",
+    "pytest": "9.1.1"
+  }
+}

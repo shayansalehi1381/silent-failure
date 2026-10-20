@@ -1,0 +1,112 @@
+{
+  "seconds_run": 29.4,
+  "images_processed": 12800,
+  "epochs_started": 1,
+  "batch": 128,
+  "grad_accum": 1,
+  "stopped_for_heat": true,
+  "images_per_sec": {
+    "first_minute": null,
+    "last_minute": null,
+    "overall": 434.8,
+    "per_minute": []
+  },
+  "gpu": {
+    "temp_c_max": 84.0,
+    "temp_c_mean": 80.3,
+    "power_w_max": 78.31,
+    "power_w_mean": 75.1,
+    "sm_clock_mhz_max": 1792.0,
+    "sm_clock_mhz_min": 1762.0,
+    "util_pct_mean": 88.8,
+    "vram_used_mib_max": 1927.0,
+    "throttle_reason_masks_seen": [
+      "0x0",
+      "0x4"
+    ],
+    "throttling_occurred": true,
+    "throttle_flags": [
+      "sw_power_cap"
+    ],
+    "n_samples": 6,
+    "sample_period_s": 5
+  },
+  "torch_peak_vram_gb": {
+    "allocated": 0.62,
+    "reserved": 0.73
+  },
+  "ram_gb": {
+    "before_load": {
+      "total": 15.63,
+      "available": 7.19
+    },
+    "after_load": {
+      "total": 15.63,
+      "available": 2.99
+    }
+  },
+  "disk_free_gb": 616.7,
+  "n_train_full": 89996,
+  "extrapolation_from": "overall",
+  "epoch_min_full_train": 3.45,
+  "estimates_min_5seeds": {
+    "10_epochs": 172.0,
+    "12_epochs": 207.0
+  },
+  "samples": [
+    {
+      "t": 0.1,
+      "temperature.gpu": 76.0,
+      "power.draw": 65.48,
+      "clocks.sm": 1792.0,
+      "utilization.gpu": 44.0,
+      "memory.used": 1918.0,
+      "clocks_throttle_reasons.active": 0
+    },
+    {
+      "t": 5.2,
+      "temperature.gpu": 79.0,
+      "power.draw": 78.31,
+      "clocks.sm": 1762.0,
+      "utilization.gpu": 97.0,
+      "memory.used": 1901.0,
+      "clocks_throttle_reasons.active": 4
+    },
+    {
+      "t": 10.3,
+      "temperature.gpu": 80.0,
+      "power.draw": 78.29,
+      "clocks.sm": 1785.0,
+      "utilization.gpu": 97.0,
+      "memory.used": 1925.0,
+      "clocks_throttle_reasons.active": 0
+    },
+    {
+      "t": 15.4,
+      "temperature.gpu": 81.0,
+      "power.draw": 74.37,
+      "clocks.sm": 1785.0,
+      "utilization.gpu": 96.0,
+      "memory.used": 1915.0,
+      "clocks_throttle_reasons.active": 4
+    },
+    {
+      "t": 20.5,
+      "temperature.gpu": 82.0,
+      "power.draw": 77.07,
+      "clocks.sm": 1785.0,
+      "utilization.gpu": 99.0,
+      "memory.used": 1908.0,
+      "clocks_throttle_reasons.active": 0
+    },
+    {
+      "t": 25.6,
+      "temperature.gpu": 84.0,
+      "power.draw": 76.81,
+      "clocks.sm": 1785.0,
+      "utilization.gpu": 100.0,
+      "memory.used": 1927.0,
+      "clocks_throttle_reasons.active": 0
+    }
+  ]
+}

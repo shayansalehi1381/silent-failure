@@ -1,0 +1,26 @@
+{
+  "n_images": 2000,
+  "batch": 128,
+  "grad_accum": 1,
+  "seconds": 4.2,
+  "images_per_sec": 475.2,
+  "n_train_full": 89996,
+  "epoch_min_full_train": 3.16,
+  "peak_vram_allocated_gb": 0.62,
+  "peak_vram_reserved_gb": 0.73,
+  "gpu_sampled": {
+    "temp_c_max": 76.0,
+    "temp_c_mean": 74.0,
+    "power_w_max": 69.75,
+    "power_w_mean": 62.7,
+    "util_pct_mean": 89.4,
+    "vram_used_mib_max": 1836.0,
+    "n_samples": 5
+  },
+  "disk_free_gb": 616.7,
+  "estimates_min_5seeds": {
+    "10_epochs": 158.0,
+    "20_epochs": 316.0,
+    "30_epochs": 473.0
+  }
+}
