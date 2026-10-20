@@ -21,10 +21,57 @@ python scripts/env_record.py --config configs/full.yaml     # outputs/env_record
 python scripts/bench.py --config configs/smoke.yaml         # short benchmark -> outputs/bench.json
 python scripts/bench_sustained.py --config configs/full.yaml  # sustained benchmark -> outputs/bench_sustained.json
 python scripts/run_all.py --config configs/smoke.yaml       # pipeline smoke test; add --resume
-python -m pytest                                            # unit tests (~15 s)
+python scripts/run_all.py --config configs/full.yaml        # stage 0 + stage 1 (outputs/stage1/); add --resume
+python -m pytest                                            # unit + integrity tests (~40 s)
 ```
 The first call that needs PathMNIST downloads `data/pathmnist_128.npz` (4.26 GB, git-ignored).
 
+## Stage 1 - data, frozen splits, leakage audit (`python scripts/run_all.py --config configs/full.yaml`)
+Code: `sfd/data/` (`stage1.py` orchestrates; `fingerprint`/`dedup.py`, `splits.py`, `camelyon.py`, `remote.py`, `audit.py`).
+Outputs in `outputs/stage1/`: `splits.parquet` (frozen, all datasets), `subset_manifest.parquet` (Camelyon subset),
+`dedup_report.csv` (threshold sensitivity), `leakage_audit.json`, `table1.csv/.md`, `near_duplicate_pairs.png`,
+`camelyon_spatial_overlap*.csv`, `checksums.sha256`, `stage1_report.json` (runtime, RAM, transfer). Heavy intermediate
+results are cached in `outputs/stage1/cache/` (git-ignored), keyed by the config, so re-runs are fast.
+
+- **PathMNIST 128px:** pool = official train + val (100,000). Two separate, configurable thresholds on the RMS
+  difference of 16x16x3 thumbnails (0 = identical):
+  - **within-pool clustering, 0.02** (`pathmnist.dedup.rms_threshold`): connected components of image pairs closer than
+    this are near-duplicate clusters and are never split. Conservative on purpose (keeps look-alikes together).
+    Cluster-level stratified split 80/5/5/10 into `train`/`val_es`/`val_cal`/`id_test`.
+  - **cross-set exclusion from `nct7k_test`, 0.01** (`pathmnist.dedup.cross_exclusion_rms`): the official test
+    (CRC-VAL-HE-7K, family X) images closer than this to a pool image are marked `excluded` (kept in `splits.parquet`,
+    never used). Result: **0 exclusions, 7,180 images kept**. There are no exact (SHA-256) duplicates anywhere.
+  - **Why two thresholds:** at 0.02 the exclusions are 364 images, 363 of them blank BACK tiles (43% of that class in
+    family X) that merely look alike at thumbnail scale (see `near_duplicate_pairs.png`); removing them would bias
+    family X. The same blank tiles chain into giant clusters when the threshold grows (largest pool cluster 1,067
+    images at 0.01, 4,750 at 0.02, 20,278 = 20% of the pool at 0.05), which is why the clustering threshold is
+    conservative but not larger.
+
+  | RMS threshold | pool pairs | pool clusters of size > 1 (images in them) | largest cluster | nct7k_test images excluded (per class) |
+  |---|---|---|---|---|
+  | 0.01 | 840,891 | 43 (3,606) | 1,067 | 0 |
+  | 0.02 | 2,690,968 | 43 (7,170) | 4,750 | 364 (BACK 363, ADI 1) |
+  | 0.05 | 13,890,805 | 33 (20,487) | 20,278 | 1,195 (BACK 757, mucus 204, ...) |
+
+  Full table (0 - 0.05): `outputs/stage1/dedup_report.csv`; per-class exclusions per threshold: `leakage_audit.json`.
+- **Camelyon17-WILDS 96px:** source hospitals 0,3,4 -> slide-disjoint `train`/`val_es`/`val_cal`/`id_test`
+  (sizes in `camelyon.sizes`); hospital 1 -> `ood_c1`, hospital 2 -> `ood_c2`. Labels are balanced within a split as far
+  as the slides allow (tumour patches are concentrated in few slides). Non-tissue and dark patches are flagged, not dropped.
+  Source: the unofficial HF mirror `wltjr1007/Camelyon17-WILDS` (the official WILDS host has an expired TLS
+  certificate; verification is never disabled) or a local WILDS archive (`camelyon.archive_path`). Metadata
+  (455,954 rows, 50 slides) was verified against WILDS v1.0 counts using ~36 MiB of range requests; images are streamed
+  (~9.9 GiB) only when `camelyon.fetch_images: true`.
+- **Known limitations (Camelyon):**
+  - *Label-prior gap.* Tumour patches are concentrated in a few WILDS slides (most slides are at 0-7% tumour, a few at
+    60-93%), and slide-disjoint splits cannot fix that. Label-balanced sampling gives train and val_cal 50% tumour,
+    but val_es and id_test only ~31% and the OOD splits ~42%. Accuracy/calibration differences between splits include
+    this prior shift; rank metrics (AUROC) are less affected.
+  - *Few slides per split.* Outside train (21 slides) each source split has only 3-4 slides, so in-distribution
+    test/validation estimates are noisy and dominated by slide effects; bootstrap CIs must resample slides.
+  - *Spatial overlap.* In WILDS, on average 69% of patches overlap another patch of the same slide (up to 98%; 38% on
+    average in the sampled subset), which is why splitting is by slide, never by patch.
+- **Smoke:** uses a synthetic Camelyon-like fixture (random tiles + WILDS-like metadata) that exercises the code only;
+  it is never written to `data/`.
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),
@@ -61,4 +108,6 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | Phase | Content | Status |
 |---|---|---|
 | 0 | Repo, env, requirements, configs, PathMNIST loader, benchmarks, tests, smoke | done |
-| 1-9 | Stages 1-9 of the roadmap | not started |
+| 1 | Data, frozen splits, leakage audit | PathMNIST done; Camelyon plan frozen, images pending approval of the ~9.9 GiB transfer |
+| 2-9 | Stages 2-9 of the roadmap | not started |
+

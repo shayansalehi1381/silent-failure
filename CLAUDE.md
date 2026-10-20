@@ -1,4 +1,4 @@
-# Project: Silent failure detection of medical image classifiers under shift
+﻿# Project: Silent failure detection of medical image classifiers under shift
 
 Research question: do representation drift and Grad-CAM explanation drift detect
 confident errors (silent failures = wrong prediction with high calibrated confidence)
@@ -10,6 +10,8 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Datasets (agreed with group): PathMNIST 128x128 (MedMNIST v2), MedMNIST-C v0.1.0
   (corruptions applied at 224 then resized to 128), Camelyon17-WILDS v1.0 at 96x96.
   Do NOT change dataset versions or resolutions without asking.
+- PathMNIST pool = official train+val (100k, near-duplicate-cluster split); official test = family X (`nct7k_test`).
+  Camelyon17 is fetched from the HF mirror (never disable TLS verification) or a local archive.
 - Sub-dataset (stratified, group-aware by hospital/slide, fixed seed, saved as manifest)
   is used; its size is a config parameter (decided after the Phase 0 benchmark).
 - Model: ResNet-18 trained FROM SCRATCH (no ImageNet weights, to avoid a pretraining confound),
@@ -41,3 +43,4 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Remote `origin` = https://github.com/shayansalehi1381/silent-failure.git (private), branch `main`.
 - Never commit data, weights, secrets, or files > 50 MB; small CSV/PNG/JSON in outputs/ (< 5 MB) ok.
 - Conventional Commits; tag each phase `phase-N`; never force-push or rewrite history.
+
