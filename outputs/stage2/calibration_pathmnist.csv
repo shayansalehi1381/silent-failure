@@ -1,0 +1,6 @@
+dataset,seed,T_standard,T_prior_reweighted,best_epoch,epochs_run,train_seconds
+pathmnist,0,0.8659,,8,8,1202.2
+pathmnist,1,0.9618,,8,8,1545.2
+pathmnist,2,0.937,,5,7,449.5
+pathmnist,3,0.8868,,8,8,1516.1
+pathmnist,4,0.9393,,8,8,1500.9

@@ -103,7 +103,7 @@
     {
       "check": "camelyon: near-duplicate pairs (rms<=thr) across different splits [reported, not asserted]",
       "passed": true,
-      "value": 55
+      "value": 32
     }
   ],
   "n_failed": 0,
@@ -113,7 +113,7 @@
   },
   "repro": {
     "pathmnist_hash": "ae710a5dc1c729ac12c8368d1ef97af21c388e9d45649ba4d87e6d58aa18e9bd",
-    "camelyon_hash": "41be2fe0849ad12e3c9893296557bb19fa0883fccf45cc1140ed18c03ec9c74e",
+    "camelyon_hash": "2123eabe7a65bb9097817a2888d36661c39505162cbab0c429354f5c183bb3a5",
     "identical_on_rebuild": true
   },
   "camelyon_metadata": {
@@ -149,8 +149,8 @@
   },
   "camelyon_overlap_subset": {
     "n_slides": 50,
-    "mean_frac_patches_overlapping": 0.3796,
-    "max_frac_patches_overlapping": 0.9078
+    "mean_frac_patches_overlapping": 0.3832,
+    "max_frac_patches_overlapping": 0.8445
   },
   "pathmnist_excluded_from_nct7k": 0,
   "pathmnist_thresholds": {
@@ -211,6 +211,6 @@
     "tumor_epithelium": 1233
   },
   "pair_figure_pairs": 8,
-  "nontissue_flagged": 772,
+  "nontissue_flagged": 797,
   "dark_flagged": 93
 }

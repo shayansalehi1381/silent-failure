@@ -3,64 +3,64 @@
     {
       "step": "pathmnist fingerprints",
       "seconds": 0.2,
-      "free_ram_gb_before": 5.27,
-      "free_ram_gb_after": 4.97,
-      "process_peak_gb": 0.86,
+      "free_ram_gb_before": 5.91,
+      "free_ram_gb_after": 5.61,
+      "process_peak_gb": 0.41,
       "downloaded_mib": 0.0
     },
     {
       "step": "pathmnist near-duplicate search",
       "seconds": 0.2,
-      "free_ram_gb_before": 4.97,
-      "free_ram_gb_after": 4.67,
-      "process_peak_gb": 1.16,
+      "free_ram_gb_before": 5.6,
+      "free_ram_gb_after": 5.31,
+      "process_peak_gb": 0.71,
       "downloaded_mib": 0.0
     },
     {
       "step": "pathmnist split",
       "seconds": 1.1,
-      "free_ram_gb_before": 4.67,
-      "free_ram_gb_after": 4.65,
-      "process_peak_gb": 1.26,
+      "free_ram_gb_before": 5.31,
+      "free_ram_gb_after": 5.26,
+      "process_peak_gb": 0.81,
       "downloaded_mib": 0.0
     },
     {
       "step": "camelyon metadata",
-      "seconds": 0.1,
-      "free_ram_gb_before": 4.65,
-      "free_ram_gb_after": 4.56,
-      "process_peak_gb": 1.28,
+      "seconds": 0.2,
+      "free_ram_gb_before": 5.26,
+      "free_ram_gb_after": 5.18,
+      "process_peak_gb": 0.83,
       "downloaded_mib": 0.0
     },
     {
       "step": "camelyon plan",
       "seconds": 0.2,
-      "free_ram_gb_before": 4.55,
-      "free_ram_gb_after": 4.48,
-      "process_peak_gb": 1.36,
+      "free_ram_gb_before": 5.17,
+      "free_ram_gb_after": 5.12,
+      "process_peak_gb": 0.9,
       "downloaded_mib": 0.0
     },
     {
       "step": "camelyon patch extraction",
-      "seconds": 30.0,
-      "free_ram_gb_before": 4.48,
-      "free_ram_gb_after": 4.54,
-      "process_peak_gb": 4.2,
-      "downloaded_mib": 0.0
+      "seconds": 960.5,
+      "free_ram_gb_before": 5.18,
+      "free_ram_gb_after": 5.48,
+      "process_peak_gb": 3.75,
+      "downloaded_mib": 6998.4
     }
   ],
-  "downloaded_bytes": 0,
+  "downloaded_bytes": 7338324247,
   "ram": {
     "total": 15.63,
-    "available": 4.28
+    "available": 4.65
   },
-  "peak_process_gb": 4.2,
+  "peak_process_gb": 3.75,
   "checksums": {
     "data/pathmnist_128.npz": "7188079f004943aa2114118010d9be2f7df758ad226a547616dd2c36d9cbdbac",
-    "data/camelyon17_subset_96.npz": "0bc99c51e6b7611376005d6d9b7bdad191dad346288864d02d74e306c588735c",
-    "outputs/stage1/splits.parquet": "66677d2857e33a6e06204511696767d2db736d428f8b569983bebc1322b09178",
-    "outputs/stage1/subset_manifest.parquet": "cf57ca40400b57d2fb1d706d4bac14fbb9c432ecc3d50039b2258470675aa80b",
-    "outputs/stage1/dedup_report.csv": "2f5bbbdd5e1f8ef470c2c1e284441b1226f9ad878a814f0d68200ab698e7d692",
-    "outputs/stage1/table1.csv": "c440b93d3f5af72715b1719d72ffbacf22d3009ab8ee2f087218ba72e6a87ff3"
+    "data/camelyon17_subset_96.npz": "0629e3ac001c2050b2958c3a7569ba6c0661a31a5b784b923a119bb6f6db2136",
+    "outputs/stage1/splits.parquet": "6cb3a2e6b28a861d12b0e01aa8347adb71b1de2566ea6f65731abeb239ba4c4b",
+    "outputs/stage1/subset_manifest.parquet": "72d8d516d657ed59487499932636f02bf6e94ce8da2f583a39c989109d5e444a",
+    "outputs/stage1/dedup_report.csv": "b8a90066659ef7408cc2387b88c7473969bd2d4c4a9e25ce003afb63b757bcd8",
+    "outputs/stage1/table1.csv": "6256fa092ad536dbde7e33e55f2cd2ae1cdbef79443727a2eb8b9744c889d015"
   }
 }

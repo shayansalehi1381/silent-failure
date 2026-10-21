@@ -1,0 +1,6 @@
+dataset,seed,T_standard,T_prior_reweighted,best_epoch,epochs_run,train_seconds
+camelyon17,0,1.1832,,2,4,229.8
+camelyon17,1,1.3425,,2,4,193.9
+camelyon17,2,1.1356,,3,5,243.6
+camelyon17,3,1.4,,2,4,197.1
+camelyon17,4,1.2328,,3,5,245.2

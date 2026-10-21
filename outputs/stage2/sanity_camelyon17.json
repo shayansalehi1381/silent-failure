@@ -1,0 +1,73 @@
+{
+ "dataset": "camelyon17",
+ "seeds": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "nan_found": false,
+ "uid_order_ok": true,
+ "pred_class_balance_id_test": {
+  "0": {
+   "pred_count": [
+    3078,
+    1922
+   ],
+   "true_count": [
+    2881,
+    2119
+   ]
+  },
+  "1": {
+   "pred_count": [
+    3686,
+    1314
+   ],
+   "true_count": [
+    2881,
+    2119
+   ]
+  },
+  "2": {
+   "pred_count": [
+    3108,
+    1892
+   ],
+   "true_count": [
+    2881,
+    2119
+   ]
+  },
+  "3": {
+   "pred_count": [
+    3180,
+    1820
+   ],
+   "true_count": [
+    2881,
+    2119
+   ]
+  },
+  "4": {
+   "pred_count": [
+    3244,
+    1756
+   ],
+   "true_count": [
+    2881,
+    2119
+   ]
+  }
+ },
+ "id_acc": {
+  "0": 0.9374,
+  "1": 0.8334,
+  "2": 0.9366,
+  "3": 0.9314,
+  "4": 0.9166
+ },
+ "min_id_acc_required": null,
+ "id_acc_ok": true
+}
