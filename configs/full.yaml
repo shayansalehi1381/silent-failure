@@ -82,8 +82,29 @@ stage2:
   sanity:
     min_id_acc: {pathmnist: 0.95}   # investigate before continuing if the ID accuracy is far below this
   augmentation: flips_rot90_only    # no colour/brightness/blur: would pre-train robustness to shift family A
+stage3:
+  sample: {split: id_test, n: 3000, seed: 0}       # ONE stratified sample, same images in every condition
+  data_224: data/pathmnist_224.npz                 # Zenodo 10519652, MD5 2c51a510bcdc9cf8ddb2af93af1eadec
+  cache_dir: data/stage3_cache                     # clean 224 sample + corrupted 128 images (git-ignored)
+  corruptions:
+    severities: [1, 2, 3, 4, 5]
+    seed: 0
+    workers: 4                                     # CPU processes (spawned); run when no GPU training is active
+    cpu_job_min_free_ram_gb: 3.0                   # corruption job pauses below this (training guard stops at 2)
+    chunk: 100                                     # images per task
+    resize_candidates: [pil_bicubic, pil_bilinear, pil_lanczos, pil_box, cv2_area]
+    max_rms_levels: 4.0                            # stop if 224->128 does not match the stored 128 data
+    determinism_check_n: 20
+    pending: []                                    # motion_blur runs via ImageMagick 7.1.2 + Wand 0.7.2 (user-approved)
+  shortcut:
+    cue_px: 16
+    offset_px: 4                                   # top-left corner
+    p_aligned: 0.95
+    cue_seed: 0
+    derangement_seed: 0
+  silent_failure_conf: 0.9                         # PROVISIONAL (wrong AND calibrated confidence >= this)
 bench:
-  n_images: 20000                  # short benchmark (scripts/bench.py)
+  n_images: 20000                 # short benchmark (scripts/bench.py)
   sustained_seconds: 240            # sustained benchmark (scripts/bench_sustained.py)
   sample_period_s: 5
   temp_stop_c: 99                   # card slowdown temp 102 C (nvidia-smi -q -d TEMPERATURE) - 3 C
@@ -93,7 +114,11 @@ bench:
 stats:
   bootstrap_resamples: 2000
   fdr: BH
-stages: [0, 1, 2]
+stages: [0, 1, 2, 3]
+
+
+
+
 
 
 
