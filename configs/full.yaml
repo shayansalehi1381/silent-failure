@@ -30,6 +30,7 @@ camelyon:
   archive_path: null                # path to the original WILDS archive (alternative source)
   fetch_images: true                # set true after the user approved the ~9.9 GB transfer
   subset_npz: data/camelyon17_subset_96.npz   # extracted uint8 patches (git-ignored)
+  assignment_file: configs/camelyon_assignment_phase1b_rank1.json   # Phase 1b rank 1: patients train/val_es/val_cal/id_test = 10/4/6/6
   group_by: patient                 # grouping unit that never crosses splits (patient; a patient can own several slides)
   source_hospitals: [0, 3, 4]
   ood_hospitals: {ood_c1: 1, ood_c2: 2}
@@ -68,8 +69,21 @@ train:
   amp: true
   channels_last: true
   max_train_images: null
+stage2:
+  datasets: [pathmnist, camelyon17]
+  cache_dir: data/classifier_cache  # per-split raw uint8 .npy (git-ignored via /data/)
+  train_on_gpu: false               # auto: keep the uint8 train set in VRAM only if free VRAM >= data + 1.3 GB,
+                                    # else read batches from the SSD memmap (6 GB card shared with the desktop)
+  guard: {slowdown_margin_c: 3, min_free_ram_gb: 2.0, pause_s: 20, max_pause_s: 900}
+  calibration:
+    ece_bins: 15
+    prior_reweight_min_gap_pts: 5.0    # fit the reweighted-T variant only if val_cal and id_test label priors differ by >= this (TV distance, points)
+    prior_reweight_datasets: [camelyon17]   # sensitivity variant: val_cal reweighted to the id_test label prior
+  sanity:
+    min_id_acc: {pathmnist: 0.95}   # investigate before continuing if the ID accuracy is far below this
+  augmentation: flips_rot90_only    # no colour/brightness/blur: would pre-train robustness to shift family A
 bench:
-  n_images: 20000                   # short benchmark (scripts/bench.py)
+  n_images: 20000                  # short benchmark (scripts/bench.py)
   sustained_seconds: 240            # sustained benchmark (scripts/bench_sustained.py)
   sample_period_s: 5
   temp_stop_c: 99                   # card slowdown temp 102 C (nvidia-smi -q -d TEMPERATURE) - 3 C
@@ -79,7 +93,11 @@ bench:
 stats:
   bootstrap_resamples: 2000
   fdr: BH
-stages: [0, 1]
+stages: [0, 1, 2]
+
+
+
+
 
 
 

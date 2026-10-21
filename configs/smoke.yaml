@@ -49,12 +49,20 @@ model:
 train:
   seeds: [0]
   epochs: 1
-  early_stopping: {metric: val_loss, patience: 3}
+  early_stopping: {metric: val_loss, patience: 2}
+  optimizer: {name: sgd, lr: 0.01, momentum: 0.9, weight_decay: 5.0e-4, schedule: cosine, label_smoothing: 0.0}
   batch_size: 128
   grad_accum: 1
   amp: true
   channels_last: true
   max_train_images: 2000
+stage2:
+  datasets: [pathmnist, camelyon17]   # smoke trains from random weights on tiny data (no weight download)
+  cache_dir: outputs/smoke/stage2_cache
+  guard: {slowdown_margin_c: 3, min_free_ram_gb: 2.0, pause_s: 5, max_pause_s: 60}
+  calibration: {ece_bins: 15, prior_reweight_datasets: [camelyon17], prior_reweight_min_gap_pts: 0.0}
+  sanity: {min_id_acc: {}}
+  augmentation: flips_rot90_only
 bench:
   n_images: 2000
   sustained_seconds: 20
@@ -63,6 +71,8 @@ bench:
   start_temp_c: 60
   cooldown_max_s: 300
   min_free_ram_gb: 6
-stages: [0, 1]
+stages: [0, 1, 2]
+
+
 
 
