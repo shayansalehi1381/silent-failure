@@ -1,0 +1,145 @@
+{
+ "nan_found": false,
+ "uid_mismatch_files": [],
+ "n_files": 320,
+ "monotonicity": {
+  "brightness_down": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.8369,
+    0.7117,
+    0.5791,
+    0.4999,
+    0.4592
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 53.66
+  },
+  "brightness_up": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.7531,
+    0.5763,
+    0.4232,
+    0.3861,
+    0.3414
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 65.44
+  },
+  "bubble": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.9942,
+    0.993,
+    0.9914,
+    0.9892,
+    0.9851
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 1.07
+  },
+  "contrast_down": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.9133,
+    0.7732,
+    0.6055,
+    0.5126,
+    0.4064
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 58.94
+  },
+  "contrast_up": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.9889,
+    0.9231,
+    0.79,
+    0.6626,
+    0.5077
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 48.81
+  },
+  "defocus_blur": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.8432,
+    0.7813,
+    0.7179,
+    0.67,
+    0.6138
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 38.2
+  },
+  "jpeg_compression": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.9837,
+    0.9591,
+    0.8605,
+    0.8031,
+    0.6359
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 35.99
+  },
+  "motion_blur": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.8445,
+    0.8376,
+    0.8423,
+    0.7271,
+    0.5995
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 39.63
+  },
+  "pixelate": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.9942,
+    0.991,
+    0.9773,
+    0.9535,
+    0.9045
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 9.13
+  },
+  "saturate": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.9835,
+    0.8999,
+    0.7517,
+    0.6081,
+    0.4896
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 50.62
+  },
+  "stain_deposit": {
+   "acc_by_severity_0_5": [
+    0.9958,
+    0.9928,
+    0.9865,
+    0.9743,
+    0.9514,
+    0.9226
+   ],
+   "rises_gt_0.5pt_at_severity": [],
+   "drop_0_to_5_pts": 7.32
+  }
+ },
+ "non_monotone_corruptions": [],
+ "shortcut_order_aligned_gt_removed_gt_reversed": true,
+ "same_sample_everywhere": true,
+ "n_sample": 3000,
+ "determinism_mismatches": [],
+ "max_seed_std_acc": 0.09880491440769085
+}

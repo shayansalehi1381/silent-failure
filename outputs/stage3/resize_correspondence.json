@@ -1,0 +1,12 @@
+{
+ "n_images": 300,
+ "rms_levels_0_255": {
+  "pil_bicubic": 3.232,
+  "pil_bilinear": 0.0,
+  "pil_lanczos": 4.908,
+  "pil_box": 6.123,
+  "cv2_area": 2.665
+ },
+ "chosen": "pil_bilinear",
+ "max_rms_levels": 4.0
+}

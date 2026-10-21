@@ -1,0 +1,18 @@
+{
+ "cue_px": 16,
+ "corner": "top-left",
+ "offset_px": 4,
+ "p_aligned": 0.95,
+ "reversed_mapping": {
+  "adipose": "debris",
+  "background": "tumor_epithelium",
+  "debris": "lymphocytes",
+  "lymphocytes": "normal_mucosa",
+  "mucus": "adipose",
+  "smooth_muscle": "mucus",
+  "normal_mucosa": "stroma",
+  "stroma": "smooth_muscle",
+  "tumor_epithelium": "background"
+ },
+ "train_cue_aligned_frac": 0.9498840198106702
+}
