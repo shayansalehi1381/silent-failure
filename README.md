@@ -162,6 +162,73 @@ What the numbers say and do not say:
 - The importance-weighted temperature variant was NOT fitted: the val_cal vs id_test label-prior gap is 0.06 points, below
   the 5-point rule (`stage2.calibration.prior_reweight_min_gap_pts`), decided from the computed gap and logged.
 
+## Stage 3 - shift families (`python scripts/run_stage3.py --config configs/full.yaml --steps sample,shortcut,corrupt,inferA,tables`)
+Code: `sfd/stage3.py` (steps, tables, figures), `sfd/corrupt.py` (MedMNIST-C wrapper), `sfd/shortcut.py` (cue),
+`sfd/download.py` (parallel resumable Range download + MD5). Every step has done-markers; outputs in `outputs/stage3/`.
+
+**Definitions**
+- **Sample:** one stratified (by class) sample of 3,000 PathMNIST `id_test` images, seed 0 (`sample_id_test_3000.csv`); the
+  SAME images in every family-A/C condition (paired comparisons).
+- **Family A (MedMNIST-C v0.1.0):** all 11 corruptions MedMNIST-C defines for PathMNIST (pixelate, jpeg_compression,
+  defocus_blur, motion_blur, brightness_up/down, contrast_up/down, saturate, stain_deposit, bubble) at severities 1-5, plus
+  clean = 56 conditions, 168,000 images. Source: PathMNIST 224 px from Zenodo 10519652 (`pathmnist_224.npz`, 11.76 GiB,
+  MD5 verified), streamed in chunks. Corruptions are applied at 224 px with a per-(corruption, severity, uid) seed, then
+  resized to 128 px with **PIL bilinear**: this reproduces the stored 128 px PathMNIST images exactly (RMS 0.0 over 300
+  images; bicubic 3.2, cv2-area 2.7, lanczos 4.9, box 6.1 levels; `resize_correspondence.json`). Clean (severity 0) goes
+  through the same resize. Determinism: 20 images per condition rebuilt and byte-identical (`corruption_report.json`).
+  Inference: the 5 standard PathMNIST models from stage 2, each calibrated with its own stage-2 T.
+  Packaging notes: `medmnistc` 0.1.0 hard-pins old `medmnist`/`scikit-image`, so it is installed with `--no-deps`; its
+  motion blur needs ImageMagick (7.1.2, installed with the user's approval) + `Wand` 0.7.2 (`--no-deps`) and calls
+  `np.fromstring` in binary mode, which NumPy 2 removed: `sfd/corrupt.py` maps it to the exact NumPy-1 equivalent
+  (`frombuffer(...).copy()`).
+- **Family C (shortcut cue):** a 16x16 class-specific cue (9 colours x 3 textures, `figures/cue_palette.png`) at the top-left
+  corner (offset 4 px), pasted after the flips/rot90 augmentation. Training/val_es/val_cal: cue = label with p = 0.95, else a
+  random wrong cue (measured 0.9499 aligned in train). 5 shortcut models, same recipe as stage 2. Test states on the 3,000
+  sample: aligned, removed (no cue; identical input to the clean image), reversed (cue of class perm[label], a seeded
+  derangement saved in `shortcut_design.json`). Family C = reversed; aligned/removed are controls.
+- **Families B and X:** reused from stage 2 without recomputation (Camelyon `ood_c1`/`ood_c2`; PathMNIST `nct7k_test`),
+  in the same long-format schema, with the ID test sets as references.
+- **Provisional silent failure:** wrong AND calibrated confidence >= 0.9 (placeholder; the frozen threshold is Phase 5).
+
+**Outputs:** `predictions_long.parquet` (git-ignored; 1,077,135 rows: family, condition, severity, model_kind, dataset,
+seed, uid, patient, label, pred, confidence, correct, silent_failure_provisional), per-file arrays in `preds/` (logits,
+calibrated probs, 512-d float16 features, labels, uid, patient, pred, confidence, correct; git-ignored); committed:
+`family_summary.csv`, `condition_summary.csv`, `per_corruption_accuracy.csv`, `per_corruption_sf_rate.csv`,
+`shortcut_states.csv`, `metrics_per_seed.csv`, `summary_stage3.md`, `sanity_stage3.json`, `figures/`.
+
+**Results** (mean ± std over 5 seeds):
+
+| family / condition | accuracy | mean confidence | ECE | silent-failure rate |
+|---|---|---|---|---|
+| A clean (3,000 sample) | 0.9958 ± 0.0006 | 0.9961 | 0.0025 | 0.0019 |
+| A severity 1 (mean of 11 corruptions) | 0.9207 ± 0.0039 | 0.9698 | 0.0508 | 0.0376 |
+| A severity 3 | 0.7739 ± 0.0092 | 0.9306 | 0.1574 | 0.1121 |
+| A severity 5 | 0.6242 ± 0.0032 | 0.9007 | 0.2772 | 0.1893 |
+| B Camelyon hospital 1 (`ood_c1`) | 0.8309 ± 0.0341 | 0.9130 | 0.0832 | 0.0664 |
+| B Camelyon hospital 2 (`ood_c2`) | 0.6726 ± 0.0396 | 0.9453 | 0.2727 | 0.2273 |
+| C aligned (shortcut models) | 0.9997 ± 0.0003 | 0.9994 | 0.0005 | 0.0000 |
+| C removed | 0.9783 ± 0.0037 | 0.9890 | 0.0121 | 0.0108 |
+| C reversed | 0.9543 ± 0.0047 | 0.9749 | 0.0236 | 0.0196 |
+| X `nct7k_test` | 0.9520 ± 0.0040 | 0.9763 | 0.0254 | 0.0201 |
+
+Per corruption: brightness_up/down, contrast_down, saturate and the blurs hurt most (accuracy 0.34-0.61 at severity 5,
+silent-failure rates 13-36%); bubble, stain_deposit and pixelate barely matter (>= 0.90 at severity 5). Accuracy falls with
+severity for every corruption (no rise > 0.5 points; motion_blur is flat over severities 1-3 because MedMNIST-C only grows
+the blur radius there). Confidence stays at 0.90-0.97 while accuracy drops, so silent failures grow with severity.
+
+**Limitations / findings to keep in mind**
+- **The shortcut does not dominate (family C).** With p = 0.95 and an easy, highly learnable tissue signal (99.6% ID
+  accuracy), the shortcut models rely mostly on tissue: removing the cue costs 2.1 points and reversing it 4.5 points; the
+  reversed state is NOT the collapse family C was designed to produce (silent-failure rate 2.0%). The cue is used (aligned
+  0.9997 > removed 0.9783 > reversed 0.9543 in every seed), but weakly. Decision pending (stronger cue design and retraining).
+- Shortcut-model temperatures are 0.55-0.86 (under-confident on cue-bearing val_cal), lower than the standard models (0.87-0.96).
+- Seed spread is largest for contrast_down (std 0.07-0.10 at severities 3-5) and brightness_up s3 (0.07): seeds disagree on
+  how robust they are to global intensity changes.
+- Family A uses `id_test` images, which (PathMNIST has no patient IDs) may share slides with train; corruptions are
+  synthetic. Runtimes: shortcut training 22-28 min per seed; corruption generation ~25 min (4 workers); inference ~50 s per
+  seed for 56 conditions. Storage: 224 px source 11.76 GiB, corrupted cache 8.1 GB, predictions 1.0 GB, checkpoints 0.6 GB
+  (all git-ignored).
+
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),

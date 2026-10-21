@@ -43,6 +43,11 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Augmentation: random flips + rot90 ONLY (per sample, on GPU). No colour/brightness/blur/noise: it would
   pre-train robustness to shift family A.
 - A frozen `splits.parquet` is read-only for training stages (stage 2 asserts its hash is unchanged).
+- Never run tests or heavy jobs while a GPU training job runs (overlapping jobs tripped the 2 GB RAM guard). A CPU job
+  next to training must pause below 3 GB free RAM; when killing processes, match the FULL command line.
+- Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
+  (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are
+  installed with `--no-deps` (hard pins would downgrade packages); ImageMagick 7.1.2 is a system install.
 - Run `python scripts/run_all.py --config configs/smoke.yaml` after any change.
 - Prefer small, tested functions in `sfd/`. Final deliverable is ONE self-contained
   notebook (built from the modules in the last phase) + requirements.txt + outputs/.
