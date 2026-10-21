@@ -58,35 +58,110 @@ results are cached in `outputs/stage1/cache/` (git-ignored), keyed by the config
   (`camelyon.group_by: patient`; sizes in `camelyon.sizes`); hospital 1 -> `ood_c1`, hospital 2 -> `ood_c2`.
   Patient (not slide) is the grouping unit, as in the group partner's setup: a patient can own several slides, and a
   slide-level split put 2 patients into two splits. Source hospitals have 7, 10 and 9 patients (30 slides; 3 patients own
-  2-3 slides). The patient-level plan keeps all planned sizes with the same label balance (val_es 31.7% vs 31.2% tumour),
-  so nothing was traded off. Labels are balanced within a split as far
-  as the patients allow (tumour patches are concentrated in few slides). Non-tissue and dark patches are flagged, not dropped.
+  2-3 slides). The patient-to-split table is **frozen** in `configs/camelyon_assignment_phase1b_rank1.json`
+  (patients train/val_es/val_cal/id_test = 10/4/6/6, found by the seeded Phase 1b search, see below). Labels are balanced
+  within a split as far as the patients allow. Non-tissue and dark patches are flagged, not dropped.
   Source: the unofficial HF mirror `wltjr1007/Camelyon17-WILDS` (the official WILDS host has an expired TLS
   certificate; verification is never disabled) or a local WILDS archive (`camelyon.archive_path`). Metadata
   (455,954 rows, 50 slides) was verified against WILDS v1.0 counts using ~36 MiB of range requests; images are streamed
   (~9.9 GiB) only when `camelyon.fetch_images: true`.
 - **Camelyon subset audit (real images, 69,000 patches, `data/camelyon17_subset_96.npz`, 1.8 GB, git-ignored):**
-  - Download: 9.9 GiB of mirror row groups streamed (8.54 GiB in the final run + 1.4 GiB cached from an interrupted run);
-    only the selected patches are kept. 21 shards, TLS verified, resumable via `outputs/stage1/cache/camelyon_parts/`.
-  - Near-duplicates (16x16x3 thumbnails, subset self-join, `dedup_report.csv`): at RMS <= 0.02 there are 2,802 pairs and
-    29 clusters holding 176 images (0.26%); 0.01: 13 clusters / 114 images; 0.05: chaining, 3,131 images, largest
-    cluster 2,843. 55 pairs (RMS <= 0.02) straddle different splits; all 55 join two flagged non-tissue (blank) tiles
-    of the same label, i.e. look-alike background, not repeated tissue. They are reported, not asserted.
+  - Download: the Phase 1 plan streamed 9.9 GiB of mirror row groups; the Phase 1b rebuild fetched ~7.1 GiB more
+    (patches already downloaded are reused per patch). Only the selected patches are kept. TLS verified, resumable via
+    `outputs/stage1/cache/camelyon_parts/`. The Phase 1 image subset is archived as
+    `data/camelyon17_subset_96_phase1_frozen_plan.npz` (git-ignored); its plan is in git history (tag `phase-1`).
+  - Near-duplicates (16x16x3 thumbnails, subset self-join, `dedup_report.csv`): at RMS <= 0.02 there are 2,752 pairs and
+    23 clusters holding 146 images (0.21%); 0.01: 12 clusters / 107 images; 0.05: chaining, 2,486 images, largest
+    cluster 2,196. 32 pairs (RMS <= 0.02) straddle different splits; they are look-alike background tiles, not repeated
+    tissue, and are reported, not asserted.
   - Flags (kept, never dropped; columns `flag_nontissue`, `flag_dark`, `tissue_frac` in `subset_manifest.parquet`):
-    772 non-tissue patches (1.1%; 717 non-tumour, 55 tumour) and 93 dark patches, 91 of them in hospital 1 (`ood_c1`),
-    a site-specific artefact to keep in mind for family B. Use the flags for sensitivity analyses.
-- **Known limitations (Camelyon):**
-  - *Label-prior gap.* Tumour patches are concentrated in a few WILDS slides (most slides are at 0-7% tumour, a few at
-    60-93%), and patient-disjoint splits cannot fix that. Label-balanced sampling gives train and val_cal 50% tumour,
-    but val_es and id_test only ~31% and the OOD splits ~42%. Accuracy/calibration differences between splits include
-    this prior shift; rank metrics (AUROC) are less affected.
-  - *Few patients per split.* Outside train (17 patients, 20 slides) each source split has only 3 patients, so
+    797 non-tissue patches (1.2%) and 93 dark patches, 91 of them in hospital 1 (`ood_c1`), a site-specific
+    artefact to keep in mind for family B. Use the flags for sensitivity analyses.
+- **Why the Camelyon splits changed (Phase 1b).** Calibration (temperature, later the acceptance threshold) is fitted on
+  `val_cal` and evaluated on `id_test`/OOD, so a tumour-prior gap between them biases the study. The Phase 1 splits had
+  tumour fractions train/val_cal/val_es/id_test = 50/50/31.7/31.0% (a 19-point gap; OOD 42.4%) because tumour patches
+  are concentrated in few patients. `scripts/phase1b_patient_search.py` (seeded simulated annealing over all
+  patient-disjoint assignments of the 26 source patients, scored with an exact model of the sampler that a test checks
+  against the real planner) found assignments with gap <= 0.1 points. Chosen: rank 1 of the strict mode (>= 3 patients per
+  split, every hospital in every split including train, each hospital >= 10% of every non-train split). Result:
+
+  | tumour fraction | train | val_es | val_cal | id_test | OOD (hosp. 1 / 2) |
+  |---|---|---|---|---|---|
+  | Phase 1 splits | 50.0% | 31.7% | 50.0% | 31.0% | 42.2 / 42.5% |
+  | Phase 1b rank 1 | 50.0% | 42.4% | 42.3% | 42.4% | 42.2 / 42.5% |
+
+  Patients (slides) per split: train 10 (11), val_es 4 (6), val_cal 6 (7), id_test 6 (6). PathMNIST splits are unchanged
+  (checked byte-identical against the committed version); only Camelyon was re-planned and re-downloaded. Candidates:
+  `outputs/stage1b/` (`candidates.csv`, `summary.md`).
+- **Known limitations (Camelyon, after Phase 1b):**
+  - *Remaining prior gap.* Train is 50% tumour while val_es, val_cal, id_test (and OOD) are ~42%; 42% is the most the
+    available tumour patches allow when every split needs some. The val_cal vs id_test gap is 0.1 points, so the
+    importance-weighted temperature variant is only fitted if that gap reaches 5 points (it does not).
+  - *Uneven per-hospital cells.* The overall fractions are equal, but single hospital x split cells are very uneven
+    (e.g. id_test hospital 3: 1.9% tumour, val_cal hospital 4: 2.9%, val_es hospital 3: 13.7%), because tumour-rich
+    patients are few. Hospital-level analyses inside a split are therefore not balanced.
+  - *Few patients per split.* Outside train (10 patients, 11 slides) each source split has only 4-6 patients, so
     in-distribution test/validation estimates are noisy and dominated by patient effects; bootstrap CIs must
     resample patients (the cluster level), not patches.
   - *Spatial overlap.* In WILDS, on average 69% of patches overlap another patch of the same slide (up to 98%; 38% on
-    average in the sampled subset; `camelyon_spatial_overlap*.csv`), which justifies grouping above the patch level.
+    average in the sampled subset (38%); `camelyon_spatial_overlap*.csv`), which justifies grouping above the patch level.
 - **Smoke:** uses a synthetic Camelyon-like fixture (random tiles + WILDS-like metadata) that exercises the code only;
   it is never written to `data/`.
+## Stage 2 - source classifiers (`python scripts/run_all.py --config configs/full.yaml`, stage 2)
+Code: `sfd/train.py` (model, GPU augmentation, safety guard, resumable training), `sfd/calibration.py` (temperature
+scaling, NLL/ECE/Brier), `sfd/data/classify_data.py` (per-split uint8 caches, `RowReader`), `sfd/stage2.py`
+(orchestration, aggregation, figures, sanity checks), `scripts/stage2_report.py` (per-seed tables).
+Done-markers `outputs/stage2/markers/<dataset>_seed<k>.done` are always honoured; per-epoch `last.pt`/`best.pt`
+checkpoints (git-ignored) make a stopped run continue at the next epoch.
+
+- **Recipe (both datasets, seeds 0-4):** ResNet-18, ImageNet-pretrained (`IMAGENET1K_V1`), fresh linear head (9 classes
+  PathMNIST, 2 classes Camelyon), ImageNet mean/std, SGD lr 0.01 momentum 0.9 weight decay 5e-4, cosine over 8 epochs,
+  batch 128, AMP fp16 + channels_last, no label smoothing, early stopping on `val_es` loss (patience 2). Temperature
+  fitted on `val_cal` ONLY. The optimizer settings were taken as proposed and not tuned.
+- **Augmentation:** random flips and random 90-degree rotations only (per sample, on the GPU). No colour, brightness,
+  contrast, blur or noise augmentation, because that would pre-train robustness to the MedMNIST-C corruptions
+  (shift family A) and bias the study.
+- **Data path:** training batches are read from the SSD cache (`data/classifier_cache/`, git-ignored) with explicit row
+  reads (2 ms per 128-image batch). Two things that did not work on this machine: keeping the 3.7 GB PathMNIST train set
+  in VRAM next to the desktop (4.7 GB peak of a shared 6 GB card; epoch 3 stalled for 20+ minutes, probably driver
+  paging) and `np.memmap` (mapped pages count against Windows "available RAM"; the 2 GB RAM guard stopped the run).
+- **Safety guard:** pauses training at slowdown temp - 3 C (99 C), stops if free RAM < 2 GB, logs temperature, free RAM and
+  epoch time every epoch (`outputs/stage2/logs/*.jsonl`).
+- **Saved per model and split** (git-ignored, `outputs/stage2/preds/`): logits, calibrated probabilities, 512-d
+  penultimate features (float16), labels, uid, patient, T. Row order = `splits.parquet` order (checked per file).
+  Checkpoints in `outputs/stage2/ckpt/` (git-ignored). Tables and figures that are committed: `metrics_*`,
+  `calibration_*`, `seed_stability_*`, `summary_*.md`, `per_seed_results.md/.csv`, `sanity_*.json`, `figures/`.
+
+**Results** (mean ± std over 5 seeds; temperature scaling fitted on `val_cal`; "a -> b" = before -> after scaling;
+per-seed values in `outputs/stage2/per_seed_results.md`):
+
+| dataset / split | accuracy | AUROC | NLL | ECE |
+|---|---|---|---|---|
+| PathMNIST id_test | 0.9956 ± 0.0006 | 1.0000 | 0.0154 -> 0.0154 | 0.0014 -> 0.0015 |
+| PathMNIST nct7k_test (family X) | 0.9520 ± 0.0040 | 0.9971 ± 0.0010 | 0.1720 -> 0.1818 | 0.0228 -> 0.0254 |
+| Camelyon val_cal | 0.9582 ± 0.0125 | 0.9909 ± 0.0018 | 0.1183 -> 0.1137 | 0.0120 -> 0.0057 |
+| Camelyon id_test | 0.9111 ± 0.0442 | 0.9680 ± 0.0105 | 0.3170 -> 0.2712 | 0.0523 -> 0.0411 |
+| Camelyon ood_c1 (hospital 1) | 0.8309 ± 0.0341 | 0.9293 ± 0.0319 | 0.5487 -> 0.4797 | 0.1000 -> 0.0832 |
+| Camelyon ood_c2 (hospital 2) | 0.6726 ± 0.0396 | 0.8693 ± 0.0080 | 1.5286 -> 1.2459 | 0.2851 -> 0.2727 |
+
+Fitted temperatures: PathMNIST 0.866-0.962 (slightly under-confident), Camelyon 1.136-1.400 (over-confident).
+Sanity checks (`sanity_*.json`): no NaN, uid order identical to `splits.parquet` for every split and seed, PathMNIST
+ID accuracy 0.9946-0.9961 (threshold 0.95), prediction class counts recorded per seed.
+
+What the numbers say and do not say:
+- PathMNIST in-distribution accuracy is at the ceiling and temperature scaling is neutral there (ECE ~0.001-0.002 even
+  before). PathMNIST has no patient IDs, so the ID test can share slides with train despite the near-duplicate clustering:
+  ID performance is optimistic. On the real centre shift (`nct7k_test`) accuracy drops to 0.952 and scaling with T < 1
+  slightly worsens NLL/ECE, as expected when T is fitted in distribution.
+- Camelyon shows a clear shift: accuracy 0.911 (ID) -> 0.831 (hospital 1) -> 0.673 (hospital 2), AUROC 0.968 -> 0.929 -> 0.869.
+  Temperature scaling lowers NLL and ECE on every Camelyon split, including the shifted ones, but hospital 2 stays badly
+  calibrated (ECE 0.27).
+- Camelyon seed variance is large (ID accuracy 0.833-0.937). `val_es` has only 4 patients, so early stopping picks
+  epoch 2-3 and its loss is noisy; the 6 `id_test` patients make the ID estimate noisy too (see limitations above).
+  Report seed spread together with the point estimates.
+- The importance-weighted temperature variant was NOT fitted: the val_cal vs id_test label-prior gap is 0.06 points, below
+  the 5-point rule (`stage2.calibration.prior_reweight_min_gap_pts`), decided from the computed gap and logged.
+
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),
@@ -105,7 +180,8 @@ results are cached in `outputs/stage1/cache/` (git-ignored), keyed by the config
 
 ## Hardware notes
 RTX 3060 Laptop GPU, 6 GB VRAM, 15.6 GB RAM (often mostly used), Windows. No DataLoader workers:
-uint8 data stays in RAM (PathMNIST 128px train is ~4.4 GB), augmentation runs on the GPU,
+training batches are read from an SSD cache of raw uint8 arrays with explicit row reads (see Stage 2),
+augmentation runs on the GPU,
 `torch.autocast` fp16 + `channels_last`, batch 128 (fallback 64 x 2 accumulation). The laptop runs hot:
 keep it on AC power with good airflow; the sustained benchmark aborts at 99 C (card slowdown temp 102 C minus 3 C; shutdown 105 C).
 
@@ -127,6 +203,7 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | Phase | Content | Status |
 |---|---|---|
 | 0 | Repo, env, requirements, configs, PathMNIST loader, benchmarks, tests, smoke | done |
-| 1 | Data, frozen splits, leakage audit | PathMNIST done; Camelyon plan frozen, images pending approval of the ~9.9 GiB transfer |
-| 2-9 | Stages 2-9 of the roadmap | not started |
+| 1 | Data, frozen splits, leakage audit (+ Phase 1b patient re-assignment for Camelyon) | done |
+| 2 | Source classifiers, temperature scaling, saved logits/features (PathMNIST + Camelyon, 5 seeds each) | done |
+| 3-9 | Stages 3-9 of the roadmap | not started |
 

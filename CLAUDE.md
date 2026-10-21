@@ -32,9 +32,17 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Report every effect with a paired two-level cluster-bootstrap 95% CI (>=2000 resamples);
   secondary families use BH-FDR. Verdict text must be generated from computed numbers.
 - Seeds: 5 for core experiments. Set all RNG seeds.
-- Windows: no DataLoader workers. Keep uint8 128px data in RAM, augment on GPU, use
-  `torch.autocast` (fp16) + `channels_last`. Batch 128, fall back to 64 + grad accumulation.
-  Keep VRAM < ~5 GB; warn if GPU temp > ~83 C. 6 GB VRAM, 16 GB RAM (often mostly used).
+- Windows: no DataLoader workers. Augment on GPU, use `torch.autocast` (fp16) + `channels_last`.
+  Batch 128, fall back to 64 + grad accumulation. Keep VRAM < ~5 GB; GPU temp: pause at the card's
+  slowdown temp minus 3 C (read from nvidia-smi; 99 C here); stop if free RAM < 2 GB. 6 GB VRAM, 16 GB RAM
+  (often mostly used).
+- Training data path (Phase 2 lesson): read uint8 batches from the SSD cache with explicit row reads
+  (`sfd.data.classify_data.RowReader`, `stage2.train_on_gpu: false`). Do NOT use np.memmap (mapped pages
+  shrink Windows "available RAM") and do NOT keep the 3.7 GB PathMNIST train set in VRAM next to the desktop
+  (4.7 GB peak of a shared 6 GB card stalled epoch 3 for 20+ min).
+- Augmentation: random flips + rot90 ONLY (per sample, on GPU). No colour/brightness/blur/noise: it would
+  pre-train robustness to shift family A.
+- A frozen `splits.parquet` is read-only for training stages (stage 2 asserts its hash is unchanged).
 - Run `python scripts/run_all.py --config configs/smoke.yaml` after any change.
 - Prefer small, tested functions in `sfd/`. Final deliverable is ONE self-contained
   notebook (built from the modules in the last phase) + requirements.txt + outputs/.
