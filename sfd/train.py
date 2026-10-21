@@ -136,7 +136,7 @@ def predict(model: Net, images, dev, bs: int = 512, amp: bool = False):
 
 # --------------------------------------------------------------------------- training ---------
 def train_one(cfg: dict, tr, va, n_classes: int, seed: int, ckpt_dir: Path, log_path: Path, guard: GpuGuard,
-              dev, log=print, pretrained: bool | None = None) -> dict:
+              dev, log=print, pretrained: bool | None = None, post_augment=None) -> dict:
     """Train with early stopping on `va` loss. `tr.images` must be a uint8 tensor on the GPU.
     Resumable: `last.pt` is written after every epoch; `best.pt` holds the best-val_loss weights."""
     t_cfg, m_cfg = cfg["train"], cfg["model"]
@@ -183,7 +183,10 @@ def train_one(cfg: dict, tr, va, n_classes: int, seed: int, ckpt_dir: Path, log_
                 idx = torch.sort(idx).values
                 u8 = torch.from_numpy(tr.images[idx.numpy()])
                 idx = idx.to(dev)
-            x = _norm(augment(_prep(u8, dev, mean, std)), mean, std)
+            x = augment(_prep(u8, dev, mean, std))
+            if post_augment is not None:            # e.g. the family-C cue, pasted after flips/rotations
+                x = post_augment(x, idx)
+            x = _norm(x, mean, std)
             opt.zero_grad(set_to_none=True)
             with torch.autocast("cuda", dtype=torch.float16, enabled=t_cfg["amp"]):
                 loss = crit(model(x), y_all[idx])

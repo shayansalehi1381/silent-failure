@@ -98,7 +98,7 @@ def table1(df: pd.DataFrame, info: dict[str, dict]) -> pd.DataFrame:
 
 
 def to_markdown(t: pd.DataFrame) -> str:
-    cols = list(t.columns)
+    cols = [str(c) for c in t.columns]
     lines = ["| " + " | ".join(cols) + " |", "|" + "|".join("---" for _ in cols) + "|"]
     for r in t.itertuples(index=False):
         lines.append("| " + " | ".join(str(x).replace("|", "/") for x in r) + " |")

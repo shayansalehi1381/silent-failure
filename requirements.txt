@@ -18,3 +18,7 @@ wilds==2.0.0
 grad-cam==1.5.7
 jupyter==1.1.1
 pytest==9.1.1
+
+# installed with --no-deps (their hard pins would downgrade medmnist/scikit-image); motion_blur also needs ImageMagick 7.1.x
+# pip install --no-deps medmnistc==0.1.0 Wand==0.7.2
+# opencv-python-headless (cv2, used by medmnistc) comes in with grad-cam

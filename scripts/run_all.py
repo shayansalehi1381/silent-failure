@@ -36,7 +36,14 @@ def stage2(cfg: dict, out_dir: Path, resume: bool = False) -> None:
     s2.run(cfg, out_dir, resume=resume)
 
 
-STAGES = {0: stage0, 1: stage1, 2: stage2}  # later phases register stage3..stage9 here
+def stage3(cfg: dict, out_dir: Path, resume: bool = False) -> None:
+    import subprocess
+
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "run_stage3.py"), "--config", cfg["_config_path"],
+                    "--steps", "sample,shortcut,corrupt,inferA,tables"], check=True)
+
+
+STAGES = {0: stage0, 1: stage1, 2: stage2, 3: stage3}  # later phases register stage4..stage9 here
 
 
 def main() -> None:
@@ -46,6 +53,7 @@ def main() -> None:
     a = ap.parse_args()
 
     cfg = load_config(a.config)
+    cfg["_config_path"] = a.config
     set_seed(cfg["seed"])
     out_dir = resolve(cfg, "out_dir")
     (out_dir / "markers").mkdir(parents=True, exist_ok=True)
@@ -67,4 +75,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
