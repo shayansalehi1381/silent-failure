@@ -1,4 +1,4 @@
-"""Pipeline driver: runs enabled stages in order, resumable via per-stage done-markers.
+﻿"""Pipeline driver: runs enabled stages in order, resumable via per-stage done-markers.
 
 Phase 0 skeleton: stage 0 (environment record) is real; stages 1-9 are placeholders that
 are registered here as they are implemented in later phases.
@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sfd.config import ROOT, load_config, resolve, set_seed  # noqa: E402
 
 
-def stage0(cfg: dict, out_dir: Path) -> None:
+def stage0(cfg: dict, out_dir: Path, resume: bool = False) -> None:
     sys.path.insert(0, str(ROOT / "scripts"))
     from env_record import collect
 
@@ -24,13 +24,19 @@ def stage0(cfg: dict, out_dir: Path) -> None:
     print(f"  GPU: {rec.get('gpu', 'none')}, cuda_available={rec['cuda_available']}")
 
 
-def stage1(cfg: dict, out_dir: Path) -> None:
+def stage1(cfg: dict, out_dir: Path, resume: bool = False) -> None:
     from sfd.data import stage1 as s1
 
     s1.run(cfg, out_dir)
 
 
-STAGES = {0: stage0, 1: stage1}  # later phases register stage2..stage9 here
+def stage2(cfg: dict, out_dir: Path, resume: bool = False) -> None:
+    from sfd import stage2 as s2
+
+    s2.run(cfg, out_dir, resume=resume)
+
+
+STAGES = {0: stage0, 1: stage1, 2: stage2}  # later phases register stage3..stage9 here
 
 
 def main() -> None:
@@ -53,7 +59,7 @@ def main() -> None:
             raise SystemExit(f"stage {s} is enabled in config but not implemented yet")
         print(f"[stage {s}] running")
         t0 = time.time()
-        STAGES[s](cfg, out_dir)
+        STAGES[s](cfg, out_dir, resume=a.resume)
         marker.write_text(f"{time.time() - t0:.1f}s\n")
         print(f"[stage {s}] ok ({time.time() - t0:.1f}s)")
     print("run_all finished")
@@ -61,3 +67,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

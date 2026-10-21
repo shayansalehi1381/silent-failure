@@ -58,6 +58,54 @@ def test_search_is_seeded_and_respects_constraints():
     assert any((x[1] != y[1]).any() for x, y in zip(a, c))
 
 
+def test_extraction_reuses_cached_patches_and_fetches_only_missing(tmp_path, monkeypatch):
+    cfg, meta = _cfg_meta()
+    cfg["camelyon"]["source"] = "hf_mirror"
+    man = camelyon.plan_subset(meta, cfg, 0).iloc[:60].copy()
+    man["shard"], man["row_in_shard"] = "data/fake-0.parquet", np.arange(60)
+    man["uid"] = "u" + man["image_id"].astype(str)
+    size = cfg["data"]["camelyon_size"]
+    truth = np.random.default_rng(0).integers(0, 255, (60, size, size, 3), dtype=np.uint8)
+    cache = tmp_path / "parts"
+    cache.mkdir()
+    # a stale part cache that holds the first 40 patches (in a different order)
+    order = np.arange(40)[::-1]
+    np.savez(cache / "fake-0.npz", images=truth[order], uid=man["uid"].to_numpy(dtype=str)[order])
+    requested = []
+
+    def fake_extract(client, grp, imgs, **kw):
+        requested.extend(grp["uid"].tolist())
+        for idx in grp.index:
+            imgs[idx] = truth[idx]
+
+    monkeypatch.setattr(camelyon, "_extract_hf_shard", fake_extract)
+    monkeypatch.setattr(camelyon.remote, "RangeClient", lambda url: None)
+    out = camelyon.extract_images(man.reset_index(drop=True), cfg, tmp_path / "subset.npz", cache, log=lambda *_: None)
+    assert sorted(requested) == sorted(man["uid"].iloc[40:])                  # only the 20 missing patches
+    assert np.array_equal(np.load(tmp_path / "subset.npz")["images"], truth)   # cached + fetched are all correct
+    assert len(np.load(cache / "fake-0.npz")["uid"]) == 60 and len(out) == 60
+
+
+def test_assignment_file_in_config_equals_explicit_assignment(tmp_path):
+    import json
+    cfg, meta = _cfg_meta()
+    pt = patient_table(meta, cfg["camelyon"]["source_hospitals"])
+    asg = {int(p): SPLITS[i % 4] for i, p in enumerate(pt["patient"])}
+    f = tmp_path / "asg.json"
+    f.write_text(json.dumps(asg))
+    cfg["camelyon"]["assignment_file"] = str(f)
+    a = camelyon.plan_subset(meta, cfg, 0)
+    b = camelyon.plan_subset(meta, cfg, 0, assignment=asg)
+    assert a["uid"].tolist() == b["uid"].tolist() and a["split"].tolist() == b["split"].tolist()
+
+
+def test_frozen_rank1_assignment_file_is_consistent():
+    import json
+    f = ROOT / "configs" / "camelyon_assignment_phase1b_rank1.json"
+    asg = json.loads(f.read_text())
+    assert len(asg) == 26 and pd.Series(asg).value_counts().to_dict() == {"train": 10, "val_cal": 6, "id_test": 6, "val_es": 4}
+
+
 def test_prefer_ids_keeps_counts_and_reuses_cached_rows():
     cfg, meta = _cfg_meta()
     base = camelyon.plan_subset(meta, cfg, 0)

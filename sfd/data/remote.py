@@ -20,7 +20,7 @@ _lock = threading.Lock()
 
 
 class RangeClient:
-    def __init__(self, url: str, retries: int = 4, timeout: float = 120):
+    def __init__(self, url: str, retries: int = 8, timeout: float = 120):
         self.url, self.retries, self.timeout = url, retries, timeout
         self._final_url: str | None = None
         self._tl = threading.local()
@@ -49,7 +49,7 @@ class RangeClient:
                 return r
             except requests.RequestException as e:
                 last = e
-                time.sleep(1.5 * (k + 1))
+                time.sleep(min(60.0, 2.0 * 2 ** k))   # 2, 4, 8, ... 60 s: rides out short DNS/network outages
         raise RuntimeError(f"range request failed for {self.url} [{start}-{end}]: {last}")
 
     def fetch(self, start: int, end_exclusive: int) -> bytes:

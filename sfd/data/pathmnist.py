@@ -6,13 +6,11 @@ from pathlib import Path
 import numpy as np
 
 
-def read_npz_rows(path: str | Path, key: str, indices, chunk_rows: int = 1024) -> dict[int, np.ndarray]:
-    """Rows `indices` of array `key` in an .npz, streaming the member so peak RAM is one chunk
-    (np.load would materialise the whole array, 4.4 GB for PathMNIST 128px train)."""
+def iter_npz_chunks(path: str | Path, key: str, chunk_rows: int = 1024):
+    """Yield (start_row, array_chunk) of array `key` in an .npz, streaming the (compressed) member so peak
+    RAM is one chunk (np.load would materialise the whole array: 4.4 GB for PathMNIST 128px train)."""
     import zipfile
 
-    want = {int(i) for i in indices}
-    out: dict[int, np.ndarray] = {}
     with zipfile.ZipFile(path) as zf, zf.open(f"{key}.npy") as f:
         version = np.lib.format.read_magic(f)
         shape, fortran, dtype = (np.lib.format.read_array_header_1_0 if version == (1, 0)
@@ -21,12 +19,19 @@ def read_npz_rows(path: str | Path, key: str, indices, chunk_rows: int = 1024) -
         row_bytes = int(np.prod(shape[1:])) * dtype.itemsize
         for start in range(0, shape[0], chunk_rows):
             n = min(chunk_rows, shape[0] - start)
-            buf = np.frombuffer(f.read(n * row_bytes), dtype=dtype).reshape((n,) + tuple(shape[1:]))
-            for i in want:
-                if start <= i < start + n:
-                    out[i] = buf[i - start].copy()
-            if len(out) == len(want):
-                break
+            yield start, np.frombuffer(f.read(n * row_bytes), dtype=dtype).reshape((n,) + tuple(shape[1:]))
+
+
+def read_npz_rows(path: str | Path, key: str, indices, chunk_rows: int = 1024) -> dict[int, np.ndarray]:
+    """Rows `indices` of array `key` in an .npz (streamed, see iter_npz_chunks)."""
+    want = {int(i) for i in indices}
+    out: dict[int, np.ndarray] = {}
+    for start, buf in iter_npz_chunks(path, key, chunk_rows):
+        for i in want:
+            if start <= i < start + len(buf):
+                out[i] = buf[i - start].copy()
+        if len(out) == len(want):
+            break
     return out
 
 

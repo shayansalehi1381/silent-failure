@@ -50,3 +50,6 @@ outputs/**/cache/
 !outputs/stage1/subset_manifest.parquet
 
 outputs/markers/
+
+# run state
+outputs/**/markers/

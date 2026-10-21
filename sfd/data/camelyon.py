@@ -141,6 +141,13 @@ def plan_subset(meta: pd.DataFrame, cfg: dict, seed: int, assignment: dict | Non
     sizes, src_h = c["sizes"], list(c["source_hospitals"])
     gcol = c.get("group_by", "slide")
     assert gcol in ("patient", "slide"), "camelyon.group_by must be 'patient' or 'slide'"
+    if assignment is None and c.get("assignment_file"):     # frozen patient->split table (e.g. Phase 1b rank 1)
+        import json
+        from pathlib import Path
+        af = Path(c["assignment_file"])
+        af = af if af.is_absolute() else Path(__file__).resolve().parents[2] / af
+        assignment = {int(k): v for k, v in json.loads(af.read_text(encoding="utf-8")).items()}
+        assert gcol == "patient", "assignment_file maps patients; set camelyon.group_by: patient"
     rng_seed = int(seed)
     parts = []
 
@@ -253,16 +260,25 @@ def extract_images(man: pd.DataFrame, cfg: dict, out_npz: Path, cache_dir: Path,
         cache_dir.mkdir(parents=True, exist_ok=True)
         for shard, grp in man.groupby("shard", sort=True):
             part = cache_dir / (Path(shard).stem + ".npz")
-            if part.exists():
+            uids = grp["uid"].to_numpy(dtype=str)
+            have = np.zeros(len(grp), bool)
+            if part.exists():                       # per-patch reuse: only patches missing from the cache are fetched
                 z = np.load(part)
-                if np.array_equal(z["uid"], grp["uid"].to_numpy(dtype=str)):
-                    imgs[grp.index.to_numpy()] = z["images"]
-                    log(f"  {shard}: loaded from cache")
-                    continue
+                pos = {u: i for i, u in enumerate(z["uid"].astype(str))}
+                cached_imgs = z["images"]
+                for k, u in enumerate(uids):
+                    if u in pos:
+                        imgs[grp.index[k]] = cached_imgs[pos[u]]
+                        have[k] = True
+                del cached_imgs
+            if have.all():
+                log(f"  {shard}: loaded from cache ({len(grp)} patches)")
+                continue
             url = f"https://huggingface.co/datasets/{c['repo']}/resolve/main/{shard}"
-            _extract_hf_shard(remote.RangeClient(url), grp, imgs)
-            np.savez(part, images=imgs[grp.index.to_numpy()], uid=grp["uid"].to_numpy(dtype=str))
-            log(f"  {shard}: {len(grp)} patches (transferred {remote.DOWNLOADED_BYTES / 2**30:.2f} GiB)")
+            _extract_hf_shard(remote.RangeClient(url), grp[~have], imgs)
+            np.savez(part, images=imgs[grp.index.to_numpy()], uid=uids)
+            log(f"  {shard}: {len(grp)} patches ({int(have.sum())} reused, {int((~have).sum())} fetched; "
+                f"transferred {remote.DOWNLOADED_BYTES / 2**30:.2f} GiB)")
     fl = tissue_flags(imgs, c["nontissue_min_tissue_frac"], c["dark_mean_intensity"])
     out_npz.parent.mkdir(parents=True, exist_ok=True)
     np.savez(out_npz, images=imgs, uid=man["uid"].to_numpy(dtype=str))
