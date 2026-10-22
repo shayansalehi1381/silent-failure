@@ -24,6 +24,10 @@ and the stage scripts (`scripts/run_all.py`, `run_stage3.py` ... `run_stage8.py`
 - Ablation (pre-registered): with a free sign, CAM drift reduces residual silent failures on A and C (e.g. -2.05 / -5.14 pt at 10%).
 - Exploratory, post-hoc only: ranking confident cases first (confidence >= 0.90) cuts residual silent failures strongly on A and B.
 
+- Extension (post-hoc, Phase 10; plan `docs/extension_plan_frozen.md`): a leave-seed-out deep ensemble of the 5 seeds reproduces most of M1's
+  20%-budget benefit over single-model uncertainty (A: ensemble - M0 = -4.57 [-5.13, -3.85] pt, M1 - ensemble = +0.24 [-0.71, +1.12] pt), while
+  Mahalanobis on top of the ensemble still helps on A and B and hurts on C; the 'in-family' evidence is source-vs-shifted and in-sample only.
+
 Design: `ROADMAP_Shayan.md` (section 10 takes precedence). Project rules: `CLAUDE.md`.
 
 ## Setup (Windows 11, conda env `sfd`, Python 3.11)
@@ -626,7 +630,15 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | 7 | Referral policy: frozen plan, exact-budget ranking vs random / oracle, threshold-transfer check | done |
 | 8 | Ablations and sensitivity (G1-G10) + exploratory targeted fusion | done |
 | 9 | Final notebook `silent_failure_report.ipynb` (saved results only, executed, fresh-clone verified) | done |
+| 10 | Post-hoc extensions: deep-ensemble baseline (E1), source-vs-shifted detection (E2) | done |
 
 
 
 
+
+## Stage 10 - extensions (post-hoc; `python scripts/run_stage10.py --config configs/full.yaml`)
+Plan `docs/extension_plan_frozen.md`, frozen at commit **6e6f05c1b9cdb6c5250912d13ad575c2b7b160e1** before any result. Code `sfd/stage10.py`, tests
+`tests/test_stage10.py`; outputs `outputs/stage10/` (`e1_ensemble_baseline.csv`, `ens_reconstruction_checks.csv`, `figures/fig10_e1_referral.png`).
+E1: per-seed probabilities are reconstructed from the saved features and the frozen final layer (rows identical across seeds, asserted); for seed unit s the
+ensemble is the other 4 seeds; target = silent failures of the single seed-s model; signals log(1-max p-bar), log predictive entropy, log mutual information.
+E2 (saved tables only) is computed inside the notebook (Section 10b). Runtime 16 min CPU. EXTENSION results never replace M0/M1/M2.

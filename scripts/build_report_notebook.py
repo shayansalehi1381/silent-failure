@@ -46,6 +46,7 @@ minutes. The heavy pipeline that produced these files is in `sfd/` and `scripts/
 8. [Referral policy under a review budget (Figure 6, Table 3)](#s8)
 9. [Ablations and sensitivity (Figure 8)](#s9)
 10. [EXPLORATORY, POST-HOC: targeted (confidence-gated) fusion](#s10)
+10b. [Extensions (post-hoc): deep-ensemble baseline and in-family vs out-of-family](#sx)
 11. [Shortcut case study (Figure 7)](#s11)
 12. [Blueprint compliance checklist and deviations](#s12)
 13. [Honest limitations](#s13)
@@ -55,10 +56,11 @@ minutes. The heavy pipeline that produced these files is in `sfd/` and `scripts/
 """)
 
 md(r"""
-> **Known gaps (Blueprint items not done).** (1) a second classifier architecture; (2) ensemble / MC-dropout uncertainty baselines;
-> (3) Grad-CAM alternatives (Grad-CAM++, ScoreCAM, Integrated Gradients); (4) the in-family vs out-of-family comparison;
-> (5) the artefact-patch (non-tissue) removal ablation in Camelyon. They are listed as DEVIATIONS in Section 12; no result in this
-> notebook depends on them.
+> **Known gaps (Blueprint items not done).** (1) a second classifier architecture; (2) MC-dropout uncertainty (a deep-ensemble baseline
+> was added afterwards as a post-hoc extension, Section 10b); (3) Grad-CAM alternatives (Grad-CAM++, ScoreCAM, Integrated Gradients);
+> (4) a within-family tuned in-family vs out-of-family comparison (only source-vs-shifted and in-sample evidence, Section 10b);
+> (5) the artefact-patch (non-tissue) removal ablation in Camelyon. They are listed as DEVIATIONS in Section 12; no result in the
+> main sections depends on them.
 """)
 
 code(r"""
@@ -201,6 +203,7 @@ code(r"""
 # ---------------------------------------------------------------- headline tables used throughout -----------------
 t2 = rd("stage5/table2.csv")                                  # Phase 5 Table 2
 t3 = rd("stage7/table3_referral.csv")                         # Phase 7 Table 3 (referral part)
+t10_ = rd("stage10/e1_ensemble_baseline.csv")                  # Phase 10 extension E1
 c6 = rd("stage6/contrasts.csv"); c6a = rd("stage6/a1/contrasts.csv")
 far6 = rd("stage6/far_table.csv"); far6a = rd("stage6/a1/far_table.csv")
 tt = rd("stage7/threshold_transfer.csv")
@@ -277,6 +280,8 @@ rows = [
   f"10%: A {rc(g8('A','sf_M2-sf_M1',0.1),2,100)}; B {rc(g8('B','sf_M2-sf_M1',0.1),2,100)}; C {rc(g8('C','sf_M2-sf_M1',0.1),2,100)} pt"),
  ("Confidence-gated M1 ranking reduces residual silent failures vs plain M1", "EXPLORATORY-POST-HOC", P8,
   f"20%: A {rc(ex('A','G_M1-M1',0.2),2,100)}; B {rc(ex('B','G_M1-M1',0.2),2,100)}; C {rc(ex('C','G_M1-M1',0.2),2,100)} pt"),
+ ("A leave-seed-out deep ensemble recovers most of M1's 20%-budget benefit over single-model uncertainty", "EXTENSION (post-hoc)", "6e6f05c",
+  f"20%: E-fuse - M0 A {rc(one(t10_, kind='contrast', heldout='A', quantity='E_fuse-M0', metric='dresid_sf', budget=0.2),2,100)} pt; M1 - E-fuse A {rc(one(t10_, kind='contrast', heldout='A', quantity='M1-E_fuse', metric='dresid_sf', budget=0.2),2,100)} pt"),
 ]
 MAIN = pd.DataFrame(rows, columns=["finding", "status", "plan commit", "key numbers (95% CI)"])
 show(MAIN, "Main findings")
@@ -1024,6 +1029,128 @@ figcap("8d", "EXPLORATORY, post-hoc: residual silent-failure rate of plain vs co
 """)
 
 # =====================================================================================================================
+
+md(r"""
+<a id="sx"></a>
+## 10b. Extensions (post-hoc): deep-ensemble baseline (E1) and in-family vs out-of-family (E2)
+> **Status: EXTENSION (post-hoc).** Plan `docs/extension_plan_frozen.md`, commit 6e6f05c, written before any result below. Never a replacement
+> for M0 / M1 / M2; no retraining, no GPU, no new image extraction.
+
+### E1. Deep-ensemble uncertainty baseline
+The 5 seeds of each model kind were evaluated on IDENTICAL rows in identical order (checked). Per-seed calibrated probability vectors were not
+saved, so they are **reconstructed from the saved penultimate features and the frozen final layer** (check: 99.9th percentile of the confidence
+error < 1e-3, asserted). For seed unit *s* the ensemble is the **leave-seed-*s*-out ensemble of the other 4 seeds** (`E`), so the seed-level
+bootstrap stays valid; the 5-member ensemble including *s* (`E5`) is a sensitivity. The target is unchanged: silent failures (`sf_090`) of the
+single seed-*s* classifier. Signals: log(1 - max mean-probability) (`E-msp`), log predictive entropy (`E-ent`), log mutual information (`E-mi`);
+`E-fuse` = non-negative fusion of the first two (the ensemble analogue of M0); `E-M1` = `E-fuse` + Mahalanobis. Everything else (rotation, percentile
+standardisation, paired cluster bootstrap, exact-budget referral) is as in Sections 6 and 8.
+**Limitation:** variability due to which seeds form the ensemble is only partly captured by the seed-level bootstrap.
+""")
+
+code(r"""
+t10 = rd("stage10/e1_ensemble_baseline.csv"); rd("stage10/ens_reconstruction_checks.csv")
+def e10(H, q, m, b=None, kind="level"):
+    d = t10[(t10.kind == kind)]
+    return one(d, heldout=H, quantity=q, metric=m) if b is None else one(d, heldout=H, quantity=q, metric=m, budget=float(b))
+names10 = ["M0", "E_msp", "E_ent", "E_mi", "E_fuse", "M1", "E_M1", "E5_fuse", "E5_M1", "M2"]
+lvl = t10[(t10.kind == "level") & t10.metric.isin(["auroc", "auprc", "aurc"])].copy()
+lvl["val"] = [ci(e, l, h, 3, 1, False) for e, l, h in zip(lvl.estimate, lvl.ci_low, lvl.ci_high)]
+show(lvl.pivot_table(index=["heldout", "metric"], columns="quantity", values="val", aggfunc="first")[names10].reset_index(),
+     "E1 - detection of silent failures (sf_090): AUROC, AUPRC, AURC, held-out-family rotation, mean over 5 seed units [95% CI] (outputs/stage10/e1_ensemble_baseline.csv)")
+dA = lambda H, m: e10(H, "E_fuse", m).estimate - e10(H, "M0", m).estimate
+say(f"**What this shows (EXTENSION):** the ensemble improves on a single model's uncertainty: AUROC E-fuse - M0 = {dA('A','auroc'):+.3f} (A), {dA('B','auroc'):+.3f} (B), "
+    f"{dA('C','auroc'):+.3f} (C; point estimates, paired CIs in the contrast table below). On A, M1 ({e10('A','M1','auroc').estimate:.3f}) and E-fuse ({e10('A','E_fuse','auroc').estimate:.3f}) "
+    f"are similar, and E-M1 reaches {e10('A','E_M1','auroc').estimate:.3f}; on C the representation signal lowers AUROC even on top of the ensemble "
+    f"(E-M1 {e10('C','E_M1','auroc').estimate:.3f} vs E-fuse {e10('C','E_fuse','auroc').estimate:.3f}).")
+""")
+
+code(r"""
+lv = t10[(t10.kind == "level") & t10.metric.isin(["resid_sf", "resid_err"]) & t10.quantity.isin(names10 + ["random", "oracle"])].copy()
+lv["val"] = [ci(e, l, h, 2, 100, False) for e, l, h in zip(lv.estimate, lv.ci_low, lv.ci_high)]; lv["B"] = (100 * lv.budget).round(0)
+show(lv.pivot_table(index=["heldout", "B", "metric"], columns="quantity", values="val", aggfunc="first")[["random"] + names10 + ["oracle"]].reset_index(),
+     "E1 - exact-budget referral: residual silent-failure rate (resid_sf) and residual overall error rate (resid_err), % [95% CI]")
+png("stage10/figures/fig10_e1_referral.png", width=1000)
+figcap("10", "EXTENSION E1: residual silent-failure rate vs review budget for single-model M0 / M1, the leave-seed-out ensemble E-fuse and E-M1, with random and oracle references (95% paired CIs).",
+       f"on A and B the ensemble alone reproduces most of the 20%-budget gain that M1 had over M0 (A residual: M0 {100*e10('A','M0','resid_sf',0.2).estimate:.1f}%, M1 {100*e10('A','M1','resid_sf',0.2).estimate:.1f}%, "
+       f"E-fuse {100*e10('A','E_fuse','resid_sf',0.2).estimate:.1f}%, E-M1 {100*e10('A','E_M1','resid_sf',0.2).estimate:.1f}%); on C no ranking comes close to the oracle and Mahalanobis again hurts.")
+cx = t10[(t10.kind == "contrast") & t10.metric.isin(["dresid_sf", "dauroc", "dauprc", "daurc"]) &
+         t10.quantity.isin(["E_fuse-M0", "M1-E_fuse", "E_M1-E_fuse", "E_M1-M1", "E_mi-E_msp", "E_ent-E_msp", "E_msp-M0", "E5_fuse-M0", "M1-E5_fuse", "E5_M1-E5_fuse", "M1-M0"])]
+o = cx.assign(est=[ci(e, l, h, 2, 100, True) if m == "dresid_sf" else ci(e, l, h, 4 if m == "daurc" else 3, 1, True) for e, l, h, m in zip(cx.estimate, cx.ci_low, cx.ci_high, cx.metric)],
+              B=(100 * cx.budget).round(0))
+show(o[["heldout", "quantity", "metric", "B", "est", "p_boot", "jackknife_min", "jackknife_max", "verdict"]].rename(columns={"est": "difference [95% CI] (pt for dresid_sf)"}),
+     "E1 - paired contrasts (EXTENSION, unadjusted; E-fuse vs M0, M1 vs E-fuse, E-M1 vs E-fuse, variants)")
+def cls(v):
+    return "better" if v in ("reduces", "improves") else "worse" if v in ("increases", "worse") else "no difference" if v == "no practical difference" else "inconclusive"
+rows_ = []
+for H in "ABC":
+    for m, bs in (("dresid_sf", (0.05, 0.1, 0.2)), ("dauroc", (None,))):
+        for b in bs:
+            def g(q):
+                d = cx[(cx.heldout == H) & (cx.quantity == q) & (cx.metric == m)]
+                d = d[np.isclose(d.budget, b)] if b is not None else d
+                return d.iloc[0]
+            dd, sc_ = (2, 100) if m == "dresid_sf" else (3, 1)
+            a_, e_, f_ = g("M1-M0"), g("M1-E_fuse"), g("E_M1-E_fuse")
+            rows_.append({"held-out": H, "metric": m, "budget %": (None if b is None else int(100 * b)), "M1 vs M0": f"{rc(a_, dd, sc_)} {a_.verdict}",
+                          "M1 vs ensemble E-fuse": f"{rc(e_, dd, sc_)} {e_.verdict}",
+                          "verdict class": "same" if cls(a_.verdict) == cls(e_.verdict) else "CHANGES",
+                          "Mahalanobis added to the ensemble (E-M1 - E-fuse)": f"{rc(f_, dd, sc_)} {f_.verdict}"})
+rr = pd.DataFrame(rows_)
+show(rr, "E1 - does the ensemble baseline change a conclusion? (rule fixed in the plan: the verdict class of 'M1 vs ensemble' differs from that of 'M1 vs M0')")
+cx20 = lambda H, q: rc(e10(H, q, "dresid_sf", 0.2, "contrast"), 2, 100)
+say(f"**What this shows (EXTENSION):** the verdict class changes in {int((rr['verdict class'] == 'CHANGES').sum())} of {len(rr)} (family, metric, budget) cells. "
+    f"Residual silent failures at 20%: E-fuse - M0 = {cx20('A','E_fuse-M0')} pt (A), {cx20('B','E_fuse-M0')} pt (B); M1 - E-fuse = {cx20('A','M1-E_fuse')} pt (A) and {cx20('B','M1-E_fuse')} pt (B). "
+    "So much of the apparent benefit of representation drift over one model's uncertainty is a benefit of any better uncertainty estimate. Mahalanobis on top of the "
+    f"ensemble still helps on A ({cx20('A','E_M1-E_fuse')} pt at 20%) and B ({cx20('B','E_M1-E_fuse')} pt) but hurts on C ({cx20('C','E_M1-E_fuse')} pt). Mutual information is not better "
+    f"than the maximum-probability signal (E-mi - E-msp at 20%: A {cx20('A','E_mi-E_msp')}, C {cx20('C','E_mi-E_msp')} pt). The ensemble still leaves "
+    f"{100*e10('A','E_fuse','resid_sf',0.05).estimate:.1f}% residual silent failures at 5% on A (random {100*e10('A','random','resid_sf',0.05).estimate:.1f}%): "
+    "uncertainty-first ranking, even from an ensemble, does not reach silent failures at small budgets.")
+""")
+
+md(r"""
+### E2. In-family (source) vs out-of-family detection - saved tables only
+Source-distribution rows (family A `clean`, severity 0; family B `id_test`; family C `aligned`) versus shifted rows of the same family, using the
+Phase 5 breakdown tables (AUROC / AUPRC with saved CIs) and the Phase 7 breakdowns (residual rate at a 20% budget). The fusion weights are the
+held-out-family rotation weights, so "in-family" here means **source-distribution evaluation**, not a fusion tuned inside the same family. The
+Phase 5 incremental logistic regression (fitted and evaluated in the same family, in-sample, descriptive) supplies in-family information.
+""")
+
+code(r"""
+sbk = rd("stage5/secondary_breakdowns.csv"); b7 = rd("stage7/breakdowns.csv")
+spec = [("A by severity", "A", ["0", "1", "2", "3", "4", "5"], "A severity (0 = clean = source)"),
+        ("B by condition", "B", ["id_test", "ood_c1", "ood_c2"], "B condition (id_test = source)"),
+        ("C by condition", "C", ["aligned", "removed", "reversed"], "C cue state (aligned = source)")]
+rows = []
+for an, H, lvls, lab in spec:
+    for l in lvls:
+        r = {"family / level": f"{lab}: {l}"}
+        for q in ("M0", "M1", "M2"):
+            for m in ("AUROC", "AUPRC"):
+                d = sbk[(sbk.analysis == an) & (sbk.level.astype(str) == l) & (sbk.quantity == q) & (sbk.metric == m)].iloc[0]
+                r[f"{q} {m}"] = ci(d.estimate, d.ci_low, d.ci_high, 3, 1, False) if pd.notna(d.estimate) else "not estimable (no silent failures)"
+            d7 = b7[(b7.analysis == an) & (b7.level.astype(str) == l) & (b7.quantity == q) & (b7.metric == "resid_sf") & np.isclose(b7.budget, 0.2)].iloc[0]
+            r[f"{q} resid. SF @20% (%)"] = ci(d7.estimate, d7.ci_low, d7.ci_high, 2, 100, False)
+        r["SF prevalence"] = round(float(d.sf_rate), 4)
+        rows.append(r)
+e2 = pd.DataFrame(rows)
+show(e2, "E2 - detection (AUROC, AUPRC) and residual silent-failure rate at a 20% budget, source vs shifted rows (outputs/stage5/secondary_breakdowns.csv, outputs/stage7/breakdowns.csv)")
+a0, a5 = e2.iloc[0], e2.iloc[5]
+say(f"**What this shows (EXTENSION):** M0's detection AUROC is highest on source data and falls with shift on A (clean {a0['M0 AUROC']} -> severity 5 {a5['M0 AUROC']}), "
+    f"whereas M1 starts lower on clean data ({a0['M1 AUROC']}) and degrades more slowly ({a5['M1 AUROC']}): representation drift helps where the shift is strong, not in-distribution. "
+    "On B the source split has few silent failures and wide CIs; on C the aligned state has none. M2 equals M1 in every row of A and C.")
+il = rd("stage5/incremental_logit.csv")
+inl = il.groupby("heldout").agg(LR_M1_vs_M0=("LR_M1_vs_M0", "median"), coef_maha=("coef_maha", "median"), LR_M2_vs_M1=("LR_M2_vs_M1", "median"),
+                                coef_cam=("coef_cam", "median"), max_p_cam=("wald_p_cam", "max")).round(4).reset_index()
+inl["out-of-family M2-M1 dAUROC (monotone fusion)"] = [rc(t2r(H, "M2-M1", "dAUROC"), 4) for H in inl.heldout]
+show(inl, "E2 - in-sample (in-family) information: unconstrained logistic regression fitted and evaluated on the held-out family itself, median over seeds, vs the out-of-family monotone result")
+pword = 'all Wald p < 1e-30' if inl.max_p_cam.max() < 1e-30 else 'largest Wald p = %.1e' % inl.max_p_cam.max()
+say(f"**What this shows (EXTENSION):** inside the family, CAM drift carries significant information given M0 + Mahalanobis (likelihood-ratio statistics "
+    f"{inl.LR_M2_vs_M1.min():.0f}-{inl.LR_M2_vs_M1.max():.0f}, {pword}) but with a NEGATIVE coefficient ({inl.coef_cam.min():.2f} to {inl.coef_cam.max():.2f}); "
+    "out-of-family, the pre-registered monotone fusion cannot use it (M2-M1 = 0). So the information exists in-sample but does not transfer as a positive-weight alarm; "
+    "with a free sign it does help out-of-family (P2, Section 9). **Limitation:** no fusion tuned and tested on disjoint clusters inside the same family was run, so this is "
+    "evidence about information content, not a within-family generalisation estimate.")
+""")
+
 md(r"""
 <a id="s11"></a>
 ## 11. Shortcut case study (Figure 7)
@@ -1103,7 +1230,8 @@ C = [
  ("3 Shifts", "X CRC-VAL-HE-7K supplement", "PASS", "outputs/stage3/family_summary.csv"),
  ("3 Shifts", "monotone accuracy drop with severity; shortcut reliance measured", "PASS", "outputs/stage3/sanity_stage3.json"),
  ("4 Signals", "MSP, entropy, energy", "PASS", "outputs/stage4/per_signal_auroc.csv"),
- ("4 Signals", "deep ensemble / MC-dropout uncertainty", "DEVIATION", "README.md"),
+ ("4 Signals", "deep-ensemble uncertainty baseline (leave-seed-out ensemble, EXTENSION Section 10b)", "PASS", "outputs/stage10/e1_ensemble_baseline.csv"),
+ ("4 Signals", "MC-dropout uncertainty", "DEVIATION", "README.md"),
  ("4 Signals", "class-conditional Mahalanobis, kNN, batch MMD", "PASS", "outputs/stage6/power_pooled.csv"),
  ("4 Signals", "Grad-CAM layer3 + layer2 / layer4 sensitivity", "PASS", "outputs/stage4/refs_l2_checksums.csv"),
  ("4 Signals", "Grad-CAM++ / ScoreCAM / Integrated Gradients alternatives", "DEVIATION", "README.md"),
@@ -1115,7 +1243,7 @@ C = [
  ("5 Sample level", "held-out-family rotation A / B / C", "PASS", "outputs/stage5/table2.csv"),
  ("5 Sample level", "AUROC / AUPRC / AURC, two-level bootstrap >= 2,000, paired deltas", "PASS", "outputs/stage5/table2.csv"),
  ("5 Sample level", "verdict generated from the numbers; jackknife", "PASS", "outputs/stage5/summary_stage5.md"),
- ("5 Sample level", "in-family vs out-of-family comparison", "DEVIATION", "README.md"),
+ ("5 Sample level", "in-family vs out-of-family comparison (EXTENSION Section 10b: source-vs-shifted + in-sample information only; no within-family disjoint-cluster tuning, so it stays DEVIATION)", "DEVIATION", "outputs/stage5/secondary_breakdowns.csv"),
  ("6 Batch", "windows of 100 with shifted fractions 0.1-1", "PASS", "outputs/stage6/power_cells.csv"),
  ("6 Batch", "5% FAR thresholds from the source null", "PASS", "outputs/stage6/thresholds_silent_bounds.csv"),
  ("6 Batch", "actual FAR within 3-7% on held-out source windows", "DEVIATION", "outputs/stage6/far_table.csv"),
@@ -1136,8 +1264,8 @@ assert comp["evidence exists"].all(), comp[~comp["evidence exists"]]
 show(comp, "Blueprint compliance checklist")
 cnt = comp.status.value_counts()
 say(f"**What this shows:** {cnt.get('PASS', 0)} PASS, {cnt.get('DEVIATION', 0)} DEVIATION, {cnt.get('N-A', 0)} N-A; every evidence file exists. "
-    "Not-done items (second architecture, ensembles / MC-dropout, alternative attribution methods, in-family analysis, artefact-patch ablation) were "
-    "dropped for time and are listed as deviations rather than hidden.")
+    "Not-done items (second architecture, MC-dropout, alternative attribution methods, within-family in-family analysis, artefact-patch ablation) were "
+    "dropped for time and are listed as deviations rather than hidden; the ensemble baseline was added afterwards as a post-hoc extension.")
 """)
 
 md(r"""
@@ -1182,7 +1310,9 @@ md(r"""
    incremental logistic regression, the inversion diagnosis and P2, but was not tested causally.
 9. **Batch thresholds do not transfer** between source splits (Phase 6) and score thresholds do not transfer between families (Phase 7):
    any deployment would need local calibration.
-10. **No qualitative CAM overlays** were saved; the case study is quantitative only.
+10. **Ensemble baseline (extension).** The ensemble is built from the same 5 training runs; its probabilities are reconstructed from fp16 features; the seed
+    level partly ignores which members form the ensemble (Section 10b).
+11. **No qualitative CAM overlays** were saved; the case study is quantitative only.
 """)
 
 # =====================================================================================================================
@@ -1201,7 +1331,8 @@ tags = pd.DataFrame([("phase-0", "aaf37ad", "repo, environment, configs, benchma
                      ("phase-6", "ef592c7", "batch monitoring (plan 931fb36, amendment 4ea78c3)"),
                      ("phase-7", "d51da65", "referral policy (plan aa962a9)"),
                      ("phase-8", "83d81db", "ablations (plan f0553df)"),
-                     ("phase-9", "(this release)", "final notebook")], columns=["tag", "commit", "content"])
+                     ("phase-9", "0c9cdd8", "final notebook (phase-9b: silent-share fix, known gaps, 73ded51)"),
+                     ("phase-10", "(this release)", "extensions E1 ensemble baseline, E2 in-family vs out-of-family (plan 6e6f05c)")], columns=["tag", "commit", "content"])
 try:
     head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT, timeout=10).stdout.strip()
     have = set(subprocess.run(["git", "tag"], capture_output=True, text=True, cwd=ROOT, timeout=10).stdout.split())
@@ -1284,6 +1415,8 @@ for g in ("G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"):
          f"A.22 Ablation {g} - {names[g]}, full table (outputs/stage8/tables/ablation_{g}.csv)")
 show(fmt(EX, d=4), "A.23 EXPLORATORY, post-hoc targeted-fusion table, full (outputs/stage8/tables/exploratory_targeted.csv)")
 show(jk, "A.24 G10 seed jackknife, all contrasts (outputs/stage8/tables/seed_jackknife_G10.csv)")
+show(fmt(t10_, d=4, keep=["table", "heldout", "label", "kind", "group", "quantity", "budget", "metric", "n_per_seed", "prevalence", "p_boot", "jackknife_min", "jackknife_max", "verdict"]),
+     "A.31 EXTENSION E1 full table (outputs/stage10/e1_ensemble_baseline.csv)")
 """)
 
 code(r"""
@@ -1320,7 +1453,7 @@ DESC = {
  "fig6_data": "referral curves (Fig 6)", "table3_referral": "Table 3 referral", "tiers": "refer / review tiers", "threshold_transfer": "threshold-transfer check",
  "boundary_ties": "budget boundary ties", "breakdowns": "referral breakdowns", "seed_jackknife": "seed jackknife", "ablation_G": "ablation group table",
  "exploratory_targeted": "EXPLORATORY targeted fusion", "gated_share": "gated share of pools", "augment_checks": "Phase 8 refit / reconstruction checks",
- "env_record": "environment record", "candidates.csv": "candidate assignments",
+ "env_record": "environment record", "e1_ensemble_baseline": "EXTENSION E1 ensemble baseline", "ens_reconstruction": "ensemble probability reconstruction checks", "fig10_e1": "EXTENSION E1 referral figure", "candidates.csv": "candidate assignments",
 }
 def describe(p):
     for k, v in DESC.items():

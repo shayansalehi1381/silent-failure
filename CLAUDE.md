@@ -65,6 +65,8 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Phase 9: the deliverable is `silent_failure_report.ipynb` (built by `scripts/build_report_notebook.py`, executed with
   `jupyter nbconvert --execute --inplace`, committed WITH outputs). It may read only small committed files (outputs/, docs/); never
   per-row arrays, data or weights. Every number in its text is computed from a saved table; keep exploratory results in their own section.
+- Stage 10 (docs/extension_plan_frozen.md, 6e6f05c): ensemble baseline and source-vs-shifted analysis are post-hoc EXTENSIONS, labelled as such,
+  never replacing M0/M1/M2; the ensemble for seed unit s excludes s (leave-seed-out).
 - Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are
