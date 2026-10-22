@@ -1,4 +1,4 @@
-"""Explanation-drift signals from Grad-CAM (Selvaraju et al. 2017), predicted class.
+﻿"""Explanation-drift signals from Grad-CAM (Selvaraju et al. 2017), predicted class.
 
 One forward + one backward pass gives, per image: logits, 512-d features and Grad-CAMs at layer4 (PRIMARY, the
 standard definition) and layer3 (sensitivity). CAMs are ReLU'd, resized to a common GRID x GRID map (bilinear) and
@@ -18,25 +18,25 @@ LAYERS = ("layer4", "layer3")
 TRANSFORMS = ("hflip", "vflip", "rot90", "rot180", "rot270", "rot+10", "rot-10", "bright+10", "bright-10")
 
 
-def _maps_to_grid(acts, grads):
+def _maps_to_grid(acts, grads, grid: int = GRID):
     import torch
     import torch.nn.functional as F
     w = grads.mean((2, 3), keepdim=True)
     cam = F.relu((w * acts).sum(1, keepdim=True))
-    cam = F.interpolate(cam, size=(GRID, GRID), mode="bilinear", align_corners=False)[:, 0]
+    cam = F.interpolate(cam, size=(grid, grid), mode="bilinear", align_corners=False)[:, 0]
     s = cam.flatten(1).sum(1, keepdim=True)
     flat = cam.flatten(1)
-    uniform = torch.full_like(flat, 1.0 / (GRID * GRID))
+    uniform = torch.full_like(flat, 1.0 / (grid * grid))
     return torch.where(s > 0, flat / s.clamp_min(1e-12), uniform)            # unit mass (uniform if all zero)
 
 
-def gradcam_batch(model, x, target=None):
+def gradcam_batch(model, x, target=None, layers=LAYERS, grid: int = GRID):
     """x: normalised NCHW batch on the model device. Returns dict with logits [N,C], features [N,512] and, per layer,
     unit-mass CAMs [N, GRID*GRID] for `target` (default: predicted class). Single forward/backward pass."""
     import torch
     m = model.net
     store = {}
-    h = [getattr(m, ln).register_forward_hook(lambda mod, i, o, ln=ln: store.__setitem__(ln, o)) for ln in LAYERS]
+    h = [getattr(m, ln).register_forward_hook(lambda mod, i, o, ln=ln: store.__setitem__(ln, o)) for ln in layers]
     try:
         with torch.enable_grad():
             x = x.detach().requires_grad_(False)
@@ -44,8 +44,8 @@ def gradcam_batch(model, x, target=None):
             logits = m.fc(feats)
             t = logits.argmax(1) if target is None else target
             score = logits.gather(1, t[:, None]).sum()
-            grads = torch.autograd.grad(score, [store[ln] for ln in LAYERS])
-        cams = {ln: _maps_to_grid(store[ln].detach(), g.detach()).cpu().numpy() for ln, g in zip(LAYERS, grads)}
+            grads = torch.autograd.grad(score, [store[ln] for ln in layers])
+        cams = {ln: _maps_to_grid(store[ln].detach(), g.detach(), grid).cpu().numpy() for ln, g in zip(layers, grads)}
     finally:
         for hh in h:
             hh.remove()
@@ -78,10 +78,10 @@ def apply_transform(x, name: str):
     raise ValueError(name)
 
 
-def invert_cam(cam, name: str):
+def invert_cam(cam, name: str, grid: int = GRID):
     """Map a [N, GRID*GRID] CAM of the transformed image back to the original orientation (unit mass kept)."""
     import torch
-    c = torch.as_tensor(cam).view(-1, 1, GRID, GRID)
+    c = torch.as_tensor(cam).view(-1, 1, grid, grid)
     if name == "hflip":
         c = c.flip(3)
     elif name == "vflip":
@@ -133,3 +133,4 @@ def explanation_scores(cams: np.ndarray, pred: np.ndarray, ref: dict, tstats: di
     d = z - ref["pca_class_means"][pred]
     maha = np.sqrt(np.maximum(np.einsum("nd,de,ne->n", d, ref["pca_precision"], d), 0))
     return {"js_raw": js, "js_norm": (js - med) / np.maximum(1.4826 * mad, 1e-6), "pca_maha": maha}
+

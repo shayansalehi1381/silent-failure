@@ -107,10 +107,11 @@ def _batches(images, cue_ids, palette, offset, dev, bs: int = 256):
         yield ((x - mean) / std).contiguous(memory_format=torch.channels_last), a
 
 
-def run_gradcam(model, images, dev, cue_ids=None, palette=None, offset=0, bs: int = 256) -> dict:
-    parts = {k: [] for k in ("logits", "features", *ex.LAYERS)}
+def run_gradcam(model, images, dev, cue_ids=None, palette=None, offset=0, bs: int = 256, layers=ex.LAYERS,
+                grid: int = ex.GRID) -> dict:
+    parts = {k: [] for k in ("logits", "features", *layers)}
     for x, _ in _batches(images, cue_ids, palette, offset, dev, bs):
-        r = ex.gradcam_batch(model, x)
+        r = ex.gradcam_batch(model, x, layers=layers, grid=grid)
         for k in parts:
             parts[k].append(r[k])
     return {k: np.concatenate(v) for k, v in parts.items()}
@@ -125,7 +126,8 @@ def _ref_index(cfg: dict, frame: pd.DataFrame, ds: str) -> np.ndarray:
     return np.sort(stratified_sample(fr, n, ["label"], cfg["stage4"]["seed"])["pos"].to_numpy())
 
 
-def _transform_stats(model, imgs_u8, labels, dev, cue_ids, palette, offset, n_classes: int) -> dict:
+def _transform_stats(model, imgs_u8, labels, dev, cue_ids, palette, offset, n_classes: int, layers=ex.LAYERS,
+                     grid: int = ex.GRID) -> dict:
     """Per class and layer: median and MAD of JS(CAM of the transformed image mapped back, CAM of the original),
     pooled over all label-preserving transforms; plus the mean JS per transform (reported)."""
     import torch
@@ -133,7 +135,7 @@ def _transform_stats(model, imgs_u8, labels, dev, cue_ids, palette, offset, n_cl
     mean = torch.tensor(MEAN, device=dev).view(1, 3, 1, 1)
     std = torch.tensor(STD, device=dev).view(1, 3, 1, 1)
     pal_t = torch.from_numpy(palette).permute(0, 3, 1, 2).float().div(255).to(dev) if cue_ids is not None else None
-    per = {ln: np.zeros((len(imgs_u8), len(ex.TRANSFORMS))) for ln in ex.LAYERS}
+    per = {ln: np.zeros((len(imgs_u8), len(ex.TRANSFORMS))) for ln in layers}
     for a in range(0, len(imgs_u8), 128):
         u8 = torch.from_numpy(np.ascontiguousarray(imgs_u8[a:a + 128])).to(dev).permute(0, 3, 1, 2).float().div_(255)
         cid = torch.from_numpy(cue_ids[a:a + 128]).to(dev) if cue_ids is not None else None
@@ -141,14 +143,15 @@ def _transform_stats(model, imgs_u8, labels, dev, cue_ids, palette, offset, n_cl
         def run(x):
             if cid is not None:                       # the cue stays at its fixed position, as in training
                 x = sc.apply_cue_tensor(x.clone(), cid, pal_t, offset)
-            return ex.gradcam_batch(model, ((x - mean) / std).contiguous(memory_format=torch.channels_last))
+            return ex.gradcam_batch(model, ((x - mean) / std).contiguous(memory_format=torch.channels_last),
+                                    layers=layers, grid=grid)
         base = run(u8)
         for ti, t in enumerate(ex.TRANSFORMS):
             r = run(ex.apply_transform(u8, t))
-            for ln in ex.LAYERS:
-                per[ln][a:a + len(u8), ti] = ex.js_divergence(ex.invert_cam(r[ln], t), base[ln])
+            for ln in layers:
+                per[ln][a:a + len(u8), ti] = ex.js_divergence(ex.invert_cam(r[ln], t, grid), base[ln])
     stats = {}
-    for ln in ex.LAYERS:
+    for ln in layers:
         med = np.array([np.median(per[ln][labels == c]) for c in range(n_classes)])
         mad = np.array([np.median(np.abs(per[ln][labels == c] - med[c])) for c in range(n_classes)])
         stats[ln] = {"median": med, "mad": mad, "per_transform_mean": per[ln].mean(0)}
@@ -561,3 +564,95 @@ def run_tables(cfg: dict, p: dict, df: pd.DataFrame, smp: pd.DataFrame, log=prin
     (out / "summary_stage4.md").write_text("\n".join(md), encoding="utf-8")
     log(f"[stage4] tables: {len(mon):,} rows; CAM randomisation passed={val['passed']}; agreement={agree}")
     return sanity
+
+
+# --------------------------------------------------------------------------- extra pass ------
+# Declared sensitivities added before the Phase 5 plan freeze: layer2 Grad-CAM (16 x 16 grid, same reference
+# procedure, train-only, own frozen marker) and tie-free log-scale uncertainty. Existing references/signals untouched.
+L2, GRID2 = ("layer2",), 16
+
+
+def fit_references_l2(cfg: dict, p: dict, df: pd.DataFrame, log=print) -> None:
+    import torch
+    out = p["out"]
+    if marker(out, "refs_l2_frozen").exists():
+        return
+    dev = torch.device("cuda")
+    s4, off = cfg["stage4"], cfg["stage3"]["shortcut"]["offset_px"]
+    (out / "refs_l2").mkdir(parents=True, exist_ok=True)
+    for spec in model_specs(cfg, p):
+        f = out / "refs_l2" / f"{spec['name']}.npz"
+        if f.exists():
+            continue
+        inputs = reference_inputs(cfg, p, spec)                      # same whitelist: train cache + checkpoint only
+        frame = cd.split_frame(df, spec["dataset"], "train")
+        idx = _ref_index(cfg, frame, spec["dataset"])
+        rr, labels = cd.RowReader(inputs[0]), frame["label"].to_numpy(np.int64)
+        cue_all = pal = None
+        if spec["cue"]:
+            cue_all = sc.cue_assignment(labels, spec["cue"]["p_aligned"], 9, cfg["stage3"]["shortcut"]["cue_seed"])
+            pal = sc.palette_for(spec["cue"])
+        model = load_model(spec, dev)
+        parts = {k: [] for k in ("logits", *L2)}
+        for a in range(0, len(idx), 2048):
+            ii = idx[a:a + 2048]
+            r = run_gradcam(model, rr[ii], dev, None if cue_all is None else cue_all[ii], pal, off, layers=L2, grid=GRID2)
+            for k in parts:
+                parts[k].append(r[k])
+        R = {k: np.concatenate(v) for k, v in parts.items()}
+        lab, pred = labels[idx], R["logits"].argmax(1)
+        ref = ex.fit_cam_reference(R["layer2"], lab, pred, spec["n_classes"])
+        sub = np.sort(stratified_sample(pd.DataFrame({"label": lab}), s4["transform_n"], ["label"], s4["seed"]).index.to_numpy())
+        ts = _transform_stats(model, rr[idx[sub]], lab[sub], dev, None if cue_all is None else cue_all[idx[sub]], pal, off,
+                              spec["n_classes"], layers=L2, grid=GRID2)["layer2"]
+        np.savez(f, **{f"layer2_{k}": v for k, v in ref.items()}, layer2_t_median=ts["median"], layer2_t_mad=ts["mad"],
+                 layer2_t_per_transform=ts["per_transform_mean"])
+        log(f"[stage4] refs_l2 {spec['name']}: PCA k={ref['pca_k']}")
+        del model
+        torch.cuda.empty_cache()
+    sums = {f.name: sha256_file(f) for f in sorted((out / "refs_l2").glob("*.npz"))}
+    pd.DataFrame({"file": list(sums), "sha256": list(sums.values())}).to_csv(out / "refs_l2_checksums.csv", index=False)
+    marker(out, "refs_l2_frozen").write_text(json.dumps({"n_models": len(sums), "sha256": sums}, indent=1))
+    log(f"[stage4] layer2 references FROZEN: {len(sums)} models")
+
+
+def run_signals_extra(cfg: dict, p: dict, df: pd.DataFrame, smp: pd.DataFrame, log=print) -> None:
+    import torch
+    out = p["out"]
+    assert marker(out, "refs_l2_frozen").exists() and marker(out, "refs_frozen").exists()
+    dev = torch.device("cuda")
+    (out / "signals_extra").mkdir(parents=True, exist_ok=True)
+    keys = ["family", "condition", "severity", "model_kind", "dataset", "seed", "uid"]
+    for spec in model_specs(cfg, p):
+        mk = marker(out, f"extra_{spec['name']}")
+        if mk.exists():
+            continue
+        t0 = time.time()
+        z = np.load(out / "refs_l2" / f"{spec['name']}.npz")
+        ref = {k: z[f"layer2_{k}"] for k in ("mean_cam", "pca_mu", "pca_components", "pca_class_means", "pca_precision")}
+        tst = {"median": z["layer2_t_median"], "mad": z["layer2_t_mad"]}
+        model = load_model(spec, dev)
+        pal = sc.palette_for(spec["cue"]) if spec["cue"] else None
+        frames = []
+        for s in _sets(cfg, p, df, spec, smp, None):
+            R = run_gradcam(model, _read(s), dev, s["cue"], pal, s["cue_off"], layers=L2, grid=GRID2)
+            pred = R["logits"].argmax(1)
+            e = ex.explanation_scores(R["layer2"], pred, ref, tst)
+            frames.append(pd.DataFrame({"family": s["family"], "condition": s["condition"], "severity": s["severity"],
+                                        "model_kind": spec["kind"], "dataset": spec["dataset"], "seed": spec["seed"],
+                                        "uid": s["uid"], "pred_check": pred,
+                                        "u_log1msp": un.log_one_minus_msp(R["logits"], spec["T"]),
+                                        "u_logent": un.log_entropy(R["logits"], spec["T"]),
+                                        "e_js_norm_l2": e["js_norm"], "e_js_raw_l2": e["js_raw"], "e_pca_l2": e["pca_maha"]}))
+        allx = pd.concat(frames, ignore_index=True)
+        vc = allx[allx.family == "VALCAL"]
+        for col in ("u_log1msp", "u_logent", "e_js_norm_l2", "e_js_raw_l2", "e_pca_l2"):
+            allx["pct_" + col] = nz.ecdf_percentile(vc[col].to_numpy(), allx[col].to_numpy())
+            allx["rz_" + col] = nz.robust_z(vc[col].to_numpy(), allx[col].to_numpy())
+        assert not allx.duplicated(keys).any()
+        allx.to_parquet(out / "signals_extra" / f"{spec['name']}.parquet", index=False)
+        ties = {c: float(1 - allx[c].nunique() / len(allx)) for c in ("u_log1msp", "u_logent")}
+        mk.write_text(json.dumps({"rows": len(allx), "tie_fraction": ties, "seconds": round(time.time() - t0, 1)}))
+        log(f"[stage4] extra {spec['name']}: {len(allx):,} rows, tie fraction {ties} ({time.time() - t0:.0f} s)")
+        del model
+        torch.cuda.empty_cache()
