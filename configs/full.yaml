@@ -117,6 +117,16 @@ stage4:                                            # frozen plan (Blueprint Sec 
   knn_k: 10
   tau_precision: 0.95                              # frozen acceptance threshold: >= 95% precision on val_cal
   gpu_budget_min: 90                               # full sets if projected Grad-CAM time <= this, else 1,000/condition
+stage6:                                            # pre-registered in docs/batch_plan_frozen.md
+  size: 100
+  sensitivity_sizes: [50, 200]
+  windows_per_cell: 200
+  n_valcal_windows: 3000                           # source-only windows for thresholds / silent bounds
+  n_far_windows: 2000                              # held-out ID windows for the ACTUAL false-alarm rate
+  far_tolerance: [0.03, 0.07]
+  bootstrap_B: 2000
+  streams: {pre: 20, horizon: 30, per_cell: 100, onsets: [0.25, 0.5, 1.0, ramp]}
+  min_silent_windows: 20
 stage5:                                            # pre-registered in docs/analysis_plan_frozen.md
   bootstrap_B: 2000                                # paired two-level cluster bootstrap (seeds x clusters)
   fig3_B: 1000                                     # single-signal descriptive CIs (not contrasts)
