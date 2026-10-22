@@ -216,8 +216,33 @@ silent-failure rates 13-36%); bubble, stain_deposit and pixelate barely matter (
 severity for every corruption (no rise > 0.5 points; motion_blur is flat over severities 1-3 because MedMNIST-C only grows
 the blur radius there). Confidence stays at 0.90-0.97 while accuracy drops, so silent failures grow with severity.
 
+**Family C v2 (strong shortcut, primary) - shortcut strength is an experimental dial tuned on `val_es` only.**
+The Blueprint (Sec 3.3) asks for a cue "highly correlated" with the class. A pre-registered ladder was piloted on seed 0
+(max 4 epochs, same recipe), stopping at the FIRST rung whose accuracy on `val_es` with the cue reversed is <= 0.50
+(no id_test or shifted data used for the choice; `outputs/stage3/shortcut_v2_pilot.json`):
+
+| rung | cue-label match | cue | val_es aligned | val_es removed | val_es reversed | decision |
+|---|---|---|---|---|---|---|
+| S1 | 100% | 16 px, 9 colours x 3 textures (as v1) | 1.000 | 0.639 | **0.208** | **chosen** (first <= 0.50) |
+| S2 | 100% | 32 px | - | - | - | not run (ladder stopped) |
+| S3 | 100% | 32 px, 9 distinct textures + 2-px grey frame | - | - | - | not run (ladder stopped) |
+
+Then 5 seeds were trained with S1 (val_es/val_cal built with the same 100% recipe; T on val_cal only) and evaluated on the
+same 3,000 id_test images (mean ± std over seeds):
+
+| variant | state | accuracy | mean confidence | silent-failure rate |
+|---|---|---|---|---|
+| v2 strong (S1, 100%/16 px) | aligned | 1.000 ± 0.000 | 1.000 | 0.0% |
+| v2 strong | removed | 0.554 ± 0.096 | 0.976 | 39.6% |
+| v2 strong | **reversed (family C)** | **0.100 ± 0.022** | **0.996** | **89.2%** |
+| v1 weak (95%/16 px, supplement) | aligned / removed / reversed | 0.9997 / 0.978 / 0.954 | 0.999 / 0.989 / 0.975 | 0.0 / 1.1 / 2.0% |
+
+v2 temperatures are 0.085-0.120: with the cue always matching, val_cal is almost perfectly separable, so the fitted T
+sharpens the probabilities strongly. This is a property of the design (it also produces the silent-failure regime);
+report it next to the results. Figures: `cue_palette_v2.png`, `examples.png` (v1 and v2 cue states).
+
 **Limitations / findings to keep in mind**
-- **The shortcut does not dominate (family C).** With p = 0.95 and an easy, highly learnable tissue signal (99.6% ID
+- **The v1 (95%) shortcut does not dominate (family C v1, supplement).** With p = 0.95 and an easy, highly learnable tissue signal (99.6% ID
   accuracy), the shortcut models rely mostly on tissue: removing the cue costs 2.1 points and reversing it 4.5 points; the
   reversed state is NOT the collapse family C was designed to produce (silent-failure rate 2.0%). The cue is used (aligned
   0.9997 > removed 0.9783 > reversed 0.9543 in every seed), but weakly. Decision pending (stronger cue design and retraining).
