@@ -1,0 +1,669 @@
+H,kind,size,mask,n_windows,set,a,b,power_a,power_b,diff,ci_low,ci_high,p_boot,bh_family,q_bh,verdict
+A,standard,50,silent_pooled,2481,primary,comb,u_mean,0.80734,0.7243,0.08303,0.05953,0.1109,0.0,window size,0.0,improves
+A,standard,50,silent_pooled,2481,primary,r_mmd,u_mean,0.20959,0.7243,-0.51471,-0.58526,-0.41258,0.0,window size,0.0,worse
+A,standard,50,silent_pooled,2481,primary,e_cam_l4,r_mmd,0.06892,0.20959,-0.14067,-0.17298,-0.10352,0.0,window size,0.0,worse
+A,standard,50,silent_pooled,2481,cam-layer,e_cam_l3,r_mmd,0.24667,0.20959,0.03708,-0.03636,0.14798,0.484,window size,0.55314,inconclusive
+A,standard,50,silent_pooled,2481,cam-layer,e_cam_l2,r_mmd,0.65135,0.20959,0.44176,0.14726,0.64358,0.0,window size,0.0,improves
+A,standard,50,silent_pooled,2481,variants,r_knn_mean,u_mean,0.78476,0.7243,0.06046,-0.00753,0.13853,0.115,window size,0.14488,inconclusive
+A,standard,50,silent_pooled,2481,variants,r_maha_mean,u_mean,0.66868,0.7243,-0.05562,-0.19034,0.0697,0.366,window size,0.42745,inconclusive
+A,standard,50,silent_pooled,2481,variants,e_img_mean,r_mmd,0.13986,0.20959,-0.06973,-0.10711,-0.03832,0.0,window size,0.0,worse
+A,standard,50,shifted_pooled,25000,primary,comb,u_mean,0.90136,0.86944,0.03192,0.02148,0.0416,0.0,window size,0.0,improves
+A,standard,50,shifted_pooled,25000,primary,r_mmd,u_mean,0.48616,0.86944,-0.38328,-0.40939,-0.35824,0.0,window size,0.0,worse
+A,standard,50,shifted_pooled,25000,primary,e_cam_l4,r_mmd,0.1166,0.48616,-0.36956,-0.39879,-0.33501,0.0,window size,0.0,worse
+A,standard,50,shifted_pooled,25000,cam-layer,e_cam_l3,r_mmd,0.46784,0.48616,-0.01832,-0.07949,0.06425,0.576,window size,0.64111,inconclusive
+A,standard,50,shifted_pooled,25000,cam-layer,e_cam_l2,r_mmd,0.73788,0.48616,0.25172,0.08294,0.40253,0.003,window size,0.00485,improves
+A,standard,50,shifted_pooled,25000,variants,r_knn_mean,u_mean,0.87624,0.86944,0.0068,-0.02565,0.04477,0.766,window size,0.82255,inconclusive
+A,standard,50,shifted_pooled,25000,variants,r_maha_mean,u_mean,0.80928,0.86944,-0.06016,-0.11848,0.00684,0.072,window size,0.09443,inconclusive
+A,standard,50,shifted_pooled,25000,variants,e_img_mean,r_mmd,0.45636,0.48616,-0.0298,-0.06442,0.00076,0.06,window size,0.08205,inconclusive
+A,standard,100,silent_pooled,1655,primary,comb,u_mean,0.92326,0.80967,0.1136,0.0762,0.17624,0.0,,,improves
+A,standard,100,silent_pooled,1655,primary,r_mmd,u_mean,0.34018,0.80967,-0.46949,-0.56962,-0.34211,0.0,,,worse
+A,standard,100,silent_pooled,1655,primary,e_cam_l4,r_mmd,0.07432,0.34018,-0.26586,-0.31054,-0.22075,0.0,,,worse
+A,standard,100,silent_pooled,1655,cam-layer,e_cam_l3,r_mmd,0.37644,0.34018,0.03625,-0.11676,0.25281,0.681,CAM layer,0.9451,inconclusive
+A,standard,100,silent_pooled,1655,cam-layer,e_cam_l2,r_mmd,0.73535,0.34018,0.39517,0.08649,0.60136,0.004,CAM layer,0.0104,improves
+A,standard,100,silent_pooled,1655,variants,r_knn_mean,u_mean,0.83323,0.80967,0.02356,-0.08687,0.1519,0.738,,,inconclusive
+A,standard,100,silent_pooled,1655,variants,r_maha_mean,u_mean,0.66888,0.80967,-0.14079,-0.37151,0.07728,0.24,,,inconclusive
+A,standard,100,silent_pooled,1655,variants,e_img_mean,r_mmd,0.13837,0.34018,-0.20181,-0.24666,-0.15399,0.0,,,worse
+A,standard,100,shifted_pooled,25000,primary,comb,u_mean,0.97268,0.94456,0.02812,0.01824,0.04076,0.0,,,improves
+A,standard,100,shifted_pooled,25000,primary,r_mmd,u_mean,0.69244,0.94456,-0.25212,-0.29263,-0.21611,0.0,,,worse
+A,standard,100,shifted_pooled,25000,primary,e_cam_l4,r_mmd,0.12656,0.69244,-0.56588,-0.60659,-0.5096,0.0,,,worse
+A,standard,100,shifted_pooled,25000,cam-layer,e_cam_l3,r_mmd,0.6258,0.69244,-0.06664,-0.12518,0.02906,0.107,CAM layer,0.17948,inconclusive
+A,standard,100,shifted_pooled,25000,cam-layer,e_cam_l2,r_mmd,0.84516,0.69244,0.15272,0.00447,0.27628,0.039,CAM layer,0.078,improves
+A,standard,100,shifted_pooled,25000,variants,r_knn_mean,u_mean,0.93992,0.94456,-0.00464,-0.03224,0.02804,0.73,,,inconclusive
+A,standard,100,shifted_pooled,25000,variants,r_maha_mean,u_mean,0.88444,0.94456,-0.06012,-0.11593,0.00328,0.06,,,inconclusive
+A,standard,100,shifted_pooled,25000,variants,e_img_mean,r_mmd,0.59856,0.69244,-0.09388,-0.13935,-0.04713,0.0,,,worse
+A,standard,100,cell|A|sev1|0.1|all,1000,primary,comb,u_mean,0.777,0.629,0.148,0.10359,0.19166,0.0,,,improves
+A,standard,100,cell|A|sev1|0.1|all,1000,primary,r_mmd,u_mean,0.304,0.629,-0.325,-0.48011,-0.14542,0.0,,,worse
+A,standard,100,cell|A|sev1|0.1|all,1000,primary,e_cam_l4,r_mmd,0.061,0.304,-0.243,-0.30068,-0.17207,0.0,,,worse
+A,standard,100,cell|A|sev1|0.1|silent,97,primary,comb,u_mean,0.86598,0.65979,0.20619,0.10583,0.30688,0.001,,,improves
+A,standard,100,cell|A|sev1|0.1|silent,97,primary,r_mmd,u_mean,0.28866,0.65979,-0.37113,-0.52333,-0.15645,0.0,,,worse
+A,standard,100,cell|A|sev1|0.1|silent,97,primary,e_cam_l4,r_mmd,0.10309,0.28866,-0.18557,-0.25676,-0.09125,0.0,,,worse
+A,standard,100,cell|A|sev1|0.25|all,1000,primary,comb,u_mean,0.928,0.862,0.066,0.04309,0.09576,0.0,,,improves
+A,standard,100,cell|A|sev1|0.25|all,1000,primary,r_mmd,u_mean,0.35,0.862,-0.512,-0.61577,-0.40065,0.0,,,worse
+A,standard,100,cell|A|sev1|0.25|all,1000,primary,e_cam_l4,r_mmd,0.094,0.35,-0.256,-0.31646,-0.19266,0.0,,,worse
+A,standard,100,cell|A|sev1|0.25|silent,188,primary,comb,u_mean,0.92021,0.82979,0.09043,0.06038,0.12182,0.0,,,improves
+A,standard,100,cell|A|sev1|0.25|silent,188,primary,r_mmd,u_mean,0.32447,0.82979,-0.50532,-0.59303,-0.38744,0.0,,,worse
+A,standard,100,cell|A|sev1|0.25|silent,188,primary,e_cam_l4,r_mmd,0.09043,0.32447,-0.23404,-0.25869,-0.20589,0.0,,,worse
+A,standard,100,cell|A|sev1|0.5|all,1000,primary,comb,u_mean,0.996,0.985,0.011,0.00274,0.02151,0.0,,,improves
+A,standard,100,cell|A|sev1|0.5|all,1000,primary,r_mmd,u_mean,0.448,0.985,-0.537,-0.58636,-0.47702,0.0,,,worse
+A,standard,100,cell|A|sev1|0.5|all,1000,primary,e_cam_l4,r_mmd,0.075,0.448,-0.373,-0.46412,-0.28482,0.0,,,worse
+A,standard,100,cell|A|sev1|0.5|silent,127,primary,comb,u_mean,0.99213,0.97638,0.01575,-0.00086,0.02438,0.094,,,inconclusive
+A,standard,100,cell|A|sev1|0.5|silent,127,primary,r_mmd,u_mean,0.41732,0.97638,-0.55906,-0.63667,-0.49499,0.0,,,worse
+A,standard,100,cell|A|sev1|0.5|silent,127,primary,e_cam_l4,r_mmd,0.06299,0.41732,-0.35433,-0.44072,-0.26731,0.0,,,worse
+A,standard,100,cell|A|sev1|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev1|0.75|all,1000,primary,r_mmd,u_mean,0.642,1.0,-0.358,-0.40775,-0.29971,0.0,,,worse
+A,standard,100,cell|A|sev1|0.75|all,1000,primary,e_cam_l4,r_mmd,0.112,0.642,-0.53,-0.62703,-0.43455,0.0,,,worse
+A,standard,100,cell|A|sev1|0.75|silent,29,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev1|0.75|silent,29,primary,r_mmd,u_mean,0.72414,1.0,-0.27586,-0.39971,-0.20585,0.0,,,worse
+A,standard,100,cell|A|sev1|0.75|silent,29,primary,e_cam_l4,r_mmd,0.13793,0.72414,-0.58621,-0.64372,-0.49052,0.0,,,worse
+A,standard,100,cell|A|sev1|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev1|1.0|all,1000,primary,r_mmd,u_mean,0.821,1.0,-0.179,-0.24057,-0.11399,0.0,,,worse
+A,standard,100,cell|A|sev1|1.0|all,1000,primary,e_cam_l4,r_mmd,0.1,0.821,-0.721,-0.81649,-0.63756,0.0,,,worse
+A,standard,100,cell|A|sev1|1.0|silent,8,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev1|1.0|silent,8,primary,r_mmd,u_mean,0.75,1.0,-0.25,-1.0,0.0,0.146,,,inconclusive
+A,standard,100,cell|A|sev1|1.0|silent,8,primary,e_cam_l4,r_mmd,0.125,0.75,-0.625,-1.0,0.0,0.164,,,inconclusive
+A,standard,100,cell|A|sev2|0.1|all,1000,primary,comb,u_mean,0.832,0.712,0.12,0.08979,0.14934,0.0,,,improves
+A,standard,100,cell|A|sev2|0.1|all,1000,primary,r_mmd,u_mean,0.29,0.712,-0.422,-0.54095,-0.27371,0.0,,,worse
+A,standard,100,cell|A|sev2|0.1|all,1000,primary,e_cam_l4,r_mmd,0.065,0.29,-0.225,-0.27809,-0.17119,0.0,,,worse
+A,standard,100,cell|A|sev2|0.1|silent,184,primary,comb,u_mean,0.86957,0.75543,0.11413,0.08364,0.14351,0.0,,,improves
+A,standard,100,cell|A|sev2|0.1|silent,184,primary,r_mmd,u_mean,0.27174,0.75543,-0.4837,-0.64978,-0.30469,0.0,,,worse
+A,standard,100,cell|A|sev2|0.1|silent,184,primary,e_cam_l4,r_mmd,0.04891,0.27174,-0.22283,-0.33489,-0.10955,0.0,,,worse
+A,standard,100,cell|A|sev2|0.25|all,1000,primary,comb,u_mean,0.985,0.939,0.046,0.01731,0.09219,0.0,,,improves
+A,standard,100,cell|A|sev2|0.25|all,1000,primary,r_mmd,u_mean,0.366,0.939,-0.573,-0.63177,-0.51374,0.0,,,worse
+A,standard,100,cell|A|sev2|0.25|all,1000,primary,e_cam_l4,r_mmd,0.08,0.366,-0.286,-0.34842,-0.2202,0.0,,,worse
+A,standard,100,cell|A|sev2|0.25|silent,147,primary,comb,u_mean,0.97279,0.86395,0.10884,0.04247,0.20587,0.0,,,improves
+A,standard,100,cell|A|sev2|0.25|silent,147,primary,r_mmd,u_mean,0.26531,0.86395,-0.59864,-0.70262,-0.46652,0.0,,,worse
+A,standard,100,cell|A|sev2|0.25|silent,147,primary,e_cam_l4,r_mmd,0.04082,0.26531,-0.22449,-0.30099,-0.1708,0.0,,,worse
+A,standard,100,cell|A|sev2|0.5|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|0.5|all,1000,primary,r_mmd,u_mean,0.625,1.0,-0.375,-0.42006,-0.32331,0.0,,,worse
+A,standard,100,cell|A|sev2|0.5|all,1000,primary,e_cam_l4,r_mmd,0.109,0.625,-0.516,-0.58688,-0.42218,0.0,,,worse
+A,standard,100,cell|A|sev2|0.5|silent,23,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|0.5|silent,23,primary,r_mmd,u_mean,0.56522,1.0,-0.43478,-0.50754,-0.27064,0.0,,,worse
+A,standard,100,cell|A|sev2|0.5|silent,23,primary,e_cam_l4,r_mmd,0.0,0.56522,-0.56522,-0.72936,-0.49246,0.0,,,worse
+A,standard,100,cell|A|sev2|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|0.75|all,1000,primary,r_mmd,u_mean,0.934,1.0,-0.066,-0.08374,-0.04265,0.0,,,worse
+A,standard,100,cell|A|sev2|0.75|all,1000,primary,e_cam_l4,r_mmd,0.128,0.934,-0.806,-0.85827,-0.74335,0.0,,,worse
+A,standard,100,cell|A|sev2|0.75|silent,1,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|0.75|silent,1,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|0.75|silent,1,primary,e_cam_l4,r_mmd,0.0,1.0,-1.0,-1.0,0.0,0.653,,,inconclusive
+A,standard,100,cell|A|sev2|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|1.0|all,1000,primary,r_mmd,u_mean,0.998,1.0,-0.002,-0.00437,0.0,0.165,,,inconclusive
+A,standard,100,cell|A|sev2|1.0|all,1000,primary,e_cam_l4,r_mmd,0.139,0.998,-0.859,-0.90497,-0.79945,0.0,,,worse
+A,standard,100,cell|A|sev2|1.0|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|1.0|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev2|1.0|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|0.1|all,1000,primary,comb,u_mean,0.908,0.793,0.115,0.0775,0.15812,0.0,,,improves
+A,standard,100,cell|A|sev3|0.1|all,1000,primary,r_mmd,u_mean,0.334,0.793,-0.459,-0.56343,-0.34758,0.0,,,worse
+A,standard,100,cell|A|sev3|0.1|all,1000,primary,e_cam_l4,r_mmd,0.086,0.334,-0.248,-0.30454,-0.18717,0.0,,,worse
+A,standard,100,cell|A|sev3|0.1|silent,265,primary,comb,u_mean,0.89057,0.75849,0.13208,0.07056,0.21751,0.0,,,improves
+A,standard,100,cell|A|sev3|0.1|silent,265,primary,r_mmd,u_mean,0.37358,0.75849,-0.38491,-0.50012,-0.20583,0.0,,,worse
+A,standard,100,cell|A|sev3|0.1|silent,265,primary,e_cam_l4,r_mmd,0.08302,0.37358,-0.29057,-0.37705,-0.22364,0.0,,,worse
+A,standard,100,cell|A|sev3|0.25|all,1000,primary,comb,u_mean,1.0,0.991,0.009,0.00281,0.01739,0.002,,,improves
+A,standard,100,cell|A|sev3|0.25|all,1000,primary,r_mmd,u_mean,0.457,0.991,-0.534,-0.5911,-0.48288,0.0,,,worse
+A,standard,100,cell|A|sev3|0.25|all,1000,primary,e_cam_l4,r_mmd,0.072,0.457,-0.385,-0.44715,-0.31764,0.0,,,worse
+A,standard,100,cell|A|sev3|0.25|silent,67,primary,comb,u_mean,1.0,0.95522,0.04478,0.0,0.12304,0.135,,,inconclusive
+A,standard,100,cell|A|sev3|0.25|silent,67,primary,r_mmd,u_mean,0.46269,0.95522,-0.49254,-0.56744,-0.3147,0.0,,,worse
+A,standard,100,cell|A|sev3|0.25|silent,67,primary,e_cam_l4,r_mmd,0.10448,0.46269,-0.35821,-0.50766,-0.27066,0.0,,,worse
+A,standard,100,cell|A|sev3|0.5|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|0.5|all,1000,primary,r_mmd,u_mean,0.898,1.0,-0.102,-0.12316,-0.07254,0.0,,,worse
+A,standard,100,cell|A|sev3|0.5|all,1000,primary,e_cam_l4,r_mmd,0.126,0.898,-0.772,-0.81684,-0.727,0.0,,,worse
+A,standard,100,cell|A|sev3|0.5|silent,2,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|0.5|silent,2,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|0.5|silent,2,primary,e_cam_l4,r_mmd,0.0,1.0,-1.0,-1.0,0.0,0.653,,,inconclusive
+A,standard,100,cell|A|sev3|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|0.75|all,1000,primary,r_mmd,u_mean,0.999,1.0,-0.001,-0.00309,0.0,0.592,,,inconclusive
+A,standard,100,cell|A|sev3|0.75|all,1000,primary,e_cam_l4,r_mmd,0.174,0.999,-0.825,-0.88338,-0.76665,0.0,,,worse
+A,standard,100,cell|A|sev3|0.75|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|0.75|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|0.75|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|1.0|all,1000,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|1.0|all,1000,primary,e_cam_l4,r_mmd,0.221,1.0,-0.779,-0.83356,-0.72645,0.0,,,worse
+A,standard,100,cell|A|sev3|1.0|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|1.0|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev3|1.0|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.1|all,1000,primary,comb,u_mean,0.935,0.838,0.097,0.04332,0.15585,0.0,,,improves
+A,standard,100,cell|A|sev4|0.1|all,1000,primary,r_mmd,u_mean,0.317,0.838,-0.521,-0.63352,-0.40294,0.0,,,worse
+A,standard,100,cell|A|sev4|0.1|all,1000,primary,e_cam_l4,r_mmd,0.076,0.317,-0.241,-0.31006,-0.17174,0.0,,,worse
+A,standard,100,cell|A|sev4|0.1|silent,257,primary,comb,u_mean,0.9144,0.75097,0.16342,0.09092,0.24426,0.0,,,improves
+A,standard,100,cell|A|sev4|0.1|silent,257,primary,r_mmd,u_mean,0.27626,0.75097,-0.47471,-0.61863,-0.32057,0.0,,,worse
+A,standard,100,cell|A|sev4|0.1|silent,257,primary,e_cam_l4,r_mmd,0.07782,0.27626,-0.19844,-0.28256,-0.13415,0.0,,,worse
+A,standard,100,cell|A|sev4|0.25|all,1000,primary,comb,u_mean,1.0,0.995,0.005,0.0,0.01296,0.157,,,inconclusive
+A,standard,100,cell|A|sev4|0.25|all,1000,primary,r_mmd,u_mean,0.571,0.995,-0.424,-0.48078,-0.36142,0.0,,,worse
+A,standard,100,cell|A|sev4|0.25|all,1000,primary,e_cam_l4,r_mmd,0.087,0.571,-0.484,-0.55954,-0.40069,0.0,,,worse
+A,standard,100,cell|A|sev4|0.25|silent,26,primary,comb,u_mean,1.0,0.88462,0.11538,0.0,0.20683,0.157,,,inconclusive
+A,standard,100,cell|A|sev4|0.25|silent,26,primary,r_mmd,u_mean,0.61538,0.88462,-0.26923,-0.46547,-0.0594,0.024,,,worse
+A,standard,100,cell|A|sev4|0.25|silent,26,primary,e_cam_l4,r_mmd,0.03846,0.61538,-0.57692,-0.76913,-0.39801,0.0,,,worse
+A,standard,100,cell|A|sev4|0.5|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.5|all,1000,primary,r_mmd,u_mean,0.972,1.0,-0.028,-0.0396,-0.01747,0.0,,,worse
+A,standard,100,cell|A|sev4|0.5|all,1000,primary,e_cam_l4,r_mmd,0.137,0.972,-0.835,-0.86956,-0.78721,0.0,,,worse
+A,standard,100,cell|A|sev4|0.5|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.5|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.5|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.75|all,1000,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.75|all,1000,primary,e_cam_l4,r_mmd,0.168,1.0,-0.832,-0.88931,-0.76867,0.0,,,worse
+A,standard,100,cell|A|sev4|0.75|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.75|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|0.75|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|1.0|all,1000,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|1.0|all,1000,primary,e_cam_l4,r_mmd,0.237,1.0,-0.763,-0.80257,-0.72244,0.0,,,worse
+A,standard,100,cell|A|sev4|1.0|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|1.0|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev4|1.0|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.1|all,1000,primary,comb,u_mean,0.956,0.871,0.085,0.05322,0.13949,0.0,,,improves
+A,standard,100,cell|A|sev5|0.1|all,1000,primary,r_mmd,u_mean,0.353,0.871,-0.518,-0.60748,-0.42903,0.0,,,worse
+A,standard,100,cell|A|sev5|0.1|all,1000,primary,e_cam_l4,r_mmd,0.076,0.353,-0.277,-0.35228,-0.19156,0.0,,,worse
+A,standard,100,cell|A|sev5|0.1|silent,245,primary,comb,u_mean,0.92245,0.80408,0.11837,0.05638,0.18629,0.0,,,improves
+A,standard,100,cell|A|sev5|0.1|silent,245,primary,r_mmd,u_mean,0.33061,0.80408,-0.47347,-0.60038,-0.33518,0.0,,,worse
+A,standard,100,cell|A|sev5|0.1|silent,245,primary,e_cam_l4,r_mmd,0.07755,0.33061,-0.25306,-0.29889,-0.19094,0.0,,,worse
+A,standard,100,cell|A|sev5|0.25|all,1000,primary,comb,u_mean,1.0,0.999,0.001,0.0,0.00315,0.68,,,inconclusive
+A,standard,100,cell|A|sev5|0.25|all,1000,primary,r_mmd,u_mean,0.633,0.999,-0.366,-0.43141,-0.30558,0.0,,,worse
+A,standard,100,cell|A|sev5|0.25|all,1000,primary,e_cam_l4,r_mmd,0.106,0.633,-0.527,-0.58997,-0.44688,0.0,,,worse
+A,standard,100,cell|A|sev5|0.25|silent,18,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.25|silent,18,primary,r_mmd,u_mean,0.38889,1.0,-0.61111,-0.67376,-0.48483,0.0,,,worse
+A,standard,100,cell|A|sev5|0.25|silent,18,primary,e_cam_l4,r_mmd,0.05556,0.38889,-0.33333,-0.51517,-0.2278,0.0,,,worse
+A,standard,100,cell|A|sev5|0.5|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.5|all,1000,primary,r_mmd,u_mean,0.999,1.0,-0.001,-0.00325,0.0,0.701,,,inconclusive
+A,standard,100,cell|A|sev5|0.5|all,1000,primary,e_cam_l4,r_mmd,0.159,0.999,-0.84,-0.87974,-0.78454,0.0,,,worse
+A,standard,100,cell|A|sev5|0.5|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.5|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.5|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.75|all,1000,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.75|all,1000,primary,e_cam_l4,r_mmd,0.194,1.0,-0.806,-0.84902,-0.74721,0.0,,,worse
+A,standard,100,cell|A|sev5|0.75|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.75|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|0.75|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|1.0|all,1000,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|1.0|all,1000,primary,e_cam_l4,r_mmd,0.282,1.0,-0.718,-0.75829,-0.673,0.0,,,worse
+A,standard,100,cell|A|sev5|1.0|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|1.0|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,cell|A|sev5|1.0|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,,,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,cam-layer,e_cam_l3,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,cam-layer,e_cam_l2,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,variants,r_knn_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,variants,r_maha_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_down|silent,0,variants,e_img_mean,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,cam-layer,e_cam_l3,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,cam-layer,e_cam_l2,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,variants,r_knn_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,variants,r_maha_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|brightness_up|silent,0,variants,e_img_mean,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|bubble|silent,248,primary,comb,u_mean,0.95968,0.95968,0.0,-0.02809,0.06308,0.984,per-corruption,1.0,inconclusive
+A,standard,100,corruption|bubble|silent,248,primary,r_mmd,u_mean,0.79839,0.95968,-0.16129,-0.22597,-0.0791,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|bubble|silent,248,primary,e_cam_l4,r_mmd,0.18952,0.79839,-0.60887,-0.65848,-0.57167,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|bubble|silent,248,cam-layer,e_cam_l3,r_mmd,0.56452,0.79839,-0.23387,-0.55913,-0.01895,0.025,CAM layer,0.05417,worse
+A,standard,100,corruption|bubble|silent,248,cam-layer,e_cam_l2,r_mmd,0.40726,0.79839,-0.39113,-0.57527,-0.03657,0.03,CAM layer,0.0624,worse
+A,standard,100,corruption|bubble|silent,248,variants,r_knn_mean,u_mean,0.85081,0.95968,-0.10887,-0.19956,0.02907,0.304,per-corruption,0.627,inconclusive
+A,standard,100,corruption|bubble|silent,248,variants,r_maha_mean,u_mean,0.42742,0.95968,-0.53226,-0.75573,-0.13204,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|bubble|silent,248,variants,e_img_mean,r_mmd,0.21371,0.79839,-0.58468,-0.64675,-0.4478,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|contrast_down|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|contrast_down|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|contrast_down|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|contrast_down|silent,0,cam-layer,e_cam_l3,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|contrast_down|silent,0,cam-layer,e_cam_l2,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|contrast_down|silent,0,variants,r_knn_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|contrast_down|silent,0,variants,r_maha_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|contrast_down|silent,0,variants,e_img_mean,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|contrast_up|silent,44,primary,comb,u_mean,1.0,0.90909,0.09091,0.01548,0.29356,0.022,per-corruption,0.066,improves
+A,standard,100,corruption|contrast_up|silent,44,primary,r_mmd,u_mean,1.0,0.90909,0.09091,0.01548,0.29356,0.022,per-corruption,0.066,improves
+A,standard,100,corruption|contrast_up|silent,44,primary,e_cam_l4,r_mmd,0.13636,1.0,-0.86364,-0.96781,-0.73684,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|contrast_up|silent,44,cam-layer,e_cam_l3,r_mmd,0.68182,1.0,-0.31818,-0.48548,-0.20621,0.0,CAM layer,0.0,worse
+A,standard,100,corruption|contrast_up|silent,44,cam-layer,e_cam_l2,r_mmd,0.86364,1.0,-0.13636,-0.41473,0.0,0.701,CAM layer,0.9451,inconclusive
+A,standard,100,corruption|contrast_up|silent,44,variants,r_knn_mean,u_mean,1.0,0.90909,0.09091,0.01548,0.29356,0.022,per-corruption,0.066,improves
+A,standard,100,corruption|contrast_up|silent,44,variants,r_maha_mean,u_mean,0.95455,0.90909,0.04545,-0.07921,0.29155,0.477,per-corruption,0.92594,inconclusive
+A,standard,100,corruption|contrast_up|silent,44,variants,e_img_mean,r_mmd,0.20455,1.0,-0.79545,-0.9262,-0.69615,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|defocus_blur|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|defocus_blur|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|defocus_blur|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|defocus_blur|silent,0,cam-layer,e_cam_l3,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|defocus_blur|silent,0,cam-layer,e_cam_l2,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|defocus_blur|silent,0,variants,r_knn_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|defocus_blur|silent,0,variants,r_maha_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|defocus_blur|silent,0,variants,e_img_mean,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|jpeg_compression|silent,108,primary,comb,u_mean,1.0,0.97222,0.02778,0.00744,0.05368,0.019,per-corruption,0.066,improves
+A,standard,100,corruption|jpeg_compression|silent,108,primary,r_mmd,u_mean,1.0,0.97222,0.02778,0.00744,0.05368,0.019,per-corruption,0.066,improves
+A,standard,100,corruption|jpeg_compression|silent,108,primary,e_cam_l4,r_mmd,0.09259,1.0,-0.90741,-0.97985,-0.8333,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|jpeg_compression|silent,108,cam-layer,e_cam_l3,r_mmd,0.43519,1.0,-0.56481,-0.77699,-0.35847,0.0,CAM layer,0.0,worse
+A,standard,100,corruption|jpeg_compression|silent,108,cam-layer,e_cam_l2,r_mmd,0.62963,1.0,-0.37037,-0.6338,-0.09702,0.0,CAM layer,0.0,worse
+A,standard,100,corruption|jpeg_compression|silent,108,variants,r_knn_mean,u_mean,1.0,0.97222,0.02778,0.00744,0.05368,0.019,per-corruption,0.066,improves
+A,standard,100,corruption|jpeg_compression|silent,108,variants,r_maha_mean,u_mean,0.99074,0.97222,0.01852,-0.00044,0.04075,0.087,per-corruption,0.22968,inconclusive
+A,standard,100,corruption|jpeg_compression|silent,108,variants,e_img_mean,r_mmd,0.23148,1.0,-0.76852,-0.8282,-0.68562,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|motion_blur|silent,0,primary,comb,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|motion_blur|silent,0,primary,r_mmd,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|motion_blur|silent,0,primary,e_cam_l4,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|motion_blur|silent,0,cam-layer,e_cam_l3,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|motion_blur|silent,0,cam-layer,e_cam_l2,r_mmd,,,,0.0,0.0,1.0,CAM layer,1.0,inconclusive
+A,standard,100,corruption|motion_blur|silent,0,variants,r_knn_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|motion_blur|silent,0,variants,r_maha_mean,u_mean,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|motion_blur|silent,0,variants,e_img_mean,r_mmd,,,,0.0,0.0,1.0,per-corruption,1.0,inconclusive
+A,standard,100,corruption|pixelate|silent,179,primary,comb,u_mean,0.96648,0.87709,0.08939,0.03558,0.11492,0.021,per-corruption,0.066,improves
+A,standard,100,corruption|pixelate|silent,179,primary,r_mmd,u_mean,0.81564,0.87709,-0.06145,-0.12513,-0.01556,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|pixelate|silent,179,primary,e_cam_l4,r_mmd,0.10056,0.81564,-0.71508,-0.79689,-0.58922,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|pixelate|silent,179,cam-layer,e_cam_l3,r_mmd,0.48603,0.81564,-0.32961,-0.53956,-0.16634,0.0,CAM layer,0.0,worse
+A,standard,100,corruption|pixelate|silent,179,cam-layer,e_cam_l2,r_mmd,0.63128,0.81564,-0.18436,-0.42052,0.02807,0.104,CAM layer,0.17948,inconclusive
+A,standard,100,corruption|pixelate|silent,179,variants,r_knn_mean,u_mean,0.77654,0.87709,-0.10056,-0.19276,0.00156,0.059,per-corruption,0.16225,inconclusive
+A,standard,100,corruption|pixelate|silent,179,variants,r_maha_mean,u_mean,0.53073,0.87709,-0.34637,-0.47857,-0.13186,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|pixelate|silent,179,variants,e_img_mean,r_mmd,0.0838,0.81564,-0.73184,-0.78766,-0.65711,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|saturate|silent,69,primary,comb,u_mean,1.0,0.97101,0.02899,0.0,0.05521,0.184,per-corruption,0.39174,inconclusive
+A,standard,100,corruption|saturate|silent,69,primary,r_mmd,u_mean,1.0,0.97101,0.02899,0.0,0.05521,0.184,per-corruption,0.39174,inconclusive
+A,standard,100,corruption|saturate|silent,69,primary,e_cam_l4,r_mmd,0.08696,1.0,-0.91304,-0.94239,-0.89064,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|saturate|silent,69,cam-layer,e_cam_l3,r_mmd,0.43478,1.0,-0.56522,-0.81052,-0.37223,0.0,CAM layer,0.0,worse
+A,standard,100,corruption|saturate|silent,69,cam-layer,e_cam_l2,r_mmd,0.7971,1.0,-0.2029,-0.53609,-0.01853,0.019,CAM layer,0.04491,worse
+A,standard,100,corruption|saturate|silent,69,variants,r_knn_mean,u_mean,1.0,0.97101,0.02899,0.0,0.05521,0.184,per-corruption,0.39174,inconclusive
+A,standard,100,corruption|saturate|silent,69,variants,r_maha_mean,u_mean,0.91304,0.97101,-0.05797,-0.11158,0.0,0.184,per-corruption,0.39174,inconclusive
+A,standard,100,corruption|saturate|silent,69,variants,e_img_mean,r_mmd,0.14493,1.0,-0.85507,-0.9149,-0.78518,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|stain_deposit|silent,165,primary,comb,u_mean,1.0,0.98788,0.01212,0.0,0.03604,0.155,per-corruption,0.37889,inconclusive
+A,standard,100,corruption|stain_deposit|silent,165,primary,r_mmd,u_mean,0.99394,0.98788,0.00606,-0.00218,0.0328,0.424,per-corruption,0.848,inconclusive
+A,standard,100,corruption|stain_deposit|silent,165,primary,e_cam_l4,r_mmd,0.28485,0.99394,-0.70909,-0.80832,-0.4354,0.0,per-corruption,0.0,worse
+A,standard,100,corruption|stain_deposit|silent,165,cam-layer,e_cam_l3,r_mmd,0.38788,0.99394,-0.60606,-0.82665,-0.47657,0.0,CAM layer,0.0,worse
+A,standard,100,corruption|stain_deposit|silent,165,cam-layer,e_cam_l2,r_mmd,0.88485,0.99394,-0.10909,-0.37187,0.0,0.156,CAM layer,0.2535,inconclusive
+A,standard,100,corruption|stain_deposit|silent,165,variants,r_knn_mean,u_mean,1.0,0.98788,0.01212,0.0,0.03604,0.155,per-corruption,0.37889,inconclusive
+A,standard,100,corruption|stain_deposit|silent,165,variants,r_maha_mean,u_mean,0.81818,0.98788,-0.1697,-0.27695,0.00063,0.055,per-corruption,0.15783,inconclusive
+A,standard,100,corruption|stain_deposit|silent,165,variants,e_img_mean,r_mmd,0.98788,0.99394,-0.00606,-0.02041,0.02275,0.796,per-corruption,1.0,inconclusive
+A,standard,100,severity|1|silent,449,primary,comb,u_mean,0.93541,0.84855,0.08686,0.06162,0.12681,0.0,per-severity,0.0,improves
+A,standard,100,severity|1|silent,449,primary,r_mmd,u_mean,0.37639,0.84855,-0.47216,-0.55165,-0.37422,0.0,per-severity,0.0,worse
+A,standard,100,severity|1|silent,449,primary,e_cam_l4,r_mmd,0.08909,0.37639,-0.28731,-0.32993,-0.22884,0.0,per-severity,0.0,worse
+A,standard,100,severity|1|silent,449,cam-layer,e_cam_l3,r_mmd,0.44321,0.37639,0.06682,-0.09613,0.25041,0.657,CAM layer,0.9451,inconclusive
+A,standard,100,severity|1|silent,449,cam-layer,e_cam_l2,r_mmd,0.74388,0.37639,0.36748,0.06093,0.54545,0.02,CAM layer,0.04522,improves
+A,standard,100,severity|1|silent,449,variants,r_knn_mean,u_mean,0.82183,0.84855,-0.02673,-0.10866,0.07901,0.571,per-severity,0.65885,inconclusive
+A,standard,100,severity|1|silent,449,variants,r_maha_mean,u_mean,0.62584,0.84855,-0.22272,-0.41939,0.00057,0.054,per-severity,0.07364,inconclusive
+A,standard,100,severity|1|silent,449,variants,e_img_mean,r_mmd,0.14922,0.37639,-0.22717,-0.29216,-0.16232,0.0,per-severity,0.0,worse
+A,standard,100,severity|2|silent,355,primary,comb,u_mean,0.92113,0.8169,0.10423,0.07333,0.15751,0.0,per-severity,0.0,improves
+A,standard,100,severity|2|silent,355,primary,r_mmd,u_mean,0.29014,0.8169,-0.52676,-0.65444,-0.38916,0.0,per-severity,0.0,worse
+A,standard,100,severity|2|silent,355,primary,e_cam_l4,r_mmd,0.04225,0.29014,-0.24789,-0.331,-0.17887,0.0,per-severity,0.0,worse
+A,standard,100,severity|2|silent,355,cam-layer,e_cam_l3,r_mmd,0.4,0.29014,0.10986,-0.00412,0.25953,0.069,CAM layer,0.12372,inconclusive
+A,standard,100,severity|2|silent,355,cam-layer,e_cam_l2,r_mmd,0.73239,0.29014,0.44225,0.12352,0.67165,0.002,CAM layer,0.00547,improves
+A,standard,100,severity|2|silent,355,variants,r_knn_mean,u_mean,0.78873,0.8169,-0.02817,-0.13688,0.07176,0.658,per-severity,0.705,inconclusive
+A,standard,100,severity|2|silent,355,variants,r_maha_mean,u_mean,0.60845,0.8169,-0.20845,-0.43561,0.00802,0.063,per-severity,0.08217,inconclusive
+A,standard,100,severity|2|silent,355,variants,e_img_mean,r_mmd,0.10986,0.29014,-0.18028,-0.2659,-0.09698,0.0,per-severity,0.0,worse
+A,standard,100,severity|3|silent,334,primary,comb,u_mean,0.91317,0.7994,0.11377,0.05911,0.19538,0.0,per-severity,0.0,improves
+A,standard,100,severity|3|silent,334,primary,r_mmd,u_mean,0.39521,0.7994,-0.40419,-0.50487,-0.24263,0.0,per-severity,0.0,worse
+A,standard,100,severity|3|silent,334,primary,e_cam_l4,r_mmd,0.08683,0.39521,-0.30838,-0.38633,-0.24965,0.0,per-severity,0.0,worse
+A,standard,100,severity|3|silent,334,cam-layer,e_cam_l3,r_mmd,0.37725,0.39521,-0.01796,-0.2133,0.25124,0.717,CAM layer,0.9451,inconclusive
+A,standard,100,severity|3|silent,334,cam-layer,e_cam_l2,r_mmd,0.73054,0.39521,0.33533,-0.01408,0.57588,0.053,CAM layer,0.09843,inconclusive
+A,standard,100,severity|3|silent,334,variants,r_knn_mean,u_mean,0.81437,0.7994,0.01497,-0.0968,0.12489,0.798,per-severity,0.798,inconclusive
+A,standard,100,severity|3|silent,334,variants,r_maha_mean,u_mean,0.68862,0.7994,-0.11078,-0.32814,0.08895,0.303,per-severity,0.3636,inconclusive
+A,standard,100,severity|3|silent,334,variants,e_img_mean,r_mmd,0.14371,0.39521,-0.2515,-0.34869,-0.14947,0.0,per-severity,0.0,worse
+A,standard,100,severity|4|silent,283,primary,comb,u_mean,0.92226,0.76325,0.15901,0.09107,0.23804,0.0,per-severity,0.0,improves
+A,standard,100,severity|4|silent,283,primary,r_mmd,u_mean,0.30742,0.76325,-0.45583,-0.60105,-0.30393,0.0,per-severity,0.0,worse
+A,standard,100,severity|4|silent,283,primary,e_cam_l4,r_mmd,0.0742,0.30742,-0.23322,-0.32044,-0.16297,0.0,per-severity,0.0,worse
+A,standard,100,severity|4|silent,283,cam-layer,e_cam_l3,r_mmd,0.30035,0.30742,-0.00707,-0.18535,0.25152,0.862,CAM layer,1.0,inconclusive
+A,standard,100,severity|4|silent,283,cam-layer,e_cam_l2,r_mmd,0.72438,0.30742,0.41696,0.15036,0.62521,0.0,CAM layer,0.0,improves
+A,standard,100,severity|4|silent,283,variants,r_knn_mean,u_mean,0.84806,0.76325,0.08481,-0.06489,0.23067,0.291,per-severity,0.3636,inconclusive
+A,standard,100,severity|4|silent,283,variants,r_maha_mean,u_mean,0.71025,0.76325,-0.053,-0.27973,0.15979,0.616,per-severity,0.68444,inconclusive
+A,standard,100,severity|4|silent,283,variants,e_img_mean,r_mmd,0.12721,0.30742,-0.18021,-0.24825,-0.10863,0.0,per-severity,0.0,worse
+A,standard,100,severity|5|silent,263,primary,comb,u_mean,0.92776,0.81749,0.11027,0.05263,0.17421,0.0,per-severity,0.0,improves
+A,standard,100,severity|5|silent,263,primary,r_mmd,u_mean,0.3346,0.81749,-0.48289,-0.60236,-0.35135,0.0,per-severity,0.0,worse
+A,standard,100,severity|5|silent,263,primary,e_cam_l4,r_mmd,0.07605,0.3346,-0.25856,-0.30553,-0.19629,0.0,per-severity,0.0,worse
+A,standard,100,severity|5|silent,263,cam-layer,e_cam_l3,r_mmd,0.32319,0.3346,-0.01141,-0.1394,0.24025,0.812,CAM layer,1.0,inconclusive
+A,standard,100,severity|5|silent,263,cam-layer,e_cam_l2,r_mmd,0.76806,0.3346,0.43346,0.18799,0.59664,0.0,CAM layer,0.0,improves
+A,standard,100,severity|5|silent,263,variants,r_knn_mean,u_mean,0.93916,0.81749,0.12167,0.01432,0.27512,0.003,per-severity,0.00429,improves
+A,standard,100,severity|5|silent,263,variants,r_maha_mean,u_mean,0.79087,0.81749,-0.02662,-0.28977,0.19774,0.76,per-severity,0.78621,inconclusive
+A,standard,100,severity|5|silent,263,variants,e_img_mean,r_mmd,0.1711,0.3346,-0.1635,-0.22584,-0.08883,0.0,per-severity,0.0,worse
+A,standard,200,silent_pooled,958,primary,comb,u_mean,0.98956,0.91127,0.07829,0.02428,0.19286,0.0,window size,0.0,improves
+A,standard,200,silent_pooled,958,primary,r_mmd,u_mean,0.61482,0.91127,-0.29645,-0.38807,-0.16691,0.0,window size,0.0,worse
+A,standard,200,silent_pooled,958,primary,e_cam_l4,r_mmd,0.09812,0.61482,-0.5167,-0.62101,-0.43454,0.0,window size,0.0,worse
+A,standard,200,silent_pooled,958,cam-layer,e_cam_l3,r_mmd,0.51357,0.61482,-0.10125,-0.23319,0.0843,0.239,window size,0.28537,inconclusive
+A,standard,200,silent_pooled,958,cam-layer,e_cam_l2,r_mmd,0.87265,0.61482,0.25783,-0.0287,0.39526,0.064,window size,0.08533,inconclusive
+A,standard,200,silent_pooled,958,variants,r_knn_mean,u_mean,0.91127,0.91127,0.0,-0.09784,0.09958,0.944,window size,0.96204,inconclusive
+A,standard,200,silent_pooled,958,variants,r_maha_mean,u_mean,0.74948,0.91127,-0.1618,-0.39771,0.02201,0.078,window size,0.10065,inconclusive
+A,standard,200,silent_pooled,958,variants,e_img_mean,r_mmd,0.15762,0.61482,-0.4572,-0.53816,-0.39784,0.0,window size,0.0,worse
+A,standard,200,shifted_pooled,25000,primary,comb,u_mean,0.99708,0.985,0.01208,0.00416,0.0265,0.0,window size,0.0,improves
+A,standard,200,shifted_pooled,25000,primary,r_mmd,u_mean,0.89108,0.985,-0.09392,-0.12015,-0.06959,0.0,window size,0.0,worse
+A,standard,200,shifted_pooled,25000,primary,e_cam_l4,r_mmd,0.14436,0.89108,-0.74672,-0.80478,-0.65433,0.0,window size,0.0,worse
+A,standard,200,shifted_pooled,25000,cam-layer,e_cam_l3,r_mmd,0.77704,0.89108,-0.11404,-0.17072,-0.02931,0.011,window size,0.01725,worse
+A,standard,200,shifted_pooled,25000,cam-layer,e_cam_l2,r_mmd,0.91748,0.89108,0.0264,-0.07763,0.10214,0.595,window size,0.65655,inconclusive
+A,standard,200,shifted_pooled,25000,variants,r_knn_mean,u_mean,0.97968,0.985,-0.00532,-0.02262,0.01373,0.577,window size,0.64111,inconclusive
+A,standard,200,shifted_pooled,25000,variants,r_maha_mean,u_mean,0.93316,0.985,-0.05184,-0.10011,-0.00215,0.024,window size,0.03429,worse
+A,standard,200,shifted_pooled,25000,variants,e_img_mean,r_mmd,0.71496,0.89108,-0.17612,-0.21945,-0.13241,0.0,window size,0.0,worse
+B,standard,50,silent_pooled,4751,primary,comb,u_mean,0.25679,0.35277,-0.09598,-0.24877,0.02958,0.148,window size,0.185,inconclusive
+B,standard,50,silent_pooled,4751,primary,r_mmd,u_mean,0.61734,0.35277,0.26458,0.1188,0.39545,0.001,window size,0.00163,improves
+B,standard,50,silent_pooled,4751,primary,e_cam_l4,r_mmd,0.08924,0.61734,-0.5281,-0.68859,-0.35573,0.0,window size,0.0,worse
+B,standard,50,silent_pooled,4751,cam-layer,e_cam_l3,r_mmd,0.14965,0.61734,-0.46769,-0.65228,-0.29379,0.0,window size,0.0,worse
+B,standard,50,silent_pooled,4751,cam-layer,e_cam_l2,r_mmd,0.10398,0.61734,-0.51337,-0.69002,-0.31909,0.0,window size,0.0,worse
+B,standard,50,silent_pooled,4751,variants,r_knn_mean,u_mean,0.56136,0.35277,0.20859,0.03658,0.40575,0.015,window size,0.02264,improves
+B,standard,50,silent_pooled,4751,variants,r_maha_mean,u_mean,0.76952,0.35277,0.41675,0.24291,0.56697,0.0,window size,0.0,improves
+B,standard,50,silent_pooled,4751,variants,e_img_mean,r_mmd,0.10019,0.61734,-0.51715,-0.71256,-0.31213,0.0,window size,0.0,worse
+B,standard,50,shifted_pooled,10000,primary,comb,u_mean,0.4167,0.4103,0.0064,-0.07691,0.07505,0.842,window size,0.87481,inconclusive
+B,standard,50,shifted_pooled,10000,primary,r_mmd,u_mean,0.4248,0.4103,0.0145,-0.1808,0.2164,0.877,window size,0.90529,inconclusive
+B,standard,50,shifted_pooled,10000,primary,e_cam_l4,r_mmd,0.1289,0.4248,-0.2959,-0.46602,-0.1479,0.0,window size,0.0,worse
+B,standard,50,shifted_pooled,10000,cam-layer,e_cam_l3,r_mmd,0.1732,0.4248,-0.2516,-0.45051,-0.07243,0.007,window size,0.01109,worse
+B,standard,50,shifted_pooled,10000,cam-layer,e_cam_l2,r_mmd,0.1901,0.4248,-0.2347,-0.43281,-0.04311,0.02,window size,0.02909,worse
+B,standard,50,shifted_pooled,10000,variants,r_knn_mean,u_mean,0.6166,0.4103,0.2063,0.06692,0.37369,0.001,window size,0.00163,improves
+B,standard,50,shifted_pooled,10000,variants,r_maha_mean,u_mean,0.687,0.4103,0.2767,0.02829,0.49473,0.036,window size,0.05053,improves
+B,standard,50,shifted_pooled,10000,variants,e_img_mean,r_mmd,0.2654,0.4248,-0.1594,-0.40163,0.06752,0.161,window size,0.19786,inconclusive
+B,standard,100,silent_pooled,4838,primary,comb,u_mean,0.37081,0.4322,-0.06139,-0.23249,0.07212,0.42,,,inconclusive
+B,standard,100,silent_pooled,4838,primary,r_mmd,u_mean,0.68148,0.4322,0.24928,0.07827,0.37879,0.004,,,improves
+B,standard,100,silent_pooled,4838,primary,e_cam_l4,r_mmd,0.11844,0.68148,-0.56304,-0.73913,-0.3963,0.0,,,worse
+B,standard,100,silent_pooled,4838,cam-layer,e_cam_l3,r_mmd,0.20442,0.68148,-0.47706,-0.6715,-0.31485,0.0,CAM layer,0.0,worse
+B,standard,100,silent_pooled,4838,cam-layer,e_cam_l2,r_mmd,0.13725,0.68148,-0.54423,-0.70326,-0.38671,0.0,CAM layer,0.0,worse
+B,standard,100,silent_pooled,4838,variants,r_knn_mean,u_mean,0.67735,0.4322,0.24514,0.01672,0.44047,0.027,,,improves
+B,standard,100,silent_pooled,4838,variants,r_maha_mean,u_mean,0.90017,0.4322,0.46796,0.18144,0.67486,0.001,,,improves
+B,standard,100,silent_pooled,4838,variants,e_img_mean,r_mmd,0.12257,0.68148,-0.55891,-0.79194,-0.34451,0.0,,,worse
+B,standard,100,shifted_pooled,10000,primary,comb,u_mean,0.565,0.5337,0.0313,-0.04656,0.10269,0.415,,,inconclusive
+B,standard,100,shifted_pooled,10000,primary,r_mmd,u_mean,0.5265,0.5337,-0.0072,-0.20284,0.19865,0.951,,,inconclusive
+B,standard,100,shifted_pooled,10000,primary,e_cam_l4,r_mmd,0.1578,0.5265,-0.3687,-0.52343,-0.20466,0.0,,,worse
+B,standard,100,shifted_pooled,10000,cam-layer,e_cam_l3,r_mmd,0.2127,0.5265,-0.3138,-0.51806,-0.11435,0.0,CAM layer,0.0,worse
+B,standard,100,shifted_pooled,10000,cam-layer,e_cam_l2,r_mmd,0.2555,0.5265,-0.271,-0.45721,-0.05846,0.01,CAM layer,0.02476,worse
+B,standard,100,shifted_pooled,10000,variants,r_knn_mean,u_mean,0.7719,0.5337,0.2382,0.05661,0.4297,0.002,,,improves
+B,standard,100,shifted_pooled,10000,variants,r_maha_mean,u_mean,0.846,0.5337,0.3123,0.01947,0.57888,0.044,,,improves
+B,standard,100,shifted_pooled,10000,variants,e_img_mean,r_mmd,0.3469,0.5265,-0.1796,-0.43702,0.09121,0.203,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.1|all,1000,primary,comb,u_mean,0.33,0.29,0.04,-0.09146,0.18887,0.626,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.1|all,1000,primary,r_mmd,u_mean,0.279,0.29,-0.011,-0.1363,0.09858,0.892,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.1|all,1000,primary,e_cam_l4,r_mmd,0.103,0.279,-0.176,-0.32628,-0.03198,0.017,,,worse
+B,standard,100,cell|B|ood_c1|0.1|silent,374,primary,comb,u_mean,0.1123,0.16043,-0.04813,-0.19377,0.00707,0.148,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.1|silent,374,primary,r_mmd,u_mean,0.22193,0.16043,0.0615,-0.10795,0.24208,0.366,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.1|silent,374,primary,e_cam_l4,r_mmd,0.09626,0.22193,-0.12567,-0.37491,0.00569,0.069,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.25|all,1000,primary,comb,u_mean,0.458,0.408,0.05,-0.07667,0.15248,0.429,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.25|all,1000,primary,r_mmd,u_mean,0.191,0.408,-0.217,-0.38269,-0.06219,0.004,,,worse
+B,standard,100,cell|B|ood_c1|0.25|all,1000,primary,e_cam_l4,r_mmd,0.127,0.191,-0.064,-0.18345,0.05756,0.309,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.25|silent,356,primary,comb,u_mean,0.09551,0.16292,-0.06742,-0.25622,0.01188,0.157,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.25|silent,356,primary,r_mmd,u_mean,0.08989,0.16292,-0.07303,-0.30046,0.00545,0.111,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.25|silent,356,primary,e_cam_l4,r_mmd,0.1236,0.08989,0.03371,-0.15535,0.12379,0.694,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.5|all,1000,primary,comb,u_mean,0.605,0.524,0.081,-0.04502,0.20465,0.288,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.5|all,1000,primary,r_mmd,u_mean,0.12,0.524,-0.404,-0.6234,-0.18552,0.0,,,worse
+B,standard,100,cell|B|ood_c1|0.5|all,1000,primary,e_cam_l4,r_mmd,0.161,0.12,0.041,-0.04348,0.13516,0.423,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.5|silent,282,primary,comb,u_mean,0.10284,0.15957,-0.05674,-0.36985,0.01364,0.619,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.5|silent,282,primary,r_mmd,u_mean,0.03546,0.15957,-0.12411,-0.46279,-0.01004,0.021,,,worse
+B,standard,100,cell|B|ood_c1|0.5|silent,282,primary,e_cam_l4,r_mmd,0.12411,0.03546,0.08865,-0.02658,0.16767,0.25,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.75|all,1000,primary,comb,u_mean,0.698,0.573,0.125,-0.02776,0.27737,0.125,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.75|all,1000,primary,r_mmd,u_mean,0.104,0.573,-0.469,-0.69523,-0.23819,0.0,,,worse
+B,standard,100,cell|B|ood_c1|0.75|all,1000,primary,e_cam_l4,r_mmd,0.23,0.104,0.126,0.02708,0.22963,0.007,,,improves
+B,standard,100,cell|B|ood_c1|0.75|silent,187,primary,comb,u_mean,0.13904,0.16578,-0.02674,-0.41942,0.08218,0.778,,,inconclusive
+B,standard,100,cell|B|ood_c1|0.75|silent,187,primary,r_mmd,u_mean,0.02674,0.16578,-0.13904,-0.51393,-0.01543,0.021,,,worse
+B,standard,100,cell|B|ood_c1|0.75|silent,187,primary,e_cam_l4,r_mmd,0.14439,0.02674,0.11765,-0.0562,0.24156,0.404,,,inconclusive
+B,standard,100,cell|B|ood_c1|1.0|all,1000,primary,comb,u_mean,0.764,0.626,0.138,-0.00076,0.27552,0.054,,,inconclusive
+B,standard,100,cell|B|ood_c1|1.0|all,1000,primary,r_mmd,u_mean,0.187,0.626,-0.439,-0.59523,-0.22059,0.0,,,worse
+B,standard,100,cell|B|ood_c1|1.0|all,1000,primary,e_cam_l4,r_mmd,0.34,0.187,0.153,0.00529,0.30109,0.039,,,improves
+B,standard,100,cell|B|ood_c1|1.0|silent,84,primary,comb,u_mean,0.14286,0.13095,0.0119,-0.3352,0.05262,0.748,,,inconclusive
+B,standard,100,cell|B|ood_c1|1.0|silent,84,primary,r_mmd,u_mean,0.0,0.13095,-0.13095,-1.0,0.0,0.151,,,inconclusive
+B,standard,100,cell|B|ood_c1|1.0|silent,84,primary,e_cam_l4,r_mmd,0.15476,0.0,0.15476,0.0,0.67435,0.166,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.1|all,1000,primary,comb,u_mean,0.297,0.299,-0.002,-0.07468,0.06493,0.984,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.1|all,1000,primary,r_mmd,u_mean,0.548,0.299,0.249,0.08531,0.41748,0.0,,,improves
+B,standard,100,cell|B|ood_c2|0.1|all,1000,primary,e_cam_l4,r_mmd,0.069,0.548,-0.479,-0.66003,-0.30046,0.0,,,worse
+B,standard,100,cell|B|ood_c2|0.1|silent,552,primary,comb,u_mean,0.15761,0.22101,-0.06341,-0.15645,-0.00575,0.031,,,worse
+B,standard,100,cell|B|ood_c2|0.1|silent,552,primary,r_mmd,u_mean,0.5308,0.22101,0.30978,0.10015,0.47571,0.001,,,improves
+B,standard,100,cell|B|ood_c2|0.1|silent,552,primary,e_cam_l4,r_mmd,0.05978,0.5308,-0.47101,-0.69358,-0.30649,0.0,,,worse
+B,standard,100,cell|B|ood_c2|0.25|all,1000,primary,comb,u_mean,0.394,0.391,0.003,-0.067,0.06913,0.895,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.25|all,1000,primary,r_mmd,u_mean,0.836,0.391,0.445,0.25428,0.64613,0.0,,,improves
+B,standard,100,cell|B|ood_c2|0.25|all,1000,primary,e_cam_l4,r_mmd,0.067,0.836,-0.769,-0.85045,-0.68253,0.0,,,worse
+B,standard,100,cell|B|ood_c2|0.25|silent,729,primary,comb,u_mean,0.24966,0.30453,-0.05487,-0.13689,0.02312,0.206,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.25|silent,729,primary,r_mmd,u_mean,0.82305,0.30453,0.51852,0.29827,0.71757,0.0,,,improves
+B,standard,100,cell|B|ood_c2|0.25|silent,729,primary,e_cam_l4,r_mmd,0.05624,0.82305,-0.7668,-0.85711,-0.68324,0.0,,,worse
+B,standard,100,cell|B|ood_c2|0.5|all,1000,primary,comb,u_mean,0.541,0.591,-0.05,-0.22048,0.12535,0.64,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.5|all,1000,primary,r_mmd,u_mean,1.0,0.591,0.409,0.13553,0.7062,0.0,,,improves
+B,standard,100,cell|B|ood_c2|0.5|all,1000,primary,e_cam_l4,r_mmd,0.099,1.0,-0.901,-0.96689,-0.80434,0.0,,,worse
+B,standard,100,cell|B|ood_c2|0.5|silent,769,primary,comb,u_mean,0.40442,0.50195,-0.09753,-0.33175,0.10272,0.373,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.5|silent,769,primary,r_mmd,u_mean,1.0,0.50195,0.49805,0.18967,0.78083,0.0,,,improves
+B,standard,100,cell|B|ood_c2|0.5|silent,769,primary,e_cam_l4,r_mmd,0.08843,1.0,-0.91157,-0.97199,-0.80665,0.0,,,worse
+B,standard,100,cell|B|ood_c2|0.75|all,1000,primary,comb,u_mean,0.717,0.736,-0.019,-0.2684,0.26432,0.899,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.75|all,1000,primary,r_mmd,u_mean,1.0,0.736,0.264,0.02556,0.56155,0.0,,,improves
+B,standard,100,cell|B|ood_c2|0.75|all,1000,primary,e_cam_l4,r_mmd,0.158,1.0,-0.842,-0.96296,-0.63132,0.0,,,worse
+B,standard,100,cell|B|ood_c2|0.75|silent,761,primary,comb,u_mean,0.63075,0.67148,-0.04074,-0.38651,0.29837,0.891,,,inconclusive
+B,standard,100,cell|B|ood_c2|0.75|silent,761,primary,r_mmd,u_mean,1.0,0.67148,0.32852,0.03387,0.6234,0.0,,,improves
+B,standard,100,cell|B|ood_c2|0.75|silent,761,primary,e_cam_l4,r_mmd,0.1406,1.0,-0.8594,-0.97674,-0.64494,0.0,,,worse
+B,standard,100,cell|B|ood_c2|1.0|all,1000,primary,comb,u_mean,0.846,0.899,-0.053,-0.24749,0.12276,0.634,,,inconclusive
+B,standard,100,cell|B|ood_c2|1.0|all,1000,primary,r_mmd,u_mean,1.0,0.899,0.101,0.0,0.23555,0.134,,,inconclusive
+B,standard,100,cell|B|ood_c2|1.0|all,1000,primary,e_cam_l4,r_mmd,0.224,1.0,-0.776,-0.93444,-0.5112,0.001,,,worse
+B,standard,100,cell|B|ood_c2|1.0|silent,744,primary,comb,u_mean,0.79435,0.86694,-0.07258,-0.32321,0.15552,0.625,,,inconclusive
+B,standard,100,cell|B|ood_c2|1.0|silent,744,primary,r_mmd,u_mean,1.0,0.86694,0.13306,0.0,0.29276,0.134,,,inconclusive
+B,standard,100,cell|B|ood_c2|1.0|silent,744,primary,e_cam_l4,r_mmd,0.22715,1.0,-0.77285,-0.94932,-0.49167,0.001,,,worse
+B,standard,200,silent_pooled,3879,primary,comb,u_mean,0.46043,0.47718,-0.01676,-0.16179,0.08131,0.814,window size,0.86252,inconclusive
+B,standard,200,silent_pooled,3879,primary,r_mmd,u_mean,0.7569,0.47718,0.27971,0.07357,0.41469,0.001,window size,0.00163,improves
+B,standard,200,silent_pooled,3879,primary,e_cam_l4,r_mmd,0.14514,0.7569,-0.61176,-0.76815,-0.47414,0.0,window size,0.0,worse
+B,standard,200,silent_pooled,3879,cam-layer,e_cam_l3,r_mmd,0.28719,0.7569,-0.46971,-0.64832,-0.31836,0.0,window size,0.0,worse
+B,standard,200,silent_pooled,3879,cam-layer,e_cam_l2,r_mmd,0.15906,0.7569,-0.59783,-0.73921,-0.47146,0.0,window size,0.0,worse
+B,standard,200,silent_pooled,3879,variants,r_knn_mean,u_mean,0.79118,0.47718,0.314,0.04116,0.51143,0.012,window size,0.01864,improves
+B,standard,200,silent_pooled,3879,variants,r_maha_mean,u_mean,0.98118,0.47718,0.504,0.13613,0.74509,0.001,window size,0.00163,improves
+B,standard,200,silent_pooled,3879,variants,e_img_mean,r_mmd,0.15416,0.7569,-0.60273,-0.86387,-0.41725,0.0,window size,0.0,worse
+B,standard,200,shifted_pooled,10000,primary,comb,u_mean,0.7171,0.6416,0.0755,-0.00539,0.15587,0.064,window size,0.08533,inconclusive
+B,standard,200,shifted_pooled,10000,primary,r_mmd,u_mean,0.6183,0.6416,-0.0233,-0.21378,0.17884,0.835,window size,0.8732,inconclusive
+B,standard,200,shifted_pooled,10000,primary,e_cam_l4,r_mmd,0.2298,0.6183,-0.3885,-0.56088,-0.20533,0.0,window size,0.0,worse
+B,standard,200,shifted_pooled,10000,cam-layer,e_cam_l3,r_mmd,0.272,0.6183,-0.3463,-0.56856,-0.13136,0.0,window size,0.0,worse
+B,standard,200,shifted_pooled,10000,cam-layer,e_cam_l2,r_mmd,0.3285,0.6183,-0.2898,-0.47984,-0.08157,0.007,window size,0.01109,worse
+B,standard,200,shifted_pooled,10000,variants,r_knn_mean,u_mean,0.8963,0.6416,0.2547,0.05315,0.46403,0.001,window size,0.00163,improves
+B,standard,200,shifted_pooled,10000,variants,r_maha_mean,u_mean,0.9505,0.6416,0.3089,0.03441,0.6038,0.034,window size,0.04814,improves
+B,standard,200,shifted_pooled,10000,variants,e_img_mean,r_mmd,0.4412,0.6183,-0.1771,-0.45991,0.12054,0.229,window size,0.27549,inconclusive
+C,shortcut,50,silent_pooled,399,primary,comb,u_mean,0.88972,0.88471,0.00501,-0.00794,0.03928,0.463,window size,0.53295,inconclusive
+C,shortcut,50,silent_pooled,399,primary,r_mmd,u_mean,0.17043,0.88471,-0.71429,-0.78312,-0.66813,0.0,window size,0.0,worse
+C,shortcut,50,silent_pooled,399,primary,e_cam_l4,r_mmd,0.74185,0.17043,0.57143,0.54196,0.66106,0.0,window size,0.0,improves
+C,shortcut,50,silent_pooled,399,cam-layer,e_cam_l3,r_mmd,0.15288,0.17043,-0.01754,-0.08761,0.21162,0.835,window size,0.8732,inconclusive
+C,shortcut,50,silent_pooled,399,cam-layer,e_cam_l2,r_mmd,0.64411,0.17043,0.47368,-0.0125,0.59484,0.068,window size,0.08992,inconclusive
+C,shortcut,50,silent_pooled,399,variants,r_knn_mean,u_mean,0.8797,0.88471,-0.00501,-0.02143,0.05637,0.704,window size,0.76626,inconclusive
+C,shortcut,50,silent_pooled,399,variants,r_maha_mean,u_mean,0.72431,0.88471,-0.1604,-0.20606,-0.10363,0.0,window size,0.0,worse
+C,shortcut,50,silent_pooled,399,variants,e_img_mean,r_mmd,0.90476,0.17043,0.73434,0.68392,0.77821,0.0,window size,0.0,improves
+C,shortcut,50,shifted_pooled,5000,primary,comb,u_mean,0.8702,0.862,0.0082,0.00154,0.01446,0.021,window size,0.03027,improves
+C,shortcut,50,shifted_pooled,5000,primary,r_mmd,u_mean,0.2248,0.862,-0.6372,-0.66765,-0.60165,0.0,window size,0.0,worse
+C,shortcut,50,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.7292,0.2248,0.5044,0.46385,0.53923,0.0,window size,0.0,improves
+C,shortcut,50,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.2916,0.2248,0.0668,-0.00285,0.14363,0.059,window size,0.08138,inconclusive
+C,shortcut,50,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.4834,0.2248,0.2586,0.02466,0.48072,0.019,window size,0.02789,improves
+C,shortcut,50,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.835,0.862,-0.027,-0.04153,-0.00559,0.013,window size,0.01981,worse
+C,shortcut,50,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.7164,0.862,-0.1456,-0.17804,-0.1139,0.0,window size,0.0,worse
+C,shortcut,50,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.8598,0.2248,0.635,0.54904,0.71852,0.0,window size,0.0,improves
+C,shortcut,100,silent_pooled,142,primary,comb,u_mean,0.93662,0.93662,0.0,-0.02311,0.01806,1.0,,,inconclusive
+C,shortcut,100,silent_pooled,142,primary,r_mmd,u_mean,0.21127,0.93662,-0.72535,-0.78862,-0.67742,0.0,,,worse
+C,shortcut,100,silent_pooled,142,primary,e_cam_l4,r_mmd,0.76056,0.21127,0.5493,0.44661,0.65267,0.0,,,improves
+C,shortcut,100,silent_pooled,142,cam-layer,e_cam_l3,r_mmd,0.1338,0.21127,-0.07746,-0.16356,0.03892,0.165,CAM layer,0.26,inconclusive
+C,shortcut,100,silent_pooled,142,cam-layer,e_cam_l2,r_mmd,0.71831,0.21127,0.50704,0.2281,0.7456,0.0,CAM layer,0.0,improves
+C,shortcut,100,silent_pooled,142,variants,r_knn_mean,u_mean,0.90845,0.93662,-0.02817,-0.07719,0.00601,0.09,,,inconclusive
+C,shortcut,100,silent_pooled,142,variants,r_maha_mean,u_mean,0.69718,0.93662,-0.23944,-0.30288,-0.19086,0.0,,,worse
+C,shortcut,100,silent_pooled,142,variants,e_img_mean,r_mmd,0.92254,0.21127,0.71127,0.61958,0.78454,0.0,,,improves
+C,shortcut,100,shifted_pooled,5000,primary,comb,u_mean,0.9256,0.9284,-0.0028,-0.01781,0.01149,0.776,,,inconclusive
+C,shortcut,100,shifted_pooled,5000,primary,r_mmd,u_mean,0.4618,0.9284,-0.4666,-0.50096,-0.42741,0.0,,,worse
+C,shortcut,100,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.8018,0.4618,0.34,0.29263,0.37011,0.0,,,improves
+C,shortcut,100,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.4852,0.4618,0.0234,-0.07371,0.13849,0.727,CAM layer,0.9451,inconclusive
+C,shortcut,100,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.698,0.4618,0.2362,-0.00113,0.47137,0.053,CAM layer,0.09843,inconclusive
+C,shortcut,100,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.9022,0.9284,-0.0262,-0.04172,-0.00815,0.006,,,worse
+C,shortcut,100,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.7974,0.9284,-0.131,-0.1693,-0.09271,0.0,,,worse
+C,shortcut,100,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.9326,0.4618,0.4708,0.40543,0.52846,0.0,,,improves
+C,shortcut,100,cell|C|reversed|0.1|all,1000,primary,comb,u_mean,0.628,0.644,-0.016,-0.09113,0.05683,0.768,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.1|all,1000,primary,r_mmd,u_mean,0.123,0.644,-0.521,-0.57838,-0.47416,0.0,,,worse
+C,shortcut,100,cell|C|reversed|0.1|all,1000,primary,e_cam_l4,r_mmd,0.135,0.123,0.012,-0.05022,0.0768,0.753,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.1|silent,24,primary,comb,u_mean,0.625,0.66667,-0.04167,-0.22808,0.07809,0.565,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.1|silent,24,primary,r_mmd,u_mean,0.16667,0.66667,-0.5,-0.59082,-0.40969,0.0,,,worse
+C,shortcut,100,cell|C|reversed|0.1|silent,24,primary,e_cam_l4,r_mmd,0.25,0.16667,0.08333,-0.1354,0.30281,0.614,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.25|all,1000,primary,comb,u_mean,1.0,0.998,0.002,0.0,0.0043,0.163,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.25|all,1000,primary,r_mmd,u_mean,0.14,0.998,-0.858,-0.88472,-0.83173,0.0,,,worse
+C,shortcut,100,cell|C|reversed|0.25|all,1000,primary,e_cam_l4,r_mmd,0.874,0.14,0.734,0.67453,0.7998,0.0,,,improves
+C,shortcut,100,cell|C|reversed|0.25|silent,69,primary,comb,u_mean,1.0,0.98551,0.01449,0.0,0.05143,0.653,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.25|silent,69,primary,r_mmd,u_mean,0.10145,0.98551,-0.88406,-0.91953,-0.85188,0.0,,,worse
+C,shortcut,100,cell|C|reversed|0.25|silent,69,primary,e_cam_l4,r_mmd,0.76812,0.10145,0.66667,0.51982,0.84329,0.0,,,improves
+C,shortcut,100,cell|C|reversed|0.5|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.5|all,1000,primary,r_mmd,u_mean,0.289,1.0,-0.711,-0.77717,-0.6272,0.0,,,worse
+C,shortcut,100,cell|C|reversed|0.5|all,1000,primary,e_cam_l4,r_mmd,1.0,0.289,0.711,0.6272,0.77717,0.0,,,improves
+C,shortcut,100,cell|C|reversed|0.5|silent,49,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.5|silent,49,primary,r_mmd,u_mean,0.38776,1.0,-0.61224,-0.7681,-0.49057,0.0,,,worse
+C,shortcut,100,cell|C|reversed|0.5|silent,49,primary,e_cam_l4,r_mmd,1.0,0.38776,0.61224,0.49057,0.7681,0.0,,,improves
+C,shortcut,100,cell|C|reversed|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.75|all,1000,primary,r_mmd,u_mean,0.759,1.0,-0.241,-0.31457,-0.16633,0.0,,,worse
+C,shortcut,100,cell|C|reversed|0.75|all,1000,primary,e_cam_l4,r_mmd,1.0,0.759,0.241,0.16633,0.31457,0.0,,,improves
+C,shortcut,100,cell|C|reversed|0.75|silent,14,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.75|silent,14,primary,r_mmd,u_mean,0.71429,1.0,-0.28571,-0.38007,0.0,0.136,,,inconclusive
+C,shortcut,100,cell|C|reversed|0.75|silent,14,primary,e_cam_l4,r_mmd,1.0,0.71429,0.28571,0.0,0.38007,0.136,,,inconclusive
+C,shortcut,100,cell|C|reversed|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,100,cell|C|reversed|1.0|all,1000,primary,r_mmd,u_mean,0.998,1.0,-0.002,-0.00625,0.0,0.653,,,inconclusive
+C,shortcut,100,cell|C|reversed|1.0|all,1000,primary,e_cam_l4,r_mmd,1.0,0.998,0.002,0.0,0.00625,0.653,,,inconclusive
+C,shortcut,100,cell|C|reversed|1.0|silent,5,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,100,cell|C|reversed|1.0|silent,5,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,100,cell|C|reversed|1.0|silent,5,primary,e_cam_l4,r_mmd,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcut,200,silent_pooled,176,primary,comb,u_mean,0.96023,0.94318,0.01705,-0.01239,0.03046,0.204,window size,0.24727,inconclusive
+C,shortcut,200,silent_pooled,176,primary,r_mmd,u_mean,0.29545,0.94318,-0.64773,-0.76423,-0.57685,0.0,window size,0.0,worse
+C,shortcut,200,silent_pooled,176,primary,e_cam_l4,r_mmd,0.56818,0.29545,0.27273,0.07205,0.48701,0.013,window size,0.01981,improves
+C,shortcut,200,silent_pooled,176,cam-layer,e_cam_l3,r_mmd,0.23295,0.29545,-0.0625,-0.17555,0.17778,0.419,window size,0.4858,inconclusive
+C,shortcut,200,silent_pooled,176,cam-layer,e_cam_l2,r_mmd,0.90341,0.29545,0.60795,0.48009,0.77007,0.0,window size,0.0,improves
+C,shortcut,200,silent_pooled,176,variants,r_knn_mean,u_mean,0.93182,0.94318,-0.01136,-0.06271,0.04384,0.522,window size,0.59234,inconclusive
+C,shortcut,200,silent_pooled,176,variants,r_maha_mean,u_mean,0.67045,0.94318,-0.27273,-0.3611,-0.2058,0.0,window size,0.0,worse
+C,shortcut,200,silent_pooled,176,variants,e_img_mean,r_mmd,0.90341,0.29545,0.60795,0.42242,0.78632,0.0,window size,0.0,improves
+C,shortcut,200,shifted_pooled,5000,primary,comb,u_mean,0.9768,0.9766,0.0002,-0.01192,0.01107,0.916,window size,0.93949,inconclusive
+C,shortcut,200,shifted_pooled,5000,primary,r_mmd,u_mean,0.6548,0.9766,-0.3218,-0.3713,-0.2675,0.0,window size,0.0,worse
+C,shortcut,200,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.8398,0.6548,0.185,0.12321,0.23983,0.0,window size,0.0,improves
+C,shortcut,200,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.6468,0.6548,-0.008,-0.12898,0.15376,0.788,window size,0.84053,inconclusive
+C,shortcut,200,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.9068,0.6548,0.252,0.13438,0.36294,0.0,window size,0.0,improves
+C,shortcut,200,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.9638,0.9766,-0.0128,-0.02931,0.00366,0.082,window size,0.10496,inconclusive
+C,shortcut,200,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.8706,0.9766,-0.106,-0.14406,-0.06857,0.0,window size,0.0,worse
+C,shortcut,200,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.9612,0.6548,0.3064,0.22558,0.37369,0.0,window size,0.0,improves
+C,shortcutv2,50,silent_pooled,1320,primary,comb,u_mean,0.96742,0.97803,-0.01061,-0.02696,0.00081,0.074,window size,0.09626,inconclusive
+C,shortcutv2,50,silent_pooled,1320,primary,r_mmd,u_mean,0.11515,0.97803,-0.86288,-0.89723,-0.83022,0.0,window size,0.0,worse
+C,shortcutv2,50,silent_pooled,1320,primary,e_cam_l4,r_mmd,0.82121,0.11515,0.70606,0.6675,0.76272,0.0,window size,0.0,improves
+C,shortcutv2,50,silent_pooled,1320,cam-layer,e_cam_l3,r_mmd,0.36667,0.11515,0.25152,0.11127,0.3631,0.0,window size,0.0,improves
+C,shortcutv2,50,silent_pooled,1320,cam-layer,e_cam_l2,r_mmd,0.46212,0.11515,0.34697,0.16693,0.52448,0.0,window size,0.0,improves
+C,shortcutv2,50,silent_pooled,1320,variants,r_knn_mean,u_mean,0.73409,0.97803,-0.24394,-0.30312,-0.1963,0.0,window size,0.0,worse
+C,shortcutv2,50,silent_pooled,1320,variants,r_maha_mean,u_mean,0.65,0.97803,-0.32803,-0.37113,-0.2915,0.0,window size,0.0,worse
+C,shortcutv2,50,silent_pooled,1320,variants,e_img_mean,r_mmd,0.78864,0.11515,0.67348,0.54557,0.78324,0.0,window size,0.0,improves
+C,shortcutv2,50,shifted_pooled,5000,primary,comb,u_mean,0.987,0.994,-0.007,-0.01277,-0.00193,0.0,window size,0.0,worse
+C,shortcutv2,50,shifted_pooled,5000,primary,r_mmd,u_mean,0.2982,0.994,-0.6958,-0.72864,-0.66338,0.0,window size,0.0,worse
+C,shortcutv2,50,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.894,0.2982,0.5958,0.57255,0.62253,0.0,window size,0.0,improves
+C,shortcutv2,50,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.6338,0.2982,0.3356,0.2365,0.42592,0.0,window size,0.0,improves
+C,shortcutv2,50,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.659,0.2982,0.3608,0.24997,0.50323,0.0,window size,0.0,improves
+C,shortcutv2,50,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.9126,0.994,-0.0814,-0.09799,-0.06572,0.0,window size,0.0,worse
+C,shortcutv2,50,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.8682,0.994,-0.1258,-0.14443,-0.10729,0.0,window size,0.0,worse
+C,shortcutv2,50,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.903,0.2982,0.6048,0.55997,0.64836,0.0,window size,0.0,improves
+C,shortcutv2,100,silent_pooled,663,primary,comb,u_mean,0.99246,0.99698,-0.00452,-0.0107,0.0,0.156,,,inconclusive
+C,shortcutv2,100,silent_pooled,663,primary,r_mmd,u_mean,0.11011,0.99698,-0.88688,-0.90779,-0.86004,0.0,,,worse
+C,shortcutv2,100,silent_pooled,663,primary,e_cam_l4,r_mmd,0.93665,0.11011,0.82655,0.77967,0.86354,0.0,,,improves
+C,shortcutv2,100,silent_pooled,663,cam-layer,e_cam_l3,r_mmd,0.45551,0.11011,0.3454,0.12221,0.5357,0.0,CAM layer,0.0,improves
+C,shortcutv2,100,silent_pooled,663,cam-layer,e_cam_l2,r_mmd,0.61538,0.11011,0.50528,0.24912,0.73021,0.0,CAM layer,0.0,improves
+C,shortcutv2,100,silent_pooled,663,variants,r_knn_mean,u_mean,0.82655,0.99698,-0.17044,-0.23395,-0.11395,0.0,,,worse
+C,shortcutv2,100,silent_pooled,663,variants,r_maha_mean,u_mean,0.6908,0.99698,-0.30618,-0.3695,-0.24985,0.0,,,worse
+C,shortcutv2,100,silent_pooled,663,variants,e_img_mean,r_mmd,0.91403,0.11011,0.80392,0.74119,0.86581,0.0,,,improves
+C,shortcutv2,100,shifted_pooled,5000,primary,comb,u_mean,0.999,0.9996,-0.0006,-0.00136,0.0,0.156,,,inconclusive
+C,shortcutv2,100,shifted_pooled,5000,primary,r_mmd,u_mean,0.5028,0.9996,-0.4968,-0.52812,-0.46842,0.0,,,worse
+C,shortcutv2,100,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.9688,0.5028,0.466,0.44557,0.49623,0.0,,,improves
+C,shortcutv2,100,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.7746,0.5028,0.2718,0.16379,0.37821,0.0,CAM layer,0.0,improves
+C,shortcutv2,100,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.8236,0.5028,0.3208,0.2041,0.44325,0.0,CAM layer,0.0,improves
+C,shortcutv2,100,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.9642,0.9996,-0.0354,-0.05054,-0.0206,0.0,,,worse
+C,shortcutv2,100,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.9306,0.9996,-0.069,-0.09056,-0.05117,0.0,,,worse
+C,shortcutv2,100,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.9714,0.5028,0.4686,0.44574,0.4913,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.1|all,1000,primary,comb,u_mean,0.995,0.998,-0.003,-0.00681,0.0,0.156,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.1|all,1000,primary,r_mmd,u_mean,0.103,0.998,-0.895,-0.92806,-0.86483,0.0,,,worse
+C,shortcutv2,100,cell|C|reversed|0.1|all,1000,primary,e_cam_l4,r_mmd,0.882,0.103,0.779,0.7001,0.84206,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.1|silent,480,primary,comb,u_mean,0.98958,0.99583,-0.00625,-0.01439,0.0,0.156,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.1|silent,480,primary,r_mmd,u_mean,0.09792,0.99583,-0.89792,-0.93082,-0.86585,0.0,,,worse
+C,shortcutv2,100,cell|C|reversed|0.1|silent,480,primary,e_cam_l4,r_mmd,0.91875,0.09792,0.82083,0.74655,0.87898,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.25|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.25|all,1000,primary,r_mmd,u_mean,0.13,1.0,-0.87,-0.89211,-0.8437,0.0,,,worse
+C,shortcutv2,100,cell|C|reversed|0.25|all,1000,primary,e_cam_l4,r_mmd,0.962,0.13,0.832,0.81691,0.84886,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.25|silent,157,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.25|silent,157,primary,r_mmd,u_mean,0.12102,1.0,-0.87898,-0.93208,-0.82689,0.0,,,worse
+C,shortcutv2,100,cell|C|reversed|0.25|silent,157,primary,e_cam_l4,r_mmd,0.98089,0.12102,0.85987,0.81988,0.9075,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.5|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.5|all,1000,primary,r_mmd,u_mean,0.346,1.0,-0.654,-0.72122,-0.59457,0.0,,,worse
+C,shortcutv2,100,cell|C|reversed|0.5|all,1000,primary,e_cam_l4,r_mmd,1.0,0.346,0.654,0.59457,0.72122,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.5|silent,26,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.5|silent,26,primary,r_mmd,u_mean,0.26923,1.0,-0.73077,-0.91247,-0.66145,0.0,,,worse
+C,shortcutv2,100,cell|C|reversed|0.5|silent,26,primary,e_cam_l4,r_mmd,1.0,0.26923,0.73077,0.66145,0.91247,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.75|all,1000,primary,r_mmd,u_mean,0.935,1.0,-0.065,-0.11069,-0.02148,0.0,,,worse
+C,shortcutv2,100,cell|C|reversed|0.75|all,1000,primary,e_cam_l4,r_mmd,1.0,0.935,0.065,0.02148,0.11069,0.0,,,improves
+C,shortcutv2,100,cell|C|reversed|0.75|silent,5,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.75|silent,5,primary,r_mmd,u_mean,0.8,1.0,-0.2,-0.23235,0.0,0.666,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|0.75|silent,5,primary,e_cam_l4,r_mmd,1.0,0.8,0.2,0.0,0.23235,0.666,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|1.0|all,1000,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|1.0|all,1000,primary,e_cam_l4,r_mmd,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|1.0|silent,3,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|1.0|silent,3,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,100,cell|C|reversed|1.0|silent,3,primary,e_cam_l4,r_mmd,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+C,shortcutv2,200,silent_pooled,305,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,window size,1.0,inconclusive
+C,shortcutv2,200,silent_pooled,305,primary,r_mmd,u_mean,0.16066,1.0,-0.83934,-0.87006,-0.80674,0.0,window size,0.0,worse
+C,shortcutv2,200,silent_pooled,305,primary,e_cam_l4,r_mmd,0.99672,0.16066,0.83607,0.80099,0.87006,0.0,window size,0.0,improves
+C,shortcutv2,200,silent_pooled,305,cam-layer,e_cam_l3,r_mmd,0.68525,0.16066,0.52459,0.24946,0.6999,0.0,window size,0.0,improves
+C,shortcutv2,200,silent_pooled,305,cam-layer,e_cam_l2,r_mmd,0.84918,0.16066,0.68852,0.46408,0.81961,0.0,window size,0.0,improves
+C,shortcutv2,200,silent_pooled,305,variants,r_knn_mean,u_mean,0.95738,1.0,-0.04262,-0.07609,-0.01421,0.0,window size,0.0,worse
+C,shortcutv2,200,silent_pooled,305,variants,r_maha_mean,u_mean,0.84918,1.0,-0.15082,-0.20525,-0.0842,0.0,window size,0.0,worse
+C,shortcutv2,200,silent_pooled,305,variants,e_img_mean,r_mmd,0.98033,0.16066,0.81967,0.79615,0.84451,0.0,window size,0.0,improves
+C,shortcutv2,200,shifted_pooled,5000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,window size,1.0,inconclusive
+C,shortcutv2,200,shifted_pooled,5000,primary,r_mmd,u_mean,0.68,1.0,-0.32,-0.35384,-0.28857,0.0,window size,0.0,worse
+C,shortcutv2,200,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.9958,0.68,0.3158,0.28532,0.3511,0.0,window size,0.0,improves
+C,shortcutv2,200,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.8914,0.68,0.2114,0.12541,0.297,0.0,window size,0.0,improves
+C,shortcutv2,200,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.9406,0.68,0.2606,0.17508,0.33613,0.0,window size,0.0,improves
+C,shortcutv2,200,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.9928,1.0,-0.0072,-0.01493,-0.00117,0.0,window size,0.0,worse
+C,shortcutv2,200,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.9778,1.0,-0.0222,-0.0345,-0.01126,0.0,window size,0.0,worse
+C,shortcutv2,200,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.9956,0.68,0.3156,0.28702,0.346,0.0,window size,0.0,improves
+X,standard,50,silent_pooled,504,primary,comb,u_mean,0.89286,0.90079,-0.00794,-0.04385,0.02335,0.682,window size,0.7474,inconclusive
+X,standard,50,silent_pooled,504,primary,r_mmd,u_mean,0.48016,0.90079,-0.42063,-0.46198,-0.38022,0.0,window size,0.0,worse
+X,standard,50,silent_pooled,504,primary,e_cam_l4,r_mmd,0.0754,0.48016,-0.40476,-0.44386,-0.3529,0.0,window size,0.0,worse
+X,standard,50,silent_pooled,504,cam-layer,e_cam_l3,r_mmd,0.1627,0.48016,-0.31746,-0.37591,-0.23876,0.0,window size,0.0,worse
+X,standard,50,silent_pooled,504,cam-layer,e_cam_l2,r_mmd,0.60119,0.48016,0.12103,-0.04473,0.27818,0.156,window size,0.19349,inconclusive
+X,standard,50,silent_pooled,504,variants,r_knn_mean,u_mean,0.87103,0.90079,-0.02976,-0.07748,0.00939,0.162,window size,0.19786,inconclusive
+X,standard,50,silent_pooled,504,variants,r_maha_mean,u_mean,0.5873,0.90079,-0.31349,-0.50336,-0.17294,0.0,window size,0.0,worse
+X,standard,50,silent_pooled,504,variants,e_img_mean,r_mmd,0.17659,0.48016,-0.30357,-0.36662,-0.24197,0.0,window size,0.0,worse
+X,standard,50,shifted_pooled,5000,primary,comb,u_mean,0.7952,0.7948,0.0004,-0.0162,0.02099,0.995,window size,1.0,inconclusive
+X,standard,50,shifted_pooled,5000,primary,r_mmd,u_mean,0.4192,0.7948,-0.3756,-0.41043,-0.3341,0.0,window size,0.0,worse
+X,standard,50,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.0846,0.4192,-0.3346,-0.3613,-0.30506,0.0,window size,0.0,worse
+X,standard,50,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.203,0.4192,-0.2162,-0.29365,-0.12788,0.0,window size,0.0,worse
+X,standard,50,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.5912,0.4192,0.172,-0.0254,0.33048,0.089,window size,0.11302,inconclusive
+X,standard,50,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.7382,0.7948,-0.0566,-0.1092,0.00041,0.052,window size,0.07235,inconclusive
+X,standard,50,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.5092,0.7948,-0.2856,-0.4141,-0.15889,0.0,window size,0.0,worse
+X,standard,50,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.1832,0.4192,-0.236,-0.29232,-0.18062,0.0,window size,0.0,worse
+X,standard,100,silent_pooled,368,primary,comb,u_mean,0.94293,0.9212,0.02174,-0.00094,0.06973,0.089,,,inconclusive
+X,standard,100,silent_pooled,368,primary,r_mmd,u_mean,0.5163,0.9212,-0.40489,-0.437,-0.36573,0.0,,,worse
+X,standard,100,silent_pooled,368,primary,e_cam_l4,r_mmd,0.05163,0.5163,-0.46467,-0.53939,-0.38852,0.0,,,worse
+X,standard,100,silent_pooled,368,cam-layer,e_cam_l3,r_mmd,0.25543,0.5163,-0.26087,-0.43462,-0.10334,0.0,CAM layer,0.0,worse
+X,standard,100,silent_pooled,368,cam-layer,e_cam_l2,r_mmd,0.6875,0.5163,0.1712,-0.08235,0.33257,0.195,CAM layer,0.29824,inconclusive
+X,standard,100,silent_pooled,368,variants,r_knn_mean,u_mean,0.83967,0.9212,-0.08152,-0.16947,0.00907,0.144,,,inconclusive
+X,standard,100,silent_pooled,368,variants,r_maha_mean,u_mean,0.58424,0.9212,-0.33696,-0.50426,-0.14597,0.0,,,worse
+X,standard,100,silent_pooled,368,variants,e_img_mean,r_mmd,0.1712,0.5163,-0.34511,-0.39888,-0.2732,0.0,,,worse
+X,standard,100,shifted_pooled,5000,primary,comb,u_mean,0.9168,0.8976,0.0192,0.00103,0.03948,0.031,,,improves
+X,standard,100,shifted_pooled,5000,primary,r_mmd,u_mean,0.6154,0.8976,-0.2822,-0.32252,-0.23637,0.0,,,worse
+X,standard,100,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.0868,0.6154,-0.5286,-0.55875,-0.49524,0.0,,,worse
+X,standard,100,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.2902,0.6154,-0.3252,-0.41027,-0.21175,0.0,CAM layer,0.0,worse
+X,standard,100,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.714,0.6154,0.0986,-0.11021,0.25812,0.317,CAM layer,0.47097,inconclusive
+X,standard,100,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.8344,0.8976,-0.0632,-0.12889,0.00183,0.062,,,inconclusive
+X,standard,100,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.6446,0.8976,-0.253,-0.38508,-0.1227,0.0,,,worse
+X,standard,100,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.316,0.6154,-0.2994,-0.37151,-0.2326,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.1|all,1000,primary,comb,u_mean,0.695,0.603,0.092,0.03227,0.14995,0.001,,,improves
+X,standard,100,cell|X|nct7k|0.1|all,1000,primary,r_mmd,u_mean,0.23,0.603,-0.373,-0.46053,-0.23459,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.1|all,1000,primary,e_cam_l4,r_mmd,0.054,0.23,-0.176,-0.21284,-0.13365,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.1|silent,60,primary,comb,u_mean,0.75,0.65,0.1,0.04017,0.15014,0.008,,,improves
+X,standard,100,cell|X|nct7k|0.1|silent,60,primary,r_mmd,u_mean,0.26667,0.65,-0.38333,-0.51961,-0.18519,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.1|silent,60,primary,e_cam_l4,r_mmd,0.08333,0.26667,-0.18333,-0.35771,0.01366,0.08,,,inconclusive
+X,standard,100,cell|X|nct7k|0.25|all,1000,primary,comb,u_mean,0.892,0.887,0.005,-0.04091,0.05274,0.836,,,inconclusive
+X,standard,100,cell|X|nct7k|0.25|all,1000,primary,r_mmd,u_mean,0.263,0.887,-0.624,-0.6791,-0.52932,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.25|all,1000,primary,e_cam_l4,r_mmd,0.056,0.263,-0.207,-0.25327,-0.16021,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.25|silent,114,primary,comb,u_mean,0.95614,0.92982,0.02632,-0.04447,0.13575,0.621,,,inconclusive
+X,standard,100,cell|X|nct7k|0.25|silent,114,primary,r_mmd,u_mean,0.24561,0.92982,-0.68421,-0.79985,-0.56146,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.25|silent,114,primary,e_cam_l4,r_mmd,0.02632,0.24561,-0.2193,-0.26315,-0.13176,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.5|all,1000,primary,comb,u_mean,0.997,0.998,-0.001,-0.00415,0.00221,0.56,,,inconclusive
+X,standard,100,cell|X|nct7k|0.5|all,1000,primary,r_mmd,u_mean,0.61,0.998,-0.388,-0.48123,-0.32122,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.5|all,1000,primary,e_cam_l4,r_mmd,0.078,0.61,-0.532,-0.59922,-0.45221,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.5|silent,108,primary,comb,u_mean,0.99074,1.0,-0.00926,-0.02594,0.0,0.641,,,inconclusive
+X,standard,100,cell|X|nct7k|0.5|silent,108,primary,r_mmd,u_mean,0.56481,1.0,-0.43519,-0.56341,-0.36697,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.5|silent,108,primary,e_cam_l4,r_mmd,0.02778,0.56481,-0.53704,-0.61415,-0.42308,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.75|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+X,standard,100,cell|X|nct7k|0.75|all,1000,primary,r_mmd,u_mean,0.974,1.0,-0.026,-0.04416,-0.01457,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.75|all,1000,primary,e_cam_l4,r_mmd,0.106,0.974,-0.868,-0.90343,-0.8357,0.0,,,worse
+X,standard,100,cell|X|nct7k|0.75|silent,61,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+X,standard,100,cell|X|nct7k|0.75|silent,61,primary,r_mmd,u_mean,0.98361,1.0,-0.01639,-0.04092,0.0,0.679,,,inconclusive
+X,standard,100,cell|X|nct7k|0.75|silent,61,primary,e_cam_l4,r_mmd,0.08197,0.98361,-0.90164,-0.97975,-0.82177,0.0,,,worse
+X,standard,100,cell|X|nct7k|1.0|all,1000,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+X,standard,100,cell|X|nct7k|1.0|all,1000,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+X,standard,100,cell|X|nct7k|1.0|all,1000,primary,e_cam_l4,r_mmd,0.14,1.0,-0.86,-0.8736,-0.84127,0.0,,,worse
+X,standard,100,cell|X|nct7k|1.0|silent,25,primary,comb,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+X,standard,100,cell|X|nct7k|1.0|silent,25,primary,r_mmd,u_mean,1.0,1.0,0.0,0.0,0.0,1.0,,,inconclusive
+X,standard,100,cell|X|nct7k|1.0|silent,25,primary,e_cam_l4,r_mmd,0.12,1.0,-0.88,-1.0,-0.7567,0.001,,,worse
+X,standard,200,silent_pooled,267,primary,comb,u_mean,0.96255,0.92884,0.03371,0.00927,0.06745,0.019,window size,0.02789,improves
+X,standard,200,silent_pooled,267,primary,r_mmd,u_mean,0.603,0.92884,-0.32584,-0.34273,-0.29961,0.0,window size,0.0,worse
+X,standard,200,silent_pooled,267,primary,e_cam_l4,r_mmd,0.05243,0.603,-0.55056,-0.59007,-0.50058,0.0,window size,0.0,worse
+X,standard,200,silent_pooled,267,cam-layer,e_cam_l3,r_mmd,0.40449,0.603,-0.1985,-0.40519,0.15922,0.3,window size,0.35294,inconclusive
+X,standard,200,silent_pooled,267,cam-layer,e_cam_l2,r_mmd,0.82772,0.603,0.22472,-0.1897,0.38822,0.266,window size,0.31526,inconclusive
+X,standard,200,silent_pooled,267,variants,r_knn_mean,u_mean,0.8764,0.92884,-0.05243,-0.20206,0.05694,0.536,window size,0.60394,inconclusive
+X,standard,200,silent_pooled,267,variants,r_maha_mean,u_mean,0.60674,0.92884,-0.3221,-0.69237,-0.08889,0.0,window size,0.0,worse
+X,standard,200,silent_pooled,267,variants,e_img_mean,r_mmd,0.17978,0.603,-0.42322,-0.55868,-0.33184,0.0,window size,0.0,worse
+X,standard,200,shifted_pooled,5000,primary,comb,u_mean,0.9792,0.9614,0.0178,0.00244,0.03773,0.017,window size,0.02542,improves
+X,standard,200,shifted_pooled,5000,primary,r_mmd,u_mean,0.7978,0.9614,-0.1636,-0.20501,-0.11514,0.0,window size,0.0,worse
+X,standard,200,shifted_pooled,5000,primary,e_cam_l4,r_mmd,0.093,0.7978,-0.7048,-0.73803,-0.66359,0.0,window size,0.0,worse
+X,standard,200,shifted_pooled,5000,cam-layer,e_cam_l3,r_mmd,0.4074,0.7978,-0.3904,-0.47291,-0.27762,0.0,window size,0.0,worse
+X,standard,200,shifted_pooled,5000,cam-layer,e_cam_l2,r_mmd,0.8192,0.7978,0.0214,-0.18127,0.1677,0.721,window size,0.77946,inconclusive
+X,standard,200,shifted_pooled,5000,variants,r_knn_mean,u_mean,0.9094,0.9614,-0.052,-0.10711,0.00174,0.062,window size,0.08407,inconclusive
+X,standard,200,shifted_pooled,5000,variants,r_maha_mean,u_mean,0.7518,0.9614,-0.2096,-0.34127,-0.07899,0.0,window size,0.0,worse
+X,standard,200,shifted_pooled,5000,variants,e_img_mean,r_mmd,0.4556,0.7978,-0.3422,-0.43585,-0.24205,0.0,window size,0.0,worse
