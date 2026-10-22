@@ -500,6 +500,62 @@ every budget (+0.8 to +3.6 pt). **Explanation drift (M2) does not reduce residua
 - Caveats: pools differ in composition (prevalence 0.9% to 43%), so absolute residual rates compare methods within a family only; tie
   groups at the budget boundary are at most 3.7% of the pool (C) and <= 0.6% elsewhere; no cost model was used.
 
+## Stage 8 - ablations and sensitivity (`python scripts/run_stage8.py --config configs/full.yaml`)
+Pre-registration: `docs/ablation_plan_frozen.md`, frozen at commit **f0553dfc4c5047eb9aee0ec958b2ec93e72daabe** before any ablation
+result. Code `sfd/stage8.py`, tests `tests/test_stage8.py`. No retraining / GPU / image re-extraction (Mahalanobis refits use the saved
+Phase 4 reference bank and the Phase 6 per-row features; T = 1 uncertainty from logits reconstructed with the frozen final layer). Runtime
+2 h 23 min CPU. Outputs: `outputs/stage8/tables/ablation_G1..G9.csv`, `exploratory_targeted.csv`, `seed_jackknife_G10.csv`,
+`gated_share.csv`, `summary_stage8.md` (all contrasts with CIs, generated), `figures/fig8a..fig8d*.png`, `raw/*.csv` (every row),
+`augment_checks.csv`. Deviations from the plan: (i) the logit-reconstruction check is "99.9th percentile of |dconf| < 1e-3 and max < 1e-2"
+(fp16 features are amplified by 1/T for the saturated v2 models; observed max 1.4e-3, v2 seed 4) instead of "max < 1e-3"; (ii) "full" reference
+size = the whole saved Phase 4 bank (20,000 PathMNIST / 40,000 Camelyon train images), not the full train set; (iii) X not re-analysed.
+Residual silent-failure rate contrasts below are at B = 5 / 10 / 20% (points; CIs in the tables).
+
+**Declared primary contrasts (unadjusted).** P1 sf-M1 - sf-M0 = the Phase 7 M1 - M0 result (sign-free weights on M0/M1 come out
+identical to the non-negative ones, i.e. the optimal uncertainty and Mahalanobis weights are already >= 0): A 0 / -0.59 / -4.32, B 0 / -0.12 /
+-1.43, C +0.80 / +2.21 / +3.61 (increases). P3 sf-M1 - M1 = 0.00 pt in every cell: the sign constraint does not matter for M0/M1.
+**P2 sf-M2 - sf-M1 (CAM drift with a free sign) reduces residual silent failures on A (-1.25 [-1.42, -1.01], -2.05 [-2.46, -1.44], -1.03
+[-1.54, -0.43]) and C (-3.80 [-4.43, -3.27], -5.14 [-6.60, -3.14], -3.92 [-6.56, -1.15]) and does nothing on B (|d| < 0.05 pt).** The fitted CAM weight
+is NEGATIVE (confident errors have typical-looking explanations, Phase 5), so the non-negative M2 could not use it; it becomes useful once the sign is free.
+Note that sf-M2 is a post-hoc-interpretable but pre-registered contrast; it is a modest gain on A (about 1-2 pt) and larger on the shortcut family C.
+
+One plain-language conclusion per ablation (full numbers in the tables):
+- **G1 signal groups.** Mahalanobis is the most useful single signal beyond uncertainty on A and B (alone it beats log(1-MSP) by -5.5 pt on A and -3.0 pt
+  on B at 20%), and a single CAM signal also beats log(1-MSP) there (-2.4, -2.0 pt); adding CAM to M0 without Mahalanobis does nothing under the
+  non-negative fusion. On the strong shortcut C every single signal is at best equal to uncertainty.
+- **G2 fusion constraint.** For M0 and M1 allowing negative weights changes nothing (identical solutions); only the CAM weight wants a negative
+  sign, which is why sign-free M2 gains (P2). A non-negative detector is therefore adequate for uncertainty and representation drift, but not for
+  explanation drift.
+- **G3 CAM layer / form.** Under non-negative fusion no CAM variant helps (|d| < 0.5 pt, mostly CIs at 0); under sign-free fusion layer4, layer3, layer2,
+  raw JS and PCA distance all reduce residual silent failures on A and C (layer3/layer2 normalised: -0.5 to -6 pt), with B near zero. Layer and form matter
+  less than the sign of the weight; transform-normalised JS is not needed to see the effect.
+- **G4 Mahalanobis vs kNN.** kNN is worse than Mahalanobis on A and B (+3.3 and +1.2 pt at 20%) and better on C (-3.4 pt): the primary choice (Mahalanobis)
+  is the right one for the families where representation drift helps at all.
+- **G5 reference size.** Residual rates are essentially stable down to 500 reference rows (|d| <= 0.4 pt vs the full bank, mostly within CIs; B at 20%
+  +0.43 [0.13, 0.81], so a few hundred rows suffice for A and C, B profits slightly from a larger reference). The full-bank refit reproduces the stored
+  Phase 4 reference exactly (rank correlation 1.0, d = 0.00 pt).
+- **G6 temperature scaling.** Calibration barely matters for the ranking: before vs after temperature scaling changes the residual rate by <= 0.8 pt, with
+  one significant but tiny effect on A (-0.11 pt) and B (M1, -0.23 pt).
+- **G7 family A, severity and corruption.** M0's detection AUROC falls with severity (0.95 clean, 0.72 at 2, 0.49 at 5) while M1 declines more slowly
+  (0.90, 0.79, 0.60); M1 - M0 at 20% is -2.0 / -4.2 / -3.1 / -1.9 pt at severities 2 / 3 / 4 / 5 (BH q < 0.001) and null at 0-1. By corruption it
+  reduces residual silent failures for 8 of 11 types (largest: saturate -4.3, contrast_down -4.2, motion_blur -4.0 pt), is null for stain_deposit and
+  clean, and slightly worse for bubble (+0.07) and pixelate (+0.22).
+- **G8 family C cue state (v2 primary, v1 supplement).** Aligned has no silent failures. Removed: M0 AUROC 0.62, M1 0.44; reversed: M0 0.12, M1 0.06
+  (inverted: confident errors are the TYPICAL cases); the sign-free M2 partly repairs this (reversed AUROC 0.22, residual 90.6% vs 98.0% for M1 and 89.2% random).
+  v1 (weak shortcut): silent failures are rare (random residual 1.0%); M0 is better than M1 (AUROC 0.91 vs 0.69).
+- **G9 labels.** The M1 - M0 pattern (reduces on A, B at 20%; increases on C) holds for sf_095 (A -2.9 pt, C +3.3 pt); with the degenerate sf_tau / sf_099 labels
+  the effects shrink to <= 0.7 pt and are mostly inconclusive; M2 - M1 is 0 for every label.
+- **G10 seed jackknife:** in `seed_jackknife_G10.csv`; no primary contrast changes sign.
+
+**Exploratory, post-hoc: targeted (confidence-gated) fusion (`exploratory_targeted.csv`; NOT a main-table result).** The gate is calibrated
+confidence >= 0.90 (80.7% of pool A, 79.2% of B, 97.1% of C are gated, so the fill-by-M0 rule is never used at B <= 20%). Gated M1 ranking
+(weights refitted on the gated tuning rows) vs plain M1: A -2.90 / -4.97 / -5.25 pt, B -2.34 / -4.47 / -6.99 pt, C -0.23 / -0.75 / -1.72 pt (all CIs exclude 0);
+vs plain M0 (G-sign-free M1 - M0): A -2.90 / -5.56 / -9.57 pt, B -2.34 / -4.59 / -8.42 pt, C +0.56 (n.s.) / +1.47 / +1.89 pt (n.s. at 20%). Residual rates at 20%:
+A 3.54% (random 10.86, M0 13.11, M1 8.79, oracle 0), B 6.67% (random 12.12, M0 15.09, M1 13.66), C 43.26% (random 42.94, M0 41.37, M1 44.97, oracle 28.67). **Answer:
+the gated policy reduces residual silent failures vs M0 and M1 out-of-family on A and B (large) and vs M1 on C (small); on the strong-shortcut family C only the gated uncertainty ranking G-M0 beats random (-0.9 / -1.6 / -3.9 pt vs random, CIs exclude 0), whereas
+G-M1 (+1.5 pt at 5%, inconclusive at 10 / 20%) and G-sf-M2 (inconclusive) do not.** Caveat: the gate uses the label's own
+confidence threshold, so it is by design the confidence-aware ranking the oracle structure suggests; it is exploratory and uses only deployment-available quantities.
+
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),
@@ -548,7 +604,8 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | 5 | Sample-level detection: frozen plan, M0/M1/M2 rotation, paired cluster bootstrap | done |
 | 6 | Batch-level monitoring: frozen plan + amendment, FAR check, power, delay | done |
 | 7 | Referral policy: frozen plan, exact-budget ranking vs random / oracle, threshold-transfer check | done |
-| 8-9 | Stages 8-9 of the roadmap | not started |
+| 8 | Ablations and sensitivity (G1-G10) + exploratory targeted fusion | done |
+| 9 | Final notebook | not started |
 
 
 

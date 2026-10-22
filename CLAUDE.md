@@ -59,6 +59,9 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
   AND |d| >= 0.1 pt. Silent failures need confidence >= 0.9, so uncertainty-first ranking spends small budgets (< ~19% of the pool) on
   non-silent cases: always report the residual ERROR rate and SF capture next to the residual silent-failure rate. Blueprint-literal
   transferred thresholds fail the +-1 point workload check (36/36); report realised workload with every threshold-based number.
+- Stage 8 follows docs/ablation_plan_frozen.md (f0553df). Declared primaries: P1 sf-M1 - sf-M0, P2 sf-M2 - sf-M1, P3 sf-M1 - M1 (residual
+  rate at 5/10/20%, unadjusted); the CAM weight wants a NEGATIVE sign (non-negative M2 cannot use it). Gated / targeted fusion is
+  EXPLORATORY and post-hoc: report only in its own table ("exploratory, post-hoc"), never in main tables or as a replacement for M0/M1/M2.
 - Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are
