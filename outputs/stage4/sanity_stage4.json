@@ -1,0 +1,31 @@
+{
+ "rows": 1222120,
+ "nan_in_signals": false,
+ "cam_randomisation": {
+  "layer4": {
+   "mean_js_orig_vs_randomised": 0.1280510214883271,
+   "mean_spearman_orig_vs_randomised": 0.3593211857869569
+  },
+  "layer3": {
+   "mean_js_orig_vs_randomised": 0.4709689365240347,
+   "mean_spearman_orig_vs_randomised": 0.0563960630263943
+  },
+  "model": "pathmnist_standard_seed0",
+  "passed": true
+ },
+ "pred_agreement_with_saved": {
+  "standard/ID/id_test": 1.0,
+  "standard/A/clean": 1.0,
+  "shortcut/C/reversed": 1.0
+ },
+ "dose_response_non_monotone": [
+  [
+   "brightness_down",
+   "e_js_raw_l3"
+  ],
+  [
+   "brightness_down",
+   "e_pca_l3"
+  ]
+ ]
+}

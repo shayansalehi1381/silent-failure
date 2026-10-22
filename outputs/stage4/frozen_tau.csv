@@ -1,0 +1,21 @@
+tau,degenerate,accept_frac,val_cal_precision_at_tau,val_cal_acc,model,dataset,kind,seed
+0.27497545717172384,accepts every val_cal prediction (val_cal precision 0.9962 >= 0.95),1.0,0.9961992398479695,0.9961992398479695,pathmnist_standard_seed0,pathmnist,standard,0
+0.5006505881594454,accepts every val_cal prediction (val_cal precision 0.9574 >= 0.95),1.0,0.9574,0.9574,camelyon17_standard_seed0,camelyon17,standard,0
+0.5655027753777291,accepts every val_cal prediction (val_cal precision 0.9994 >= 0.95),1.0,0.9993998799759952,0.9993998799759952,pathmnist_shortcut_seed0,pathmnist,shortcut,0
+1.0,accepts every val_cal prediction (val_cal precision 1.0000 >= 0.95),1.0,1.0,1.0,pathmnist_shortcutv2_seed0,pathmnist,shortcutv2,0
+0.3375158549343055,accepts every val_cal prediction (val_cal precision 0.9958 >= 0.95),1.0,0.9957991598319664,0.9957991598319664,pathmnist_standard_seed1,pathmnist,standard,1
+0.5926475742443992,,0.9734,0.9500719128826792,0.9394,camelyon17_standard_seed1,camelyon17,standard,1
+0.5687635750888563,accepts every val_cal prediction (val_cal precision 0.9994 >= 0.95),1.0,0.9993998799759952,0.9993998799759952,pathmnist_shortcut_seed1,pathmnist,shortcut,1
+1.0,accepts every val_cal prediction (val_cal precision 1.0000 >= 0.95),1.0,1.0,1.0,pathmnist_shortcutv2_seed1,pathmnist,shortcutv2,1
+0.3122886176185193,accepts every val_cal prediction (val_cal precision 0.9958 >= 0.95),1.0,0.9957991598319664,0.9957991598319664,pathmnist_standard_seed2,pathmnist,standard,2
+0.5031416780647917,accepts every val_cal prediction (val_cal precision 0.9662 >= 0.95),1.0,0.9662,0.9662,camelyon17_standard_seed2,camelyon17,standard,2
+0.5017131381852654,accepts every val_cal prediction (val_cal precision 0.9982 >= 0.95),1.0,0.9981996399279855,0.9981996399279855,pathmnist_shortcut_seed2,pathmnist,shortcut,2
+1.0,accepts every val_cal prediction (val_cal precision 1.0000 >= 0.95),1.0,1.0,1.0,pathmnist_shortcutv2_seed2,pathmnist,shortcutv2,2
+0.4593029321151433,accepts every val_cal prediction (val_cal precision 0.9972 >= 0.95),1.0,0.9971994398879775,0.9971994398879775,pathmnist_standard_seed3,pathmnist,standard,3
+0.5020434451902269,accepts every val_cal prediction (val_cal precision 0.9556 >= 0.95),1.0,0.9556,0.9556,camelyon17_standard_seed3,camelyon17,standard,3
+0.49111798068925466,accepts every val_cal prediction (val_cal precision 0.9984 >= 0.95),1.0,0.9983996799359872,0.9983996799359872,pathmnist_shortcut_seed3,pathmnist,shortcut,3
+1.0,accepts every val_cal prediction (val_cal precision 1.0000 >= 0.95),1.0,1.0,1.0,pathmnist_shortcutv2_seed3,pathmnist,shortcutv2,3
+0.4094426927609784,accepts every val_cal prediction (val_cal precision 0.9972 >= 0.95),1.0,0.9971994398879775,0.9971994398879775,pathmnist_standard_seed4,pathmnist,standard,4
+0.5041719739420443,accepts every val_cal prediction (val_cal precision 0.9722 >= 0.95),1.0,0.9722,0.9722,camelyon17_standard_seed4,camelyon17,standard,4
+0.5017502008010603,accepts every val_cal prediction (val_cal precision 0.9988 >= 0.95),1.0,0.9987997599519904,0.9987997599519904,pathmnist_shortcut_seed4,pathmnist,shortcut,4
+1.0,accepts every val_cal prediction (val_cal precision 1.0000 >= 0.95),1.0,1.0,1.0,pathmnist_shortcutv2_seed4,pathmnist,shortcutv2,4

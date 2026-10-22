@@ -1,0 +1,7 @@
+model_kind,condition,cue_mass_l4_mean,cue_mass_l4_std,cue_mass_l3_mean,cue_mass_l3_std
+shortcut,aligned,0.0186,0.0003,0.0328,0.0059
+shortcut,removed,0.0126,0.0002,0.024,0.0022
+shortcut,reversed,0.0091,0.0006,0.0132,0.003
+shortcutv2,aligned,0.0338,0.0009,0.1116,0.0112
+shortcutv2,removed,0.0147,0.0003,0.0231,0.0059
+shortcutv2,reversed,0.0383,0.0003,0.1559,0.0127
