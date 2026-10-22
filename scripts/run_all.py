@@ -43,7 +43,13 @@ def stage3(cfg: dict, out_dir: Path, resume: bool = False) -> None:
                     "--steps", "sample,shortcut,corrupt,inferA,tables"], check=True)
 
 
-STAGES = {0: stage0, 1: stage1, 2: stage2, 3: stage3}  # later phases register stage4..stage9 here
+def stage4(cfg: dict, out_dir: Path, resume: bool = False) -> None:
+    import subprocess
+
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "run_stage4.py"), "--config", cfg["_config_path"]], check=True)
+
+
+STAGES = {0: stage0, 1: stage1, 2: stage2, 3: stage3, 4: stage4}  # later phases register stage5..stage9 here
 
 
 def main() -> None:
@@ -75,5 +81,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
