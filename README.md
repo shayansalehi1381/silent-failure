@@ -307,6 +307,61 @@ most "typical" predictions (the cue moves them into the cue class's normal regio
 anomalous - exactly the hard case family C was built for. Full tables: `per_signal_auroc.csv` (also error detection),
 `dose_response.csv`, `transform_variability.csv`, `sanity_stage4.json`, `summary_stage4.md`, figures in `figures/`.
 
+## Stage 5 - sample-level detection (`python scripts/run_stage5.py --config configs/full.yaml`)
+Pre-registration: `docs/analysis_plan_frozen.md`, frozen at commit **e388dd63b5bc97b146f614fbda6c038aee237da8** before any
+Phase 5 statistic. Code: `sfd/stage5.py`. Outputs: `outputs/stage5/` (`table2.csv`, `fig3_data.csv`, `sensitivity.csv`,
+`secondary_breakdowns.csv`, `incremental_logit.csv`, `seed_stability*.csv`, `fusion_weights.csv`, `inversion_diagnosis.json`,
+`tau99.csv`, `tie_report.json`, `summary_stage5.md`, `figures/fig3_single_signals.png`, `figures/fig4_increments.png`).
+
+Design (see the plan): label `sf_090`; M0 = log(1-MSP) + log(entropy) (log-scale, tie-free), M1 = M0 + Mahalanobis,
+M2 = M1 + layer4 transform-normalised CAM JS; features = tail-extended val_cal percentiles; non-negative logistic
+fusion tuned per seed on two families (equal family weight), evaluated on the held-out third (A/B/C rotation; X tuned
+on A+B+C); paired two-level cluster bootstrap (seeds x near-duplicate clusters / patients), B = 2,000.
+
+**Table 2 (held-out family, sf_090; mean over 5 seeds; 95% paired CI)**
+
+| held-out | M0 AUROC | M1 AUROC | M2 AUROC | dAUROC M1-M0 | dAUROC M2-M1 | dAUPRC M1-M0 | dAURC M1-M0 |
+|---|---|---|---|---|---|---|---|
+| A (MedMNIST-C) | 0.646 | 0.739 | 0.739 | **+0.093 [0.064, 0.128]** improves | -0.00000 [~0] (*) | +0.041 [0.027, 0.058] | -0.015 [-0.019, -0.010] |
+| B (Camelyon hospitals) | 0.554 | 0.592 | 0.588 | **+0.038 [0.015, 0.065]** improves | -0.004 [-0.011, 0.000] inconclusive | +0.011 [0.004, 0.022] | -0.007 [-0.014, -0.003] |
+| C (shortcut v2) | 0.704 | 0.647 | 0.647 | **-0.057 [-0.077, -0.033]** worse | 0.000 [~0] inconclusive | -0.051 [-0.069, -0.035] | +0.026 [0.013, 0.039] |
+| X (supplement) | 0.900 | 0.898 | 0.898 | -0.002 [-0.026, 0.019] | 0.000 [~0] | +0.028 [0.008, 0.052] | 0.000 |
+
+AUPRC (M0/M1/M2): A 0.135/0.177/0.177, B 0.122/0.133/0.131, C 0.524/0.473/0.473; AURC: A 0.055/0.040/0.040,
+B 0.081/0.074/0.075, C 0.239/0.265/0.265. Seed jackknife ranges are tight (e.g. A dAUROC M1-M0 0.087-0.098).
+(*) The pre-registered rule labels A's M2-M1 "worse" because its CI (about -1e-6) excludes 0; the magnitude is zero
+for practical purposes: the non-negative fusion gave the CAM feature weight exactly 0 in every seed when A, C or X was
+held out (mean 0.11 when B was held out), so M2 ~ M1 and the tiny delta is re-fit noise of the other weights.
+
+**Answer to the primary question (generated from the numbers):** out-of-family, adding representation drift
+(Mahalanobis) improves silent-failure detection over calibrated uncertainty on A and B, and hurts on C (the strong
+shortcut). Adding Grad-CAM explanation drift does **not** improve over M1 on any held-out family (A, C: CAM weight 0;
+B: dAUROC -0.004 [-0.011, 0.000]). This is a negative result for explanation drift, with tight CIs.
+
+- **Why CAM drift gets zero weight:** in an unconstrained incremental logistic regression on each held-out family (secondary,
+  descriptive), the CAM-drift coefficient given M0 + Mahalanobis is significantly NEGATIVE (median -0.43 A, -1.62 B,
+  -1.86 C; LR tests p < 1e-10): confident errors tend to have TYPICAL-looking explanations. A monotone (non-negative)
+  detector therefore cannot use it.
+- **Sensitivities (BH within the family, `sensitivity.csv`):** no variant makes M2 beat M1 (kNN, layer3, layer2, raw JS, PCA
+  distance, labels sf_095 / sf_tau / sf_099, v1 shortcut, float uncertainty: all M2-M1 CIs include or sit at 0, or are
+  negative). The M1-M0 gain on A/B is robust (kNN: A +0.031, B +0.016; sf_095: A +0.109, B +0.034); with the degenerate
+  sf_tau / sf_099 labels (every error is a silent failure) it shrinks to +0.009-0.017. Float (tied) uncertainty
+  changes the M1-M0 picture (e.g. C +0.058 instead of -0.057), which shows why the tie-free log scale was needed.
+- **Secondary (BH within each breakdown):** M1-M0 grows with severity on A (+0.045 at severity 1 to +0.109 at
+  severity 5; slightly negative on clean, -0.056); on B it is positive for both OOD hospitals (ood_c1 +0.039, ood_c2 +0.014);
+  on C it is negative in both removed (-0.176) and reversed (-0.067). M2-M1 is zero or slightly negative everywhere.
+- **Family C v2 inversion (diagnosis, `inversion_diagnosis.json`):** single-signal AUROC is below 0.5 WITHIN the reversed
+  state (1-MSP 0.12, Mahalanobis 0.05, kNN 0.04, CAM 0.20), so it is NOT a pooling artefact (pooled: 0.70 / 0.60 / 0.64 /
+  0.56, because aligned rows have no silent failures and removed rows behave normally). The ~10% correct predictions under
+  reversal are almost all tumour-epithelium images (1,477 of 1,506 over 5 seeds) whose tissue overrides the background cue:
+  they are still confident (0.98) but are the most atypical cases on every signal (median val_cal percentile 0.97-0.9999),
+  whereas the 89% confident errors look like normal members of the cue's class. Genuine finding: a dominant shortcut
+  produces errors that every post-hoc monitor sees as in-distribution.
+- **Labels and ties:** tau99 (>= 99% precision on val_cal) is degenerate for PathMNIST standard, v1 and v2 models and
+  ~0.91 for Camelyon. Log-scale uncertainty has 0 ties for the v2 models; the ~1.5% "ties" for PathMNIST standard models are
+  identical inputs (the family-A clean images are byte-identical to the stored id_test images), not float saturation.
+- Runtime: 53 min CPU (primary 4 min, sensitivity 41 min, breakdowns 5 min).
+
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),
@@ -352,6 +407,8 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | 2 | Source classifiers, temperature scaling, saved logits/features (PathMNIST + Camelyon, 5 seeds each) | done |
 | 3 | Shift families A (MedMNIST-C), B, C (shortcut v1 weak + v2 strong), X | done |
 | 4 | Monitoring references, signals, frozen tau, validity checks | done |
-| 5-9 | Stages 5-9 of the roadmap | not started |
+| 5 | Sample-level detection: frozen plan, M0/M1/M2 rotation, paired cluster bootstrap | done |
+| 6-9 | Stages 6-9 of the roadmap | not started |
+
 
 
