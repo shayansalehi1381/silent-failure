@@ -1,0 +1,21 @@
+{
+ "ladder": [
+  {
+   "name": "S1",
+   "p_aligned": 1.0,
+   "style": "v1",
+   "cue_px": 16,
+   "frame_px": 0,
+   "val_es_acc": {
+    "aligned": 1.0,
+    "removed": 0.6387277455491098,
+    "reversed": 0.20784156831366274
+   },
+   "best_epoch": 4,
+   "epochs_run": 4,
+   "seconds": 796.7
+  }
+ ],
+ "chosen": "S1",
+ "reason": "first setting with val_es reversed acc <= 0.5"
+}

@@ -1,7 +1,7 @@
 {
  "nan_found": false,
  "uid_mismatch_files": [],
- "n_files": 320,
+ "n_files": 335,
  "monotonicity": {
   "brightness_down": {
    "acc_by_severity_0_5": [
@@ -138,6 +138,7 @@
  },
  "non_monotone_corruptions": [],
  "shortcut_order_aligned_gt_removed_gt_reversed": true,
+ "shortcutv2_order_aligned_gt_removed_gt_reversed": true,
  "same_sample_everywhere": true,
  "n_sample": 3000,
  "determinism_mismatches": [],
