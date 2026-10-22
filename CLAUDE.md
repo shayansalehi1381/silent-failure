@@ -45,6 +45,10 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - A frozen `splits.parquet` is read-only for training stages (stage 2 asserts its hash is unchanged).
 - Never run tests or heavy jobs while a GPU training job runs (overlapping jobs tripped the 2 GB RAM guard). A CPU job
   next to training must pause below 3 GB free RAM; when killing processes, match the FULL command line.
+- Stage 4: references are fitted ONLY on source-train images (whitelist `reference_inputs()`), frozen with a marker
+  and checksums before any shifted file is read; signals are normalised on val_cal only. Frozen tau is degenerate for
+  19/20 models (val_cal precision >= 95%): use sf_090/sf_095 as the informative silent-failure labels, report all three.
+- Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are
   installed with `--no-deps` (hard pins would downgrade packages); ImageMagick 7.1.2 is a system install.

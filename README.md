@@ -254,6 +254,59 @@ report it next to the results. Figures: `cue_palette_v2.png`, `examples.png` (v1
   seed for 56 conditions. Storage: 224 px source 11.76 GiB, corrupted cache 8.1 GB, predictions 1.0 GB, checkpoints 0.6 GB
   (all git-ignored).
 
+## Stage 4 - monitoring references and signals (`python scripts/run_stage4.py --config configs/full.yaml`)
+Code: `sfd/stage4.py` (refs, pilot, signals, tables), `sfd/signals/{uncertainty,representation,explanation,normalize}.py`.
+Plan frozen before any shifted-family signal was computed (`configs/full.yaml: stage4`, Blueprint Sec 4 / 5.2).
+
+- **Models:** 20 frozen classifiers = (PathMNIST standard, Camelyon standard, PathMNIST shortcut v1, shortcut v2) x 5 seeds.
+- **References (source TRAIN only, frozen before any shifted file is read):** eval-mode features/CAMs of a stratified
+  20,000 PathMNIST train images (Camelyon: all 40,000 train patches; shortcut models: train images with their own
+  deterministic training cues). Representation: class means + ONE shared Ledoit-Wolf covariance (shrinkage
+  0.001-0.005); kNN bank = the reference features (L2-normalised, k=10). Explanation: Grad-CAM of the predicted class at
+  layer4 (PRIMARY) and layer3 (sensitivity) from one forward/backward pass, ReLU, bilinear to an 8x8 grid, unit mass;
+  per class the mean CAM of correctly classified reference images plus a PCA embedding (95% variance, 4 components at
+  layer4) with a shared Ledoit-Wolf Gaussian. Normal CAM variability: 1,000 stratified train images under 9
+  label-preserving transforms (h/v flip, rot90/180/270, +-10 degree rotation with inverse warp, +-10% brightness), each CAM
+  mapped back; mean JS to the original CAM at layer4 = 0.06 (flips/rot90), 0.10 (rot180), 0.005 (small rotation,
+  brightness). Objects + SHA-256 in `outputs/stage4/refs_checksums.csv` (arrays git-ignored); the `refs_frozen` marker is
+  written before the signal step, which asserts it. `reference_inputs()` whitelists the train cache + checkpoint and a
+  test asserts no shifted, test, calibration or prediction file can be read.
+- **Signals** (higher = riskier) for every row of A, C, B, X, the ID test sets and val_cal (1,222,120 rows, full sets: the
+  Grad-CAM pilot measured 0.26 ms/image, projected 5 min << 90 min budget): uncertainty `u_1msp`, `u_entropy` (calibrated,
+  primary), `u_energy` (logits/T, sensitivity); representation `r_maha_pred` (primary), `r_maha_min`, `r_knn`;
+  explanation `e_js_norm_l4` (PRIMARY: JS to the class reference mean CAM, robust-z-scored against the transform-induced
+  JS of the predicted class), `e_js_raw_l4` (raw, prespecified ablation), `e_pca_l4`, and the same three at layer3. Each
+  signal also as a val_cal percentile (`pct_*`) and robust z (`rz_*`); shifted data are never used for normalisation.
+- **Frozen acceptance threshold tau** (smallest calibrated-confidence threshold with >= 95% precision among accepted
+  val_cal predictions; `frozen_tau.csv`): it is **degenerate for 19 of 20 models** - val_cal precision is already >= 95%
+  (PathMNIST 0.996, Camelyon 0.958, shortcut 0.999/1.000), so tau equals the lowest val_cal confidence (PathMNIST
+  0.28-0.46, Camelyon 0.50-0.59, shortcut v1 0.49-0.57, v2 1.000 because T ~ 0.12 saturates every confidence) and
+  accepts everything; then `sf_tau` = every error. The sensitivity labels `sf_090` and `sf_095` (confidence >= 0.90 / 0.95)
+  are therefore the informative silent-failure definitions; all three are in the table.
+- **Validity:** Grad-CAM changes when the last layer is randomised (layer4 Spearman 0.36, JS 0.13; layer3 Spearman 0.06,
+  JS 0.47) - passed. Recomputed predictions agree 100% with the saved stage-2/3 predictions. No NaN. Dose-response: the
+  mean val_cal percentile of every primary signal rises monotonically with severity for every corruption.
+- **Cue mass (Fig 7 input, `cue_mass.csv`; uniform CAM ~ 0.016 in the 16-px cue box):** v1 0.019 / 0.013 / 0.009
+  (aligned / removed / reversed, layer4); v2 0.034 / 0.015 / 0.038 (layer4) and 0.11 / 0.02 / 0.16 (layer3): the strong
+  shortcut models attend to the cue, most visibly at layer3.
+
+**Descriptive per-signal AUROC for silent-failure detection (`sf_tau`, mean over 5 seeds; NOT the Phase 5 tests)**
+
+| family | 1-MSP | entropy | Mahalanobis (pred) | kNN | CAM JS (norm, L4) | CAM JS (raw, L4) |
+|---|---|---|---|---|---|---|
+| A (all corrupted) | 0.839 | 0.840 | 0.767 | 0.874 | 0.633 | 0.613 |
+| B (Camelyon ood_c1+c2) | 0.727 | 0.727 | 0.578 | 0.736 | 0.649 | 0.643 |
+| X (nct7k_test) | 0.931 | 0.931 | 0.710 | 0.879 | 0.630 | 0.597 |
+| C reversed, shortcut v2 | 0.037 | 0.037 | 0.056 | 0.014 | 0.163 | 0.204 |
+| C reversed, shortcut v1 | 0.915 | 0.914 | 0.405 | 0.795 | 0.550 | 0.614 |
+| ID (PathMNIST + Camelyon) | 0.907 | 0.907 | 0.651 | 0.859 | 0.817 | 0.804 |
+
+Descriptive reading: uncertainty and kNN rank silent failures best on A, B and X; explanation drift is weaker there.
+For the strong shortcut (v2 reversed) every signal is far BELOW 0.5: the reversed-cue errors are the most confident,
+most "typical" predictions (the cue moves them into the cue class's normal region), while the few correct predictions look
+anomalous - exactly the hard case family C was built for. Full tables: `per_signal_auroc.csv` (also error detection),
+`dose_response.csv`, `transform_variability.csv`, `sanity_stage4.json`, `summary_stage4.md`, figures in `figures/`.
+
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),
@@ -297,5 +350,8 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | 0 | Repo, env, requirements, configs, PathMNIST loader, benchmarks, tests, smoke | done |
 | 1 | Data, frozen splits, leakage audit (+ Phase 1b patient re-assignment for Camelyon) | done |
 | 2 | Source classifiers, temperature scaling, saved logits/features (PathMNIST + Camelyon, 5 seeds each) | done |
-| 3-9 | Stages 3-9 of the roadmap | not started |
+| 3 | Shift families A (MedMNIST-C), B, C (shortcut v1 weak + v2 strong), X | done |
+| 4 | Monitoring references, signals, frozen tau, validity checks | done |
+| 5-9 | Stages 5-9 of the roadmap | not started |
+
 
