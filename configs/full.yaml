@@ -166,3 +166,6 @@ stage8:                                            # pre-registered in docs/abla
   budgets: [0.05, 0.10, 0.20]
   gate: 0.90                                       # exploratory confidence gate = the sf_090 confidence threshold (not tuned)
   sizes: [500, 1000, 2000, full]                   # Mahalanobis reference-size ablation (nested subsets of the Phase 4 bank)
+stage10:                                           # pre-registered in docs/extension_plan_frozen.md (post-hoc EXTENSIONS)
+  bootstrap_B: 2000
+  budgets: [0.05, 0.10, 0.20]

@@ -227,10 +227,10 @@ def make_ctx(df: pd.DataFrame, heldout: str, label: str, seeds: list[int], c_kin
     return ctx
 
 
-def score_methods(ctx: dict, names: list[str], seeds: list[int]) -> tuple[dict, list[dict]]:
+def score_methods(ctx: dict, names: list[str], seeds: list[int], reg: dict | None = None) -> tuple[dict, list[dict]]:
     """Fit every requested method per seed on the TUNING rows only and score the held-out pool. Gated methods fall back to the plain
     NN M0 score outside the gate."""
-    R = registry()
+    R = reg if reg is not None else registry()
     label = ctx["label"]
     scores = {n: {} for n in names}
     weights = []
