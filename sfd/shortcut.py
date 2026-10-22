@@ -28,6 +28,39 @@ def make_palette(n_classes: int = 9, px: int = 16) -> np.ndarray:
     return pal
 
 
+def make_palette_v3(n_classes: int = 9, px: int = 32, frame_px: int = 2) -> np.ndarray:
+    """Family C v2 / S3 cues: colour k AND a texture unique to class k (9 distinct patterns), inside a frame_px
+    mid-grey safety frame, so the cue is unambiguous against tissue. Shape [n, px + 2*frame, px + 2*frame, 3]."""
+    assert n_classes <= len(COLOURS)
+    yy, xx = np.mgrid[0:px, 0:px]
+    s = max(2, px // 8)
+    pats = [np.zeros((px, px), bool),                               # solid
+            ((yy // s + xx // s) % 2) == 1,                         # checker
+            (yy // s) % 2 == 1,                                     # horizontal stripes
+            (xx // s) % 2 == 1,                                     # vertical stripes
+            ((yy + xx) // s) % 2 == 1,                              # diagonal stripes
+            ((yy % (2 * s)) < s // 2 + 1) & ((xx % (2 * s)) < s // 2 + 1),   # dots
+            (np.abs(yy - px / 2) < s) | (np.abs(xx - px / 2) < s),          # cross
+            np.abs(np.hypot(yy - px / 2, xx - px / 2) - px / 3) < s,         # ring
+            ((yy // (2 * s) + xx // (2 * s)) % 2) == 1]             # coarse checker
+    P = px + 2 * frame_px
+    pal = np.full((n_classes, P, P, 3), 128, np.uint8)
+    for k in range(n_classes):
+        cue = np.empty((px, px, 3), np.uint8)
+        cue[:] = COLOURS[k]
+        alt = np.array([110, 110, 110], np.uint8) if COLOURS[k].mean() > 100 else np.array([200, 200, 200], np.uint8)
+        cue[pats[k]] = alt
+        pal[k, frame_px:frame_px + px, frame_px:frame_px + px] = cue
+    return pal
+
+
+def palette_for(setting: dict, n_classes: int = 9) -> np.ndarray:
+    """Palette for a shortcut setting dict {style: v1|v3, cue_px, frame_px}."""
+    if setting.get("style", "v1") == "v3":
+        return make_palette_v3(n_classes, setting["cue_px"], setting.get("frame_px", 2))
+    return make_palette(n_classes, setting["cue_px"])
+
+
 def derangement(n: int, seed: int) -> np.ndarray:
     """Seeded permutation of 0..n-1 with no fixed point (the 'reversed' cue mapping)."""
     rng = np.random.default_rng(seed)

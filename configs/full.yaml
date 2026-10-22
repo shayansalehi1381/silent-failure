@@ -102,7 +102,21 @@ stage3:
     p_aligned: 0.95
     cue_seed: 0
     derangement_seed: 0
+  shortcut_v2:                                     # Family C v2: stronger shortcut, PRE-REGISTERED ladder
+    pilot_epochs: 4                                # seed 0 only, short training
+    target_reversed_acc: 0.50                      # stop at the FIRST rung with val_es (cue reversed) acc <= this
+    ladder:
+      - {name: S1, p_aligned: 1.0, style: v1, cue_px: 16, frame_px: 0}
+      - {name: S2, p_aligned: 1.0, style: v1, cue_px: 32, frame_px: 0}
+      - {name: S3, p_aligned: 1.0, style: v3, cue_px: 32, frame_px: 2}   # 9 distinct textures + 2-px grey frame
   silent_failure_conf: 0.9                         # PROVISIONAL (wrong AND calibrated confidence >= this)
+stage4:                                            # frozen plan (Blueprint Sec 4), fixed before any shifted signal is seen
+  seed: 0
+  ref_n: {pathmnist: 20000, camelyon17: 40000}     # source TRAIN images for references (stratified; null = all)
+  transform_n: 1000                                # stratified train subsample for CAM transform variability
+  knn_k: 10
+  tau_precision: 0.95                              # frozen acceptance threshold: >= 95% precision on val_cal
+  gpu_budget_min: 90                               # full sets if projected Grad-CAM time <= this, else 1,000/condition
 bench:
   n_images: 20000                 # short benchmark (scripts/bench.py)
   sustained_seconds: 240            # sustained benchmark (scripts/bench_sustained.py)

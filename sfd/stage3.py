@@ -1,4 +1,4 @@
-"""Stage 3: shift families A (MedMNIST-C), C (shortcut cue), plus B and X reused from stage 2.
+﻿"""Stage 3: shift families A (MedMNIST-C), C (shortcut cue), plus B and X reused from stage 2.
 
 Steps (each resumable through markers in outputs/stage3/markers/):
   sample    one stratified 3,000-image sample of PathMNIST id_test (uid list, committed)
@@ -294,7 +294,7 @@ def _collect(cfg: dict, p: dict) -> list[dict]:
     """Every prediction file of every family, with its family/condition/severity/model labels."""
     items = []
     import re
-    pat = re.compile(r"^(?P<kind>[a-z]+)_seed(?P<seed>\d+)_(?P<fam>[A-Z]+)_(?P<cond>.+)_s(?P<sev>\d+)$")
+    pat = re.compile(r"^(?P<kind>[a-z0-9]+)_seed(?P<seed>\d+)_(?P<fam>[A-Z]+)_(?P<cond>.+)_s(?P<sev>\d+)$")
     for f in sorted((p["out"] / "preds").glob("*.npz")):
         m = pat.match(f.stem)
         assert m, f"unexpected prediction file name {f.name}"
@@ -363,7 +363,7 @@ def run_tables(cfg: dict, p: dict, df: pd.DataFrame, smp: pd.DataFrame, log=prin
     corr_tab.to_csv(out / "per_corruption_accuracy.csv")
     sf_tab = agg[agg.family == "A"].pivot_table(index="condition", columns="severity", values="sf_rate_mean").round(4)
     sf_tab.to_csv(out / "per_corruption_sf_rate.csv")
-    shortcut = fam[fam.family == "C"][["condition", "acc", "conf", "ece", "sf_rate"]]
+    shortcut = fam[fam.family == "C"][["model_kind", "condition", "acc", "acc_std", "conf", "ece", "sf_rate", "sf_rate_std"]]
     shortcut.to_csv(out / "shortcut_states.csv", index=False)
 
     # sanity: monotone accuracy decline with severity, shortcut ordering, determinism, seed spread
@@ -376,18 +376,20 @@ def run_tables(cfg: dict, p: dict, df: pd.DataFrame, smp: pd.DataFrame, log=prin
         rises = [i for i in range(1, len(accs)) if accs[i] > accs[i - 1] + 0.005]
         mono[cond] = {"acc_by_severity_0_5": [round(x, 4) for x in accs], "rises_gt_0.5pt_at_severity": rises,
                       "drop_0_to_5_pts": round(100 * (accs[0] - accs[-1]), 2)}
-    sc_acc = {r.condition: r.acc for r in shortcut.itertuples()} if len(shortcut) else {}
+    sc_acc = {r.condition: r.acc for r in shortcut[shortcut.model_kind == "shortcut"].itertuples()} if len(shortcut) else {}
+    sc_acc2 = {r.condition: r.acc for r in shortcut[shortcut.model_kind == "shortcutv2"].itertuples()}
     rep = json.loads((out / "corruption_report.json").read_text()) if (out / "corruption_report.json").exists() else {}
     sanity.update({"monotonicity": mono, "non_monotone_corruptions": [c for c, v in mono.items() if v["rises_gt_0.5pt_at_severity"]],
                    "shortcut_order_aligned_gt_removed_gt_reversed": bool(sc_acc and sc_acc.get("aligned", 0) > sc_acc.get("removed", 0)
                                                                          > sc_acc.get("reversed", 1)),
+                   "shortcutv2_order_aligned_gt_removed_gt_reversed": bool(sc_acc2 and sc_acc2.get("aligned", 0) > sc_acc2.get("removed", 0) > sc_acc2.get("reversed", 1)),
                    "same_sample_everywhere": not sanity["uid_mismatch_files"], "n_sample": len(smp),
                    "determinism_mismatches": rep.get("determinism_mismatches"),
                    "max_seed_std_acc": float(agg["acc_std"].max())})
     (out / "sanity_stage3.json").write_text(json.dumps(sanity, indent=1))
 
     _figures(cfg, p, agg, a_sev, fam, smp, plt)
-    md = ["# Stage 3 - behaviour under shift (mean ± std over seeds; provisional silent failure = wrong AND calibrated "
+    md = ["# Stage 3 - behaviour under shift (mean Â± std over seeds; provisional silent failure = wrong AND calibrated "
           f"confidence >= {thr})\n", "## Per family\n", to_markdown(_fmt(fam)),
           "\n## Shortcut states (family C = reversed)\n", to_markdown(_fmt(fam[fam.family == "C"])),
           "\n## Accuracy per corruption and severity (mean over seeds)\n", to_markdown(corr_tab.reset_index()),
@@ -409,14 +411,14 @@ def _ms(g: pd.DataFrame) -> dict:
 def _fmt(t: pd.DataFrame) -> pd.DataFrame:
     t = t.copy()
     for k in ("acc", "conf", "ece", "sf_rate"):
-        t[k] = [f"{m:.4f} ± {s:.4f}" for m, s in zip(t[k], t[k + "_std"])]
+        t[k] = [f"{m:.4f} Â± {s:.4f}" for m, s in zip(t[k], t[k + "_std"])]
     return t[[c for c in t.columns if not c.endswith("_std")]]
 
 
 def _figures(cfg, p, agg, a_sev, fam, smp, plt) -> None:
     out = p["out"] / "figures"
     metrics = [("acc", "accuracy"), ("mean_conf", "mean confidence"), ("ece", "ECE"), ("sf_rate", "silent-failure rate")]
-    # 1) family A: mean over corruptions vs severity (± std over seeds)
+    # 1) family A: mean over corruptions vs severity (Â± std over seeds)
     fig, ax = plt.subplots(1, 4, figsize=(15, 3.4))
     for k, (col, name) in enumerate(metrics):
         g = a_sev.groupby("severity")[col].agg(["mean", "std"])
@@ -453,6 +455,15 @@ def _figures(cfg, p, agg, a_sev, fam, smp, plt) -> None:
     for k in range(9):
         ax[k].imshow(pal[k], interpolation="nearest"); ax[k].set_title(PM_CLASSES[k], fontsize=7); ax[k].axis("off")
     fig.tight_layout(); fig.savefig(out / "cue_palette.png", dpi=130); plt.close(fig)
+    v2f = p["out"] / "shortcut_v2_design.json"
+    v2 = json.loads(v2f.read_text()) if v2f.exists() else None
+    if v2:
+        pal2 = sc.palette_for(v2)
+        fig, ax = plt.subplots(1, 9, figsize=(11, 1.8))
+        for k in range(9):
+            ax[k].imshow(pal2[k], interpolation="nearest"); ax[k].set_title(PM_CLASSES[k], fontsize=7); ax[k].axis("off")
+        fig.suptitle(f"family C v2 cues ({v2['name']}: {v2['cue_px']} px, frame {v2.get('frame_px', 0)} px, p={v2['p_aligned']})", fontsize=8)
+        fig.tight_layout(); fig.savefig(out / "cue_palette_v2.png", dpi=130); plt.close(fig)
     from sfd.corrupt import RowIO
     adir = p["cache"] / "A"
     i = 0
@@ -466,8 +477,120 @@ def _figures(cfg, p, agg, a_sev, fam, smp, plt) -> None:
     for state in ("aligned", "removed", "reversed"):
         panels.append((f"cue {state}", sc.apply_cue_uint8(clean_img, sc.state_cues(np.array([lab]), state, perm), pal,
                                                          c["offset_px"])[0]))
+    if v2:
+        for state in ("aligned", "removed", "reversed"):
+            panels.append((f"v2 cue {state}", sc.apply_cue_uint8(clean_img, sc.state_cues(np.array([lab]), state, perm),
+                                                                 sc.palette_for(v2), c["offset_px"])[0]))
     fig, ax = plt.subplots(1, len(panels), figsize=(2 * len(panels), 2.3))
     for x, (t, im) in zip(ax, panels):
         x.imshow(im); x.set_title(t, fontsize=7); x.axis("off")
     fig.suptitle(f"example: {smp['uid'].iloc[i]} (class {PM_CLASSES[lab]})", fontsize=8)
     fig.tight_layout(); fig.savefig(out / "examples.png", dpi=130); plt.close(fig)
+
+
+# --------------------------------------------------------------------------- shortcut v2 -----
+def _train_shortcut(cfg: dict, p: dict, df: pd.DataFrame, setting: dict, seed: int, run_name: str, epochs: int,
+                    log=print):
+    """Train one shortcut model for `setting` ({p_aligned, style, cue_px, frame_px}); return (model, info, ctx)."""
+    import copy
+    import torch
+    from sfd.train import GpuGuard, train_one
+    out, c = p["out"], cfg["stage3"]["shortcut"]
+    g = cfg["stage2"]["guard"]
+    guard = GpuGuard(g["slowdown_margin_c"], g["min_free_ram_gb"], g["pause_s"], g["max_pause_s"], log)
+    dev = torch.device("cuda")
+    pal, off = sc.palette_for(setting), c["offset_px"]
+    frames = {s: cd.split_frame(df, "pathmnist", s) for s in ("train", "val_es", "val_cal")}
+    tr = cd.load_split(p["s2cache"], "pathmnist", "train", frames["train"])
+    tr.images = cd.RowReader(cd.split_file(p["s2cache"], "pathmnist", "train"))
+    cues_tr = sc.cue_assignment(tr.labels, setting["p_aligned"], 9, c["cue_seed"])
+    raw = {}
+    sets = {}
+    for k, s in enumerate(("val_es", "val_cal"), 1):
+        d = cd.load_split(p["s2cache"], "pathmnist", s, frames[s])
+        raw[s] = np.array(d.images)
+        d.images = sc.apply_cue_uint8(raw[s], sc.cue_assignment(d.labels, setting["p_aligned"], 9, c["cue_seed"] + k), pal, off)
+        sets[s] = d
+    pal_t = torch.from_numpy(pal).permute(0, 3, 1, 2).float().div(255).to(dev)
+    cues_t = torch.from_numpy(cues_tr).to(dev)
+    cfg2 = copy.deepcopy(cfg)
+    cfg2["train"]["epochs"] = epochs
+    res = train_one(cfg2, tr, sets["val_es"], 9, seed, out / "ckpt" / run_name, out / "logs" / f"{run_name}.jsonl", guard,
+                    dev, log, post_augment=lambda x, idx: sc.apply_cue_tensor(x, cues_t[idx], pal_t, off))
+    return res, {"pal": pal, "off": off, "sets": sets, "raw": raw, "dev": dev}
+
+
+def run_shortcut_pilot(cfg: dict, p: dict, df: pd.DataFrame, log=print) -> dict:
+    """Pre-registered ladder (seed 0, short training): stop at the first setting whose accuracy on val_es with the cue
+    REVERSED is <= the target. Only val_es is used for this choice (never id_test or any shifted data)."""
+    import torch
+    from sfd.train import predict
+    out, v2 = p["out"], cfg["stage3"]["shortcut_v2"]
+    f = out / "shortcut_v2_pilot.json"
+    rep = json.loads(f.read_text()) if f.exists() else {"ladder": [], "chosen": None}
+    if rep["chosen"]:
+        return rep
+    perm = sc.derangement(9, cfg["stage3"]["shortcut"]["derangement_seed"])
+    done = {r["name"] for r in rep["ladder"]}
+    for st in v2["ladder"]:
+        if st["name"] in done:
+            r = next(r for r in rep["ladder"] if r["name"] == st["name"])
+        else:
+            t0 = time.time()
+            res, ctx = _train_shortcut(cfg, p, df, st, 0, f"pilot_{st['name']}_seed0", v2["pilot_epochs"], log)
+            lab = ctx["sets"]["val_es"].labels
+            accs = {}
+            for state in ("aligned", "removed", "reversed"):
+                imgs = sc.apply_cue_uint8(ctx["raw"]["val_es"], sc.state_cues(lab, state, perm), ctx["pal"], ctx["off"])
+                lo, _ = predict(res["model"], imgs, ctx["dev"])
+                accs[state] = float((lo.argmax(1) == lab).mean())
+            r = {**st, "val_es_acc": accs, "best_epoch": res["best_epoch"], "epochs_run": res["epochs_run"],
+                 "seconds": round(time.time() - t0, 1)}
+            rep["ladder"].append(r)
+            f.write_text(json.dumps(rep, indent=1))
+            log(f"[stage3] pilot {st['name']}: val_es acc aligned {accs['aligned']:.4f} removed {accs['removed']:.4f} "
+                f"reversed {accs['reversed']:.4f} ({r['seconds']:.0f} s)")
+            del res
+            torch.cuda.empty_cache()
+        if r["val_es_acc"]["reversed"] <= v2["target_reversed_acc"]:
+            rep["chosen"], rep["reason"] = st["name"], f"first setting with val_es reversed acc <= {v2['target_reversed_acc']}"
+            break
+    if not rep["chosen"]:
+        rep["chosen"], rep["reason"] = v2["ladder"][-1]["name"], "no setting reached the target; last rung taken (pre-registered)"
+    f.write_text(json.dumps(rep, indent=1))
+    log(f"[stage3] pilot chosen: {rep['chosen']} ({rep['reason']})")
+    return rep
+
+
+def run_shortcut_v2(cfg: dict, p: dict, df: pd.DataFrame, smp: pd.DataFrame, log=print) -> None:
+    import torch
+    from sfd.train import predict
+    out, v2 = p["out"], cfg["stage3"]["shortcut_v2"]
+    rep = run_shortcut_pilot(cfg, p, df, log)
+    st = next(s for s in v2["ladder"] if s["name"] == rep["chosen"])
+    perm = sc.derangement(9, cfg["stage3"]["shortcut"]["derangement_seed"])
+    lab = smp["label"].to_numpy(np.int64)
+    test = sample_images128(p, df, smp)
+    (out / "shortcut_v2_design.json").write_text(json.dumps({**st, "offset_px": cfg["stage3"]["shortcut"]["offset_px"],
+                                                             "reversed_mapping": {PM_CLASSES[i]: PM_CLASSES[int(perm[i])] for i in range(9)}}, indent=1))
+    for seed in cfg["train"]["seeds"]:
+        mk = marker(out, f"shortcutv2_seed{seed}")
+        if mk.exists():
+            continue
+        t0 = time.time()
+        res, ctx = _train_shortcut(cfg, p, df, st, seed, f"shortcutv2_seed{seed}", cfg["train"]["epochs"], log)
+        model = res["model"]
+        vc = ctx["sets"]["val_cal"]
+        lo, _ = predict(model, vc.images, ctx["dev"])
+        T = cal.fit_temperature(lo, vc.labels)
+        for state in ("aligned", "removed", "reversed"):
+            imgs = sc.apply_cue_uint8(test, sc.state_cues(lab, state, perm), ctx["pal"], ctx["off"])
+            lo, ft = predict(model, imgs, ctx["dev"])
+            save_preds(out / "preds" / f"shortcutv2_seed{seed}_C_{state}_s0.npz", lo, ft, lab, smp["uid"], np.full(len(lab), -1), T)
+        mk.write_text(json.dumps({"seed": seed, "setting": st["name"], "T": T, "best_epoch": res["best_epoch"],
+                                  "epochs_run": res["epochs_run"], "seconds": round(time.time() - t0, 1)}))
+        log(f"[stage3] shortcutv2 seed {seed}: done in {time.time() - t0:.0f} s, best epoch {res['best_epoch']}, T={T:.3f}")
+        del model, res
+        torch.cuda.empty_cache()
+
+

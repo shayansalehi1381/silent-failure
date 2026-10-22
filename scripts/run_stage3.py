@@ -1,4 +1,4 @@
-"""Stage 3 runner: chains steps in one resumable process.
+﻿"""Stage 3 runner: chains steps in one resumable process.
 
 Examples
   GPU chain : python scripts/run_stage3.py --config configs/full.yaml --steps sample,shortcut,wait:corrupt,inferA,tables
@@ -38,6 +38,8 @@ def main() -> None:
             smp = s3.make_sample(cfg, p["out"], df)
         elif step == "shortcut":
             s3.run_shortcut(cfg, p, df, smp)
+        elif step == "shortcut_v2":
+            s3.run_shortcut_v2(cfg, p, df, smp)
         elif step == "corrupt":
             s3.run_corruptions(cfg, p, df, smp)
         elif step == "inferA":
@@ -55,3 +57,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
