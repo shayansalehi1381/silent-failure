@@ -155,3 +155,9 @@ stages: [0, 1, 2, 3]
 
 
 
+stage7:                                            # pre-registered in docs/referral_plan_frozen.md
+  bootstrap_B: 2000                                # paired two-level cluster bootstrap (seeds x clusters), policy re-applied per replicate
+  budgets: [0.05, 0.10, 0.20]                      # primary review budgets (share leaving automatic acceptance)
+  grid: [0.01, 0.025, 0.05, 0.075, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50]
+  workload_tolerance: 0.01                         # secondary protocol: flag realised workload deviating by more than 1 point
+  min_effect: 0.001                                # |d| below 0.1 point = no practical difference
