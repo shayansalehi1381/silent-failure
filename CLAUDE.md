@@ -62,6 +62,9 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Stage 8 follows docs/ablation_plan_frozen.md (f0553df). Declared primaries: P1 sf-M1 - sf-M0, P2 sf-M2 - sf-M1, P3 sf-M1 - M1 (residual
   rate at 5/10/20%, unadjusted); the CAM weight wants a NEGATIVE sign (non-negative M2 cannot use it). Gated / targeted fusion is
   EXPLORATORY and post-hoc: report only in its own table ("exploratory, post-hoc"), never in main tables or as a replacement for M0/M1/M2.
+- Phase 9: the deliverable is `silent_failure_report.ipynb` (built by `scripts/build_report_notebook.py`, executed with
+  `jupyter nbconvert --execute --inplace`, committed WITH outputs). It may read only small committed files (outputs/, docs/); never
+  per-row arrays, data or weights. Every number in its text is computed from a saved table; keep exploratory results in their own section.
 - Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are
