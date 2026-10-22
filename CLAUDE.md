@@ -3,11 +3,11 @@
 Research question: do representation drift and Grad-CAM explanation drift detect
 confident errors (silent failures = wrong prediction with high calibrated confidence)
 beyond calibrated predictive uncertainty, and do they lower the residual silent-failure
-rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
-(section 10 addendum takes precedence over earlier sections; on conflict, ask).
+rate under a fixed human-review budget? Full design: the frozen plans in `docs/` and the final notebook (the original roadmap is kept locally, untracked)
+(on conflict between documents, ask).
 
 ## Fixed decisions (do NOT change without asking)
-- Datasets (agreed with group): PathMNIST 128x128 (MedMNIST v2), MedMNIST-C v0.1.0
+- Datasets (fixed project decision): PathMNIST 128x128 (MedMNIST v2), MedMNIST-C v0.1.0
   (corruptions applied at 224 then resized to 128), Camelyon17-WILDS v1.0 at 96x96.
   Do NOT change dataset versions or resolutions without asking.
 - PathMNIST pool = official train+val (100k, near-duplicate-cluster split); official test = family X (`nct7k_test`).
@@ -15,7 +15,7 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Sub-dataset (stratified, group-aware by hospital/PATIENT for Camelyon17, fixed seed, saved as manifest)
   is used; its size is a config parameter (decided after the Phase 0 benchmark).
 - Model: ResNet-18 initialised from ImageNet (torchvision IMAGENET1K_V1; replaces the earlier from-scratch
-  decision: standard in medical imaging, faster convergence, comparable with the group partner's setup),
+  decision: standard in medical imaging, faster convergence, common in the literature),
   5 seeds for core experiments, max 8 epochs with early stopping on source val loss
   (patience 2, see `configs/full.yaml`), temperature scaling on source val.
   PathMNIST core runs use the FULL train set (~90k); val/test stay untouched.

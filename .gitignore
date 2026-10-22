@@ -53,3 +53,6 @@ outputs/markers/
 
 # run state
 outputs/**/markers/
+
+# local-only planning document (kept on disk, not tracked)
+ROADMAP_Shayan.md

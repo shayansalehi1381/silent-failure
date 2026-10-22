@@ -7,9 +7,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import sys
+
 import nbformat as nbf
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 cells: list = []
 
 
@@ -18,7 +21,8 @@ def md(s: str) -> None:
 
 
 def code(s: str) -> None:
-    cells.append(nbf.v4.new_code_cell(s.strip("\n")))
+    from reflow import reflow          # wrap long lines (no formatter installed); semantics unchanged
+    cells.append(nbf.v4.new_code_cell(reflow(s.strip("\n"))))
 
 
 # =====================================================================================================================
@@ -90,7 +94,30 @@ plt.rcParams.update({"figure.dpi": 120, "savefig.dpi": 120, "font.size": 9, "axe
                      "axes.prop_cycle": plt.cycler(color=[OI[k] for k in ("blue", "orange", "green", "vermillion", "purple", "sky", "yellow", "black")])})
 pd.set_option("display.max_rows", None, "display.max_columns", None, "display.width", 250, "display.max_colwidth", 120)
 
+_legend0 = plt.Axes.legend
+
+
+def _legend_out(self, *a, **k):
+    # Every legend sits BELOW its axes (outside the data area), lower still if the x tick labels are rotated.
+    if "bbox_to_anchor" not in k and "handles" not in k:
+        rot = any(t.get_rotation() > 0 for t in self.get_xticklabels())
+        k.update(loc="upper center", bbox_to_anchor=(0.5, -0.42 if rot else -0.2), frameon=False)
+        k.setdefault("ncol", 3)
+    return _legend0(self, *a, **k)
+
+
+plt.Axes.legend = _legend_out
+
 READ = []                                                   # every file read, for Appendix B
+DEFERRED = []                                               # long tables moved to Appendix A
+IN_APPENDIX = False
+RENAME = {"p_boot": "bootstrap p", "q_bh": "BH q", "jackknife_min": "leave-one-seed-out min", "jackknife_max": "leave-one-seed-out max",
+          "heldout": "held-out family", "n_per_seed": "rows per seed", "sf_rate": "silent-failure prevalence", "prevalence": "SF prevalence",
+          "c_kind": "shortcut model", "level_col": "level type", "kind": "row type", "comparator_value": "comparator value",
+          "workload_flag": "off budget by > 1 pt", "workload_difference": "workload difference", "workload_matched": "workload matched",
+          "boundary_tie_share": "boundary tie share", "n_windows": "windows", "n_groups": "groups", "access_licence": "licence",
+          "hospital_counts": "patches per hospital", "class_counts": "images per class", "flagged_nontissue": "non-tissue flagged",
+          "acc_mean": "accuracy (mean)", "ece_mean": "ECE (mean)", "T_standard": "temperature T", "stat": "statistic", "H": "family"}
 
 
 def rd(rel):
@@ -123,11 +150,15 @@ def fmt(df, est="estimate", lo="ci_low", hi="ci_high", d=3, scale=1.0, signed=Fa
     return out[cols].reset_index(drop=True)
 
 
-def show(df, title):
-    # Display EVERY row of a table with a bold title.
-    # rendered once as HTML (no duplicate plain-text copy) to keep the executed notebook small
+def show(df, title, keep=False):
+    # Display a table with a bold title. Tables with more than 20 rows go to Appendix A (full, same data) unless keep=True.
+    df = df.reset_index(drop=True).rename(columns=RENAME)
+    if len(df) > 20 and not keep and not IN_APPENDIX:
+        DEFERRED.append((title, df))
+        display(Markdown(f"*Full table '{title}' ({len(df)} rows) is in Appendix A.D{len(DEFERRED)}; a compact version is shown above or in the text.*"))
+        return
     display(Markdown(f"**{title}** - {len(df)} rows"))
-    display(HTML(df.reset_index(drop=True).to_html(index=False, na_rep="", border=0, max_rows=None, max_cols=None)))
+    display(HTML(df.to_html(index=False, na_rep="", border=0, max_rows=None, max_cols=None)))
 
 
 def say(text):
@@ -220,6 +251,29 @@ def ex(H, q, b, m="dresid_sf"):
 def c6r(tab, H, a, b, kind="standard"):
     return one(tab[(tab["set"] == "primary") & (tab["size"] == 100) & (tab["mask"] == "silent_pooled")], H=H, kind=kind, a=a, b=b)
 def rc6(r): return ci(r["diff"], r["ci_low"], r["ci_high"], 3, 1, True)
+def e20(H, q): return rc(one(t10_, kind="contrast", heldout=H, quantity=q, metric="dresid_sf", budget=0.2), 2, 100)
+MARK = {"reduces": "v", "improves": "v", "increases": "^", "worse": "^", "no practical difference": "=", "inconclusive": "?"}
+
+def ab_compact(d, quantities, budgets=(0.2,), level_col=None, rows_by=None, heldouts="ABC", metric="dresid_sf"):
+    # Wide table: one row per contrast (and level), one column per family (and budget); cell = 'difference in pt [95% CI] mark'.
+    # mark: v = reduces residual silent failures, ^ = increases, = no practical difference, ? inconclusive.
+    d = d[(d.kind == "contrast") & (d.metric == metric) & d.quantity.isin(quantities)]
+    d = d[d.level_col.isna()] if level_col is None else d[d.level_col == level_col]
+    out = {}
+    for _, r in d.iterrows():
+        for b in budgets:
+            if not np.isclose(r.budget, b):
+                continue
+            key = tuple([r.quantity] + [str(r[c]) for c in (rows_by or [])])
+            col = f"{r.heldout} @{int(100 * b)}%" if len(budgets) > 1 else f"{r.heldout}"
+            out.setdefault(key, {})[col] = f"{ci(r.estimate, r.ci_low, r.ci_high, 2, 100, True)} {MARK.get(r.verdict, '')}"
+    idx = ["contrast"] + [{"label": "label", "level": "level", "c_kind": "shortcut model"}.get(c, c) for c in (rows_by or [])]
+    df = pd.DataFrame.from_dict(out, orient="index")
+    df.index = pd.MultiIndex.from_tuples(df.index, names=idx)
+    order = [q for q in quantities if q in df.index.get_level_values(0)]
+    df = df.reset_index()
+    df["_o"] = df["contrast"].map({q: i for i, q in enumerate(order)})
+    return df.sort_values(["_o"] + idx[1:], kind="stable").drop(columns="_o").reset_index(drop=True)
 
 nfar_pre = int(far6[far6["size"] == 100].flag_outside_3_7pct.sum()); nfar_a1 = int(far6a[far6a["size"] == 100].flag_outside_3_7pct.sum())
 ncell = int((far6["size"] == 100).sum())
@@ -239,8 +293,11 @@ We asked whether three kinds of warning signals catch the dangerous errors - wro
 the model's own uncertainty (**M0**), the distance of the image's internal features from the training data (**M1** adds this),
 and a change in the model's attention map (**M2** adds this). Detectors were always tuned on two kinds of shift and tested on the third.
 
-* Feature distance helps on corrupted images and new hospitals but **hurts on the shortcut**: AUROC gain M1-M0 =
+* Compared with **single-model (one-seed) uncertainty**, feature distance helps on corrupted images and new hospitals but **hurts on the shortcut**: AUROC gain M1-M0 =
   {rc(t2r("A","M1-M0","dAUROC"))} (A), {rc(t2r("B","M1-M0","dAUROC"))} (B), {rc(t2r("C","M1-M0","dAUROC"))} (C).
+* Against a 4-seed deep-ensemble baseline (post-hoc extension), M1 no longer beats the baseline ({e20('B','M1-E_fuse')} pt in B and {e20('C','M1-E_fuse')} pt in C
+  worse at a 20% budget; A {e20('A','M1-E_fuse')} pt, inconclusive), while Mahalanobis added on top of the ensemble still helps on A and B
+  ({e20('A','E_M1-E_fuse')}, {e20('B','E_M1-E_fuse')} pt) and hurts on C ({e20('C','E_M1-E_fuse')} pt).
 * The attention-map signal, used the pre-registered way (it may only *raise* the alarm), adds **nothing**: M2-M1 =
   {rc(t2r("A","M2-M1","dAUROC"),4)} (A), {rc(t2r("B","M2-M1","dAUROC"),4)} (B), {rc(t2r("C","M2-M1","dAUROC"),4)} (C).
 * If a hospital can review a fixed share of cases, ranking by uncertainty sends the *unsure* cases first - but silent failures are by
@@ -262,7 +319,7 @@ code(r"""
 # ---------------------------------------------------------------- main findings table ----------------------------
 P5, P6, A1, P7, P8 = "e388dd6", "931fb36", "4ea78c3", "aa962a9", "f0553df"
 rows = [
- ("Representation drift (M1) improves out-of-family detection AUROC over uncertainty on A and B", "PRE-REGISTERED PRIMARY", P5,
+ ("Representation drift (M1) improves out-of-family detection AUROC over single-model (one-seed) uncertainty on A and B", "PRE-REGISTERED PRIMARY", P5,
   f"A {rc(t2r('A','M1-M0','dAUROC'))}; B {rc(t2r('B','M1-M0','dAUROC'))}"),
  ("Representation drift hurts detection on the strong shortcut (C)", "PRE-REGISTERED PRIMARY", P5, f"C {rc(t2r('C','M1-M0','dAUROC'))}"),
  ("Explanation drift (non-negative M2) adds nothing over M1", "PRE-REGISTERED PRIMARY", P5,
@@ -273,7 +330,7 @@ rows = [
   f"B {rc6(c6r(c6a,'B','r_mmd','u_mean'))}; A {rc6(c6r(c6a,'A','r_mmd','u_mean'))}"),
  ("Uncertainty-first referral leaves MORE silent failures than random at a 5% budget", "PRE-REGISTERED PRIMARY (reference contrast)", P7,
   f"M0-random: A {rc(t3r('A','M0-random','dresid_sf',0.05),2,100)} pt; B {rc(t3r('B','M0-random','dresid_sf',0.05),2,100)} pt"),
- ("M1 lowers residual silent failures only at a 20% budget (A, B) and raises them on C", "PRE-REGISTERED PRIMARY", P7,
+ ("Relative to single-model uncertainty (M0), M1 lowers residual silent failures only at a 20% budget (A, B) and raises them on C", "PRE-REGISTERED PRIMARY", P7,
   f"20%: A {rc(t3r('A','M1-M0','dresid_sf',0.2),2,100)}; B {rc(t3r('B','M1-M0','dresid_sf',0.2),2,100)}; C {rc(t3r('C','M1-M0','dresid_sf',0.2),2,100)} pt"),
  ("Blueprint-literal transferred thresholds miss the review budget", "SECONDARY", P7, f"{n_tt}/{N_tt} cells off by > 1 pt of workload"),
  ("Sign-free CAM drift (sf-M2) reduces residual silent failures on A and C", "PRE-REGISTERED PRIMARY (P2)", P8,
@@ -285,10 +342,13 @@ rows = [
 ]
 MAIN = pd.DataFrame(rows, columns=["finding", "status", "plan commit", "key numbers (95% CI)"])
 show(MAIN, "Main findings")
-say("**What this shows:** the robust pre-registered results are mixed: representation drift helps for natural shifts but not for a "
-    "dominant shortcut, explanation drift adds nothing as a monotone alarm, and uncertainty-first referral cannot reach silent "
-    "failures at small budgets. Positive results for sign-free CAM drift (pre-registered ablation) and gating (exploratory) point to "
-    "the mechanism: silent failures look *typical* to every monitor.")
+say("**What this shows:** the robust pre-registered results are mixed: relative to single-model (one-seed) uncertainty, representation drift helps for natural "
+    "shifts but not for a dominant shortcut; explanation drift adds nothing as a monotone alarm; and uncertainty-first referral cannot reach silent failures at small "
+    "budgets. **Explanation drift adds nothing as a monotone alarm (non-negative M2), but with a free sign it reduces residual silent failures on A and C "
+    "(Phase 8, pre-registered); silent failures have LESS explanation drift than correct predictions (given M0 and Mahalanobis the logistic coefficient is negative); "
+    "the mechanism is a hypothesis.** " + f"Against a 4-seed deep-ensemble baseline (post-hoc extension), M1 no longer beats the baseline (B {e20('B','M1-E_fuse')} pt, "
+    f"C {e20('C','M1-E_fuse')} pt worse at a 20% budget; A {e20('A','M1-E_fuse')} pt, inconclusive), while Mahalanobis added on top of the ensemble still helps on A and B "
+    f"({e20('A','E_M1-E_fuse')}, {e20('B','E_M1-E_fuse')} pt) and hurts on C.")
 """)
 
 # =====================================================================================================================
@@ -516,10 +576,36 @@ show(cal, "Temperatures and training length per seed (outputs/stage2/calibration
 say(f"**What this shows:** fitted temperatures are {cal[cal.dataset=='pathmnist'].T_standard.min():.2f}-"
     f"{cal[cal.dataset=='pathmnist'].T_standard.max():.2f} (PathMNIST) and {cal[cal.dataset=='camelyon17'].T_standard.min():.2f}-"
     f"{cal[cal.dataset=='camelyon17'].T_standard.max():.2f} (Camelyon); Camelyon early-stopped after 2-3 epochs.")
-png("stage2/figures/reliability_pathmnist.png", width=700)
-figcap("S3", "Reliability diagrams, PathMNIST (saved Phase 2 figure).", "the in-distribution model is close to the diagonal.")
-png("stage2/figures/reliability_camelyon17.png", width=700)
-figcap("S4", "Reliability diagrams, Camelyon17 (saved Phase 2 figure).", "over-confidence grows on the held-out hospitals.")
+rb = rd("stage2/reliability_bins.csv")
+combos = [(d, v) for d in ("pathmnist", "camelyon17") for v in ("before temperature scaling", "after temperature scaling")]
+fig, ax = plt.subplots(2, 4, figsize=(16, 5.8), gridspec_kw={"height_ratios": [3, 1]}, sharex="col")
+gaps = []
+for j, (ds, var) in enumerate(combos):
+    g = rb[(rb.dataset == ds) & (rb.variant == var)]
+    ax[0, j].plot([0, 1], [0, 1], "k--", lw=1)
+    for seed, gs in g.groupby("seed"):
+        k = gs[gs["count"] >= 30]                                    # rule: bins with fewer than 30 samples are not drawn
+        ax[0, j].plot(k.bin_conf, k.bin_acc, "o-", ms=3, lw=1, label=f"seed {seed}")
+    kept = g[g["count"] >= 30]
+    gaps.append({"dataset": ds, "variant": var, "weighted mean |acc - conf|": (kept["count"] * (kept.bin_acc - kept.bin_conf).abs()).sum() / kept["count"].sum(),
+                 "weighted mean (conf - acc)": (kept["count"] * (kept.bin_conf - kept.bin_acc)).sum() / kept["count"].sum(),
+                 "share of images in dropped bins": 1 - kept["count"].sum() / g["count"].sum()})
+    ax[0, j].set_title(f"{ds} id_test, {var}", fontsize=9); ax[0, j].set_xlim(0.45, 1.0); ax[0, j].set_ylim(0.3, 1.02); ax[0, j].set_ylabel("accuracy" if j == 0 else "")
+    m = g.groupby("bin")["count"].mean()
+    ax[1, j].bar(0.05 + 0.1 * m.index, m.values.clip(min=0.5), width=0.085, color=OI["grey"])
+    ax[1, j].axhline(30, color=OI["vermillion"], ls="--", lw=1); ax[1, j].set_yscale("log"); ax[1, j].set_xlabel("confidence")
+    ax[1, j].set_ylabel("images per bin (mean/seed)" if j == 0 else "")
+ax[0, 0].legend(fontsize=7, ncol=1, loc="upper left", bbox_to_anchor=(0.02, 0.98))
+plt.tight_layout(); plt.show()
+gp = pd.DataFrame(gaps)
+g_ = lambda ds, v, c: float(gp[(gp.dataset == ds) & gp.variant.str.startswith(v)][c].iloc[0])
+figcap("S3", "Reliability diagrams on id_test (10 equal-width confidence bins, one line per seed; bins with fewer than 30 images are not drawn; lower panels: images per "
+             "bin on a log scale, red line = 30).",
+       f"PathMNIST is well calibrated where the data are dense (the top bin holds almost all images; weighted |accuracy - confidence| {g_('pathmnist','before','weighted mean |acc - conf|'):.4f} before, "
+       f"{g_('pathmnist','after','weighted mean |acc - conf|'):.4f} after scaling), and its lower-confidence bins are sparse and mostly dropped. Camelyon is over-confident before scaling "
+       f"(mean confidence minus accuracy {g_('camelyon17','before','weighted mean (conf - acc)'):+.3f}) and only modestly less so after "
+       f"({g_('camelyon17','after','weighted mean (conf - acc)'):+.3f}); single seeds still deviate visibly.")
+show(gp.round(4), "Reliability summary behind Figure S3 (computed from outputs/stage2/reliability_bins.csv)")
 """)
 
 # =====================================================================================================================
@@ -545,7 +631,7 @@ b = fs[(fs.dataset == "camelyon17")].set_index("condition").loc[["id_test", "ood
 x = np.arange(3); w = 0.27
 for i, (m, lab, c) in enumerate((("acc", "accuracy", OI["blue"]), ("conf", "confidence", OI["orange"]), ("sf_rate", "SF rate", OI["vermillion"]))):
     ax[2].bar(x + (i - 1) * w, b[m], w, yerr=b[m + "_std"], color=c, label=lab, capsize=2)
-ax[2].set_xticks(x); ax[2].set_xticklabels(["id_test (h 0,3,4)", "ood_c1 (h 1)", "ood_c2 (h 2)"]); ax[2].set_title("(c) family B, Camelyon"); ax[2].legend()
+ax[2].set_xticks(x); ax[2].set_xticklabels(["id_test (h 0,3,4)", "ood_c1 (h 1)", "ood_c2 (h 2)"], fontsize=7); ax[2].set_title("(c) family B, Camelyon"); ax[2].legend()
 for i, (k, lab) in enumerate((("shortcut", "v1"), ("shortcutv2", "v2"))):
     s = ss[ss.model_kind == k].set_index("condition").loc[["aligned", "removed", "reversed"]]
     ax[3].bar(np.arange(3) + (i - 0.5) * 0.38, s.sf_rate, 0.38, yerr=s.sf_rate_std, label=f"{lab} SF rate", color=[OI["sky"], OI["vermillion"]][i], capsize=2)
@@ -611,7 +697,21 @@ figcap(4, "Incremental value of adding representation (M1-M0) and explanation dr
           "(lower dAURC is better). PRE-REGISTERED PRIMARY.",
        "M1 helps on A and B and hurts on C; M2-M1 sits exactly on zero because the non-negative fusion gave the CAM weight 0.")
 t2f = fmt(t2, d=4, signed=False, keep=["heldout", "analysis", "label", "quantity", "metric", "n_per_seed", "sf_rate", "p_boot", "jackknife_min", "jackknife_max", "verdict"])
-show(t2f, "Table 2 - M0 / M1 / M2 AUROC, AUPRC, AURC and primary contrasts (outputs/stage5/table2.csv)")
+def t2c():
+    rows = []
+    for H in "ABCX":
+        for m in ("AUROC", "AUPRC", "AURC"):
+            r = {"held-out family": H + (" (supplement)" if H == "X" else ""), "metric": m}
+            for q in ("M0", "M1", "M2"):
+                d = one(t2, heldout=H, quantity=q, metric=m); r[q] = ci(d.estimate, d.ci_low, d.ci_high, 3, 1, False)
+            vs = []
+            for q, lab in (("M1-M0", "M1 - M0 [95% CI]"), ("M2-M1", "M2 - M1 [95% CI]")):
+                d = one(t2, heldout=H, quantity=q, metric="d" + m); r[lab] = ci(d.estimate, d.ci_low, d.ci_high, 4, 1, True); vs.append(d.verdict)
+            r["verdict (M1-M0 / M2-M1)"] = " / ".join(vs)
+            rows.append(r)
+    return pd.DataFrame(rows)
+show(t2c(), "Table 2 - sample-level detection of silent failures (sf_090), held-out-family rotation, mean over 5 seeds [95% CI]; AURC: lower is better")
+show(t2f, "Table 2 (full, 60 rows) - M0 / M1 / M2 AUROC, AUPRC, AURC and primary contrasts (outputs/stage5/table2.csv)")
 say(f"**What this shows:** primary contrasts (verdict rule: 'improves' only if the 95% CI excludes 0): M1-M0 dAUROC "
     f"A {rc(t2r('A','M1-M0','dAUROC'))} ({t2r('A','M1-M0','dAUROC').verdict}), B {rc(t2r('B','M1-M0','dAUROC'))} "
     f"({t2r('B','M1-M0','dAUROC').verdict}), C {rc(t2r('C','M1-M0','dAUROC'))} ({t2r('C','M1-M0','dAUROC').verdict}). "
@@ -638,6 +738,9 @@ say(f"**What this shows:** per-seed AUROC ranges are narrow, e.g. A M1 {rng_.loc
     f"C M0 {rng_.loc[('C','M0'),'min']}-{rng_.loc[('C','M0'),'max']}; the conclusions do not hinge on one seed.")
 sens5 = rd("stage5/sensitivity.csv")
 v = sens5[sens5.quantity.str.contains("-") & (sens5.metric == "dAUROC")]
+vv = v.assign(c=[ci(e, l, h, 3, 1, True) for e, l, h in zip(v.estimate, v.ci_low, v.ci_high)], col=v.heldout + " " + v.quantity)
+show(vv.pivot_table(index="variant", columns="col", values="c", aggfunc="first").reset_index(),
+     "Phase 5 sensitivity analyses (compact): dAUROC of M1 - M0 and M2 - M1 per variant and held-out family [95% CI]")
 show(fmt(v, d=4, signed=True, keep=["variant", "heldout", "quantity", "metric", "p_boot", "q_bh", "jackknife_min", "jackknife_max"]),
      "Phase 5 sensitivity analyses: dAUROC contrasts per variant (filtered view of outputs/stage5/sensitivity.csv; full table in Appendix A)")
 mx = v[v.quantity == "M2-M1"]
@@ -647,6 +750,10 @@ say(f"**What this shows:** no sensitivity variant makes M2 beat M1 (largest M2-M
     f"({rc(one(v, variant='label sf_tau', heldout='A', quantity='M1-M0'))}).")
 sb = rd("stage5/secondary_breakdowns.csv")
 v = sb[sb.quantity.str.contains("-") & (sb.metric == "dAUROC")]
+vb = v[v.analysis.isin(["A by severity", "B by condition", "C by condition"])]
+vb = vb.assign(c=[ci(e, l, h, 3, 1, True) + (f" (q={q:.3f})" if pd.notna(q) else "") for e, l, h, q in zip(vb.estimate, vb.ci_low, vb.ci_high, vb.q_bh)])
+show(vb.pivot_table(index=["analysis", "level"], columns="quantity", values="c", aggfunc="first").reset_index().rename(columns={"M1-M0": "dAUROC M1 - M0 [95% CI] (BH q)", "M2-M1": "dAUROC M2 - M1 [95% CI] (BH q)"}),
+     "Phase 5 secondary breakdowns (compact): dAUROC by severity and condition; corruption types in Appendix A")
 show(fmt(v, d=4, signed=True, keep=["analysis", "heldout", "level", "quantity", "n_per_seed", "sf_rate", "p_boot", "q_bh"]),
      "Phase 5 secondary breakdowns: dAUROC per corruption, severity and condition (filtered view of outputs/stage5/secondary_breakdowns.csv; full in Appendix A)")
 say(f"**What this shows:** SECONDARY (BH within each breakdown). M1-M0 grows with severity on A (severity 1 "
@@ -741,6 +848,9 @@ say(f"**What this shows:** silently failed windows are rare except for the new h
     "holds for mean confidence, but the log-scale mean uncertainty still alarms on many silent windows because the silent definition constrains "
     "the mean confidence, not its tails (see the power figure).")
 w = c6a[(c6a["set"] == "primary") & (c6a["mask"] == "silent_pooled")]
+ww = w.assign(c=[ci(e, l, h, 3, 1, True) for e, l, h in zip(w["diff"], w.ci_low, w.ci_high)], contrast=w.H + " " + w.kind + ": " + w.a + " - " + w.b)
+show(ww.pivot_table(index="contrast", columns="size", values="c", aggfunc="first").reset_index().rename(columns=lambda x: f"window size {x}" if isinstance(x, (int, np.integer)) else x),
+     "Window-size sensitivity (compact): A1 power difference on silent windows by window size [95% CI]")
 show(fmt(w, est="diff", d=3, signed=True, keep=["H", "kind", "size", "a", "b", "power_a", "power_b", "n_windows", "p_boot", "q_bh", "bh_family", "verdict"]),
      "Window-size sensitivity (50 / 100 / 200), A1 primary contrasts on silent windows (filtered view of outputs/stage6/a1/contrasts.csv)")
 base = w[w["size"] == 100].set_index(["H", "kind", "a", "b"])
@@ -750,6 +860,9 @@ nsz = sum(1 for k in w[w["size"] != 100].set_index(["H", "kind", "a", "b"]).inde
 say(f"**What this shows:** SECONDARY (BH within the window-size family). Of the {len(sig)} size-100 contrasts whose CI excludes 0, "
     f"{same} of {nsz} size-50 / size-200 counterparts keep the same sign; contrasts near zero can flip.")
 d1 = dla[dla.onset.astype(str) == "1.0"]
+dd1 = d1.assign(c=[f"{m:.0f} ({100 * c:.0f}% cens.)" for m, c in zip(d1.median_delay, d1.censored_share)])
+show(dd1.pivot_table(index="cell", columns="stat", values="c", aggfunc="first").reset_index(),
+     "Detection delay (compact): median windows to first alarm after an abrupt full shift (A1) and censored share")
 show(d1.round(3), "Detection delay after an abrupt full shift, A1 (filtered view of outputs/stage6/a1/detection_delay.csv; all onsets in Appendix A)")
 say(f"**What this shows:** {int((d1.median_delay == 1).sum())} of {len(d1)} (cell, statistic) medians equal one window; MMD on hospital 1 rarely alarms "
     f"(censored share {one(d1, cell='B|ood_c1', stat='r_mmd').censored_share:.0%}); layer4 CAM drift has median delays up to "
@@ -783,6 +896,19 @@ figcap(6, "Residual silent-failure rate among accepted cases vs review budget (e
 t3f = fmt(t3, d=2, scale=100, keep=["heldout", "analysis", "budget", "quantity", "metric", "prevalence", "n_per_seed", "p_boot", "jackknife_min", "jackknife_max", "verdict"],
           name="estimate [95% CI] (% or pt)")
 t3f["budget"] = (100 * t3f.budget).round(1)
+def t3c():
+    rows = []
+    for H in "ABCX":
+        for b in (0.05, 0.1, 0.2):
+            sub = t3[(t3.heldout == H) & np.isclose(t3.budget, b) & (t3.metric == "resid_sf")]
+            r = {"held-out family": H + (" (supplement)" if H == "X" else ""), "budget": f"{int(100 * b)}%", "SF prevalence (%)": f"{100 * sub.prevalence.iloc[0]:.2f}"}
+            for q in ("random", "M0", "M1", "M2", "oracle"):
+                d = sub[sub.quantity == q].iloc[0]; r[q + " residual SF (%)"] = ci(d.estimate, d.ci_low, d.ci_high, 2, 100, False)
+            for q in ("M1-M0", "M2-M1"):
+                d = one(t3, heldout=H, quantity=q, metric="dresid_sf", budget=float(b)); r[q.replace("-", " - ") + " [95% CI] (pt)"] = ci(d.estimate, d.ci_low, d.ci_high, 2, 100, True) + f" {MARK.get(d.verdict, '')}"
+            rows.append(r)
+    return pd.DataFrame(rows)
+show(t3c(), "Table 3 (referral part, compact) - residual silent-failure rate among accepted cases at exact budgets (v reduces, ^ increases, = no practical difference, ? inconclusive)")
 show(t3f, "Table 3 (referral part) - residual SF rate, residual error rate, SF capture, AURC and contrasts for every family, budget and method "
           "(outputs/stage7/table3_referral.csv; rates in %, differences in points)")
 say(f"**What this shows:** M1-M0: A 10% {rc(t3r('A','M1-M0','dresid_sf',0.1),2,100)} pt, 20% {rc(t3r('A','M1-M0','dresid_sf',0.2),2,100)} pt; "
@@ -795,6 +921,10 @@ say(f"**What this shows:** M1-M0: A 10% {rc(t3r('A','M1-M0','dresid_sf',0.1),2,1
 
 code(r"""
 tiers = rd("stage7/tiers.csv")
+tc = tiers[tiers.analysis == "primary"].assign(col=lambda d: d.quantity + " " + d.tier.str.split(" ").str[0])
+tc = tc[tc.quantity.isin(["M0", "M1", "oracle"])]
+tcp = tc.assign(v=[f"{100 * e:.1f}%" for e in tc.sf_share_captured], B=(100 * tc.budget).round(0).astype(int).astype(str) + "%").pivot_table(index=["heldout", "B"], columns="col", values="v", aggfunc="first").reset_index()
+show(tcp, "Accept / review / refer tiers (compact): share of all silent failures falling in the refer tier (top B/2) and the review tier (next B/2)")
 show(fmt(tiers, est="sf_share_captured", d=3, keep=["heldout", "analysis", "budget", "quantity", "tier", "workload_share"], name="share of all SF captured [95% CI]"),
      "Accept / review / refer tiers: share of all silent failures in the refer tier (top B/2) and review tier (next B/2) (outputs/stage7/tiers.csv)")
 say(f"**What this shows:** at B = 5% the refer tier of M0 on A captures {one(tiers, heldout='A', budget=0.05, quantity='M0', tier='refer (top B/2)').sf_share_captured:.1%} "
@@ -803,6 +933,9 @@ say(f"**What this shows:** at B = 5% the refer tier of M0 on A captures {one(tie
 ttw = tt[tt.metric == "realised_workload"].copy()
 ttw["realised workload [95% CI] (%)"] = [ci(e, l, h, 1, 100) for e, l, h in zip(ttw.estimate, ttw.ci_low, ttw.ci_high)]
 ttw["budget"] = (100 * ttw.budget).round(0)
+tw = ttw.assign(v=[ci(e, l, h, 1, 100, False) + (" *" if str(f) == "True" else "") for e, l, h, f in zip(ttw.estimate, ttw.ci_low, ttw.ci_high, ttw.workload_flag)], B=ttw.budget.astype(int).astype(str) + "%")
+show(tw.pivot_table(index=["heldout", "quantity"], columns="B", values="v", aggfunc="first").reset_index().rename(columns=lambda x: f"nominal {x}" if str(x).endswith("%") else x),
+     "Threshold transfer (compact): realised workload on the held-out family, % [95% CI]; * = more than 1 point from the budget")
 show(ttw[["heldout", "label", "budget", "quantity", "realised workload [95% CI] (%)", "workload_flag"]],
      "Secondary (Blueprint-literal) threshold transfer: realised workload per held-out family, method and budget (outputs/stage7/threshold_transfer.csv)")
 show(fmt(tt[tt.metric != "realised_workload"], d=2, scale=100, keep=["heldout", "label", "budget", "quantity", "metric", "random_resid_sf_same_workload", "workload_difference", "workload_matched", "verdict"]),
@@ -870,6 +1003,14 @@ figcap("8a", "Incremental effect of each ablation (variant - reference), held-ou
 
 code(r"""
 for g in ("G1", "G2", "G3", "G4", "G5", "G6"):
+    QS = {"G1": ["M1-M0", "M0c-M0", "M2-M1"] + ["s_" + f + "-s_u_log1msp" for f in ("u_logent", "r_maha_pred", "r_knn", "e_js_norm_l4")],
+          "G2": ["sf_M0-M0", "sf_M1-M1", "sf_M2-M2", "sf_M1-sf_M0", "sf_M2-sf_M1"],
+          "G3": [f"{pre}M1+{c}-{pre}M1" for pre in ("", "sf_") for c in ("e_js_norm_l3", "e_js_norm_l2", "e_js_raw_l4", "e_pca_l4")],
+          "G4": ["M1knn-M1", "M2knn-M2", "sf_M1knn-sf_M1", "sf_M2knn-sf_M2"],
+          "G5": [f"{pre}M1_N{n}-{pre}M1_Nfull" for pre in ("", "sf_") for n in (500, 1000, 2000)] + ["M1_Nfull-M1"],
+          "G6": ["M0_T1-M0", "M1_T1-M1"]}
+    show(ab_compact(G[g], QS[g], budgets=(0.1, 0.2) if g == "G2" else (0.2,)),
+         f"Ablation {g} - {names[g]} (compact): residual silent-failure rate difference in pt [95% CI] at the 20% budget" + (" and 10%" if g == "G2" else "") + " (v reduces, ^ increases, = no practical difference, ? inconclusive)")
     show(ab_contrasts(g, lambda d: d.level_col.isna()), f"Ablation {g} - {names[g]}: contrast rows (residual SF in pt; AUROC) (outputs/stage8/tables/ablation_{g}.csv)")
     if g == "G1":
         say(f"**What this shows (G1, SECONDARY):** Mahalanobis alone beats log(1-MSP) alone at 20% on A ({rc(g8('A','s_r_maha_pred-s_u_log1msp',0.2,g='G1'),2,100)} pt) and B "
@@ -929,6 +1070,8 @@ figcap("8b", "Family A by severity: residual silent-failure rate at a 20% budget
        f"M0's AUROC falls from {lvl(d7,'severity',0,'M0','auroc').estimate:.2f} (clean) to {lvl(d7,'severity',5,'M0','auroc').estimate:.2f} (severity 5), "
        f"M1 degrades more slowly ({lvl(d7,'severity',0,'M1','auroc').estimate:.2f} to {lvl(d7,'severity',5,'M1','auroc').estimate:.2f}); at severity 5 both "
        f"leave more residual silent failures than random review ({100*m0_5.estimate:.1f}% / {100*m1_5.estimate:.1f}% vs {100*rnd_5.estimate:.1f}%).")
+show(ab_compact(G["G7"], ["M1-M0", "M2-M1", "sf_M1-M1"], level_col="severity", rows_by=["level"], heldouts="A"),
+     "Ablation G7 (compact) - family A by severity (0 = clean): residual-rate difference in pt [95% CI] at the 20% budget (v reduces, ^ increases, = none, ? inconclusive)")
 show(ab_contrasts("G7"), "Ablation G7 - family A by severity and corruption: contrast rows (outputs/stage8/tables/ablation_G7.csv)")
 v7 = d7[(d7.kind == "contrast") & (d7.metric == "dresid_sf") & (d7.quantity == "M1-M0") & np.isclose(d7.budget, 0.2) & (d7.level_col == "condition")]
 say(f"**What this shows (G7, SECONDARY):** at 20% M1-M0 reduces residual silent failures for {int((v7.verdict == 'reduces').sum())} of "
@@ -967,9 +1110,12 @@ figcap("8c", "Family C by cue state (aligned has no silent failures and is omitt
        f"with the strong cue (v2) reversed, every monitor is inverted (M0 AUROC {lv8('shortcutv2','reversed','M0','auroc').estimate:.3f}, M1 "
        f"{lv8('shortcutv2','reversed','M1','auroc').estimate:.3f}); sign-free M2 partly repairs it ({lv8('shortcutv2','reversed','sf_M2','auroc').estimate:.3f}). "
        f"With the weak cue (v1) M0 works well (removed AUROC {lv8('shortcut','removed','M0','auroc').estimate:.3f}) and M1 is worse.")
+g8c = ab_compact(G["G8"], ["M1-M0", "M2-M1", "sf_M1-M0", "sf_M2-sf_M1"], level_col="condition", rows_by=["c_kind", "level"])
+show(g8c[g8c["level"] != "aligned"].drop(columns=[c for c in g8c.columns if c in ("A", "B")]), "Ablation G8 (compact) - family C by cue state, v2 (shortcutv2) and v1 (shortcut): residual-rate difference in pt [95% CI] at 20%")
 show(ab_contrasts("G8"), "Ablation G8 - family C by cue state, v2 and v1: contrast rows (outputs/stage8/tables/ablation_G8.csv)")
 say("**What this shows (G8, SECONDARY):** the shortcut hurts every monitor that relies on typicality; the damage is largest when the cue "
     "dominates the decision (v2), and adding representation drift makes it worse in both cue states.")
+show(ab_compact(G["G9"], ["M1-M0", "M2-M1", "sf_M1-M0"], rows_by=["label"]), "Ablation G9 (compact) - label variants: residual-rate difference in pt [95% CI] at 20%")
 show(ab_contrasts("G9"), "Ablation G9 - label variants sf_090 / sf_095 / sf_tau / sf_099: contrast rows (outputs/stage8/tables/ablation_G9.csv)")
 d9 = G["G9"]
 def g9(H, lab, q):
@@ -1010,6 +1156,8 @@ say(f"**What this shows:** at 20% the gated M1 ranking leaves {ex('A','G_M1',0.2
     f"(plain M1 {ex('B','M1',0.2,'resid_sf').estimate:.2%}). The price is visible errors: its residual ERROR rate on A is {ex('A','G_M1',0.2,'resid_err').estimate:.2%} vs "
     f"{ex('A','M1',0.2,'resid_err').estimate:.2%} for plain M1, because low-confidence errors are no longer referred first.")
 exc = EX[(EX.kind == "contrast") & (EX.metric == "dresid_sf")]
+show(ab_compact(EX, ["G_M0-M0", "G_M1-M1", "G_sfM1-M1", "G_M0-random", "G_M1-random", "sf_M1-M1"], budgets=(0.05, 0.2)),
+     "EXPLORATORY, post-hoc (compact) - targeted variants vs plain M0 / M1 / random: residual-rate difference in pt [95% CI] at 5% and 20% budgets")
 show(fmt(exc, d=2, scale=100, signed=True, keep=["table", "heldout", "budget", "quantity", "p_boot", "jackknife_min", "jackknife_max", "verdict"], name="difference in pt [95% CI]"),
      "EXPLORATORY, post-hoc - contrasts of the targeted variants vs plain M0, plain M1 and random (residual SF rate, pt; unadjusted)")
 say(f"**What this shows:** gated M1 - plain M1 = A {rc(ex('A','G_M1-M1',0.05),2,100)} / {rc(ex('A','G_M1-M1',0.2),2,100)} pt (5% / 20%), "
@@ -1069,7 +1217,15 @@ lv = t10[(t10.kind == "level") & t10.metric.isin(["resid_sf", "resid_err"]) & t1
 lv["val"] = [ci(e, l, h, 2, 100, False) for e, l, h in zip(lv.estimate, lv.ci_low, lv.ci_high)]; lv["B"] = (100 * lv.budget).round(0)
 show(lv.pivot_table(index=["heldout", "B", "metric"], columns="quantity", values="val", aggfunc="first")[["random"] + names10 + ["oracle"]].reset_index(),
      "E1 - exact-budget referral: residual silent-failure rate (resid_sf) and residual overall error rate (resid_err), % [95% CI]")
-png("stage10/figures/fig10_e1_referral.png", width=1000)
+fig, ax = plt.subplots(1, 3, figsize=(15, 4.2))
+for a_, H in zip(ax, "ABC"):
+    for q in ("random", "oracle", "M0", "M1", "E_fuse", "E_M1"):
+        g = t10[(t10.kind == "level") & (t10.heldout == H) & (t10.quantity == q) & (t10.metric == "resid_sf")].sort_values("budget")
+        a_.errorbar(100 * g.budget, 100 * g.estimate, yerr=[100 * (g.estimate - g.ci_low), 100 * (g.ci_high - g.estimate)], fmt="--" if q == "oracle" else "-o", ms=3, capsize=2,
+                    color={"random": OI["grey"], "oracle": OI["black"], "M0": OI["blue"], "M1": OI["orange"], "E_fuse": OI["green"], "E_M1": OI["vermillion"]}[q], label=q)
+    a_.set_title(f"EXTENSION E1 - held-out {H}"); a_.set_xlabel("review budget (%)")
+ax[0].set_ylabel("residual silent-failure rate (%)"); ax[0].legend(fontsize=8, ncol=6)
+plt.tight_layout(); plt.show()
 figcap("10", "EXTENSION E1: residual silent-failure rate vs review budget for single-model M0 / M1, the leave-seed-out ensemble E-fuse and E-M1, with random and oracle references (95% paired CIs).",
        f"on A and B the ensemble alone reproduces most of the 20%-budget gain that M1 had over M0 (A residual: M0 {100*e10('A','M0','resid_sf',0.2).estimate:.1f}%, M1 {100*e10('A','M1','resid_sf',0.2).estimate:.1f}%, "
        f"E-fuse {100*e10('A','E_fuse','resid_sf',0.2).estimate:.1f}%, E-M1 {100*e10('A','E_M1','resid_sf',0.2).estimate:.1f}%); on C no ranking comes close to the oracle and Mahalanobis again hurts.")
@@ -1177,7 +1333,7 @@ vals = pd.DataFrame({g: {k.replace("median_pct_", ""): rp_[g][k] for k in rp_[g]
 for i, g in enumerate(grp):
     ax[2].bar(np.arange(len(vals)) + (i - 1) * 0.27, vals[g], 0.27, label=g)
 ax[2].set_xticks(range(len(vals))); ax[2].set_xticklabels(vals.index, rotation=20, fontsize=7); ax[2].set_ylim(0.5, 1.01)
-ax[2].set_title("(c) median val_cal percentile, reversed v2"); ax[2].legend(fontsize=7, loc="lower left")
+ax[2].set_title("(c) median val_cal percentile, reversed v2"); ax[2].legend(fontsize=7)
 plt.tight_layout(); plt.show()
 figcap(7, "Shortcut case study: (a) share of Grad-CAM mass on the cue patch per cue state (v1, v2); (b) single-signal detection AUROC pooled and within "
           "each cue state (v2); (c) how atypical correct predictions vs silent failures look under the reversed cue (median val_cal percentile).",
@@ -1261,7 +1417,7 @@ C = [
 comp = pd.DataFrame(C, columns=["stage", "Blueprint item", "status", "evidence"])
 comp["evidence exists"] = [(ROOT / p).exists() for p in comp.evidence]
 assert comp["evidence exists"].all(), comp[~comp["evidence exists"]]
-show(comp, "Blueprint compliance checklist")
+show(comp, "Blueprint compliance checklist", keep=True)
 cnt = comp.status.value_counts()
 say(f"**What this shows:** {cnt.get('PASS', 0)} PASS, {cnt.get('DEVIATION', 0)} DEVIATION, {cnt.get('N-A', 0)} N-A; every evidence file exists. "
     "Not-done items (second architecture, MC-dropout, alternative attribution methods, within-family in-family analysis, artefact-patch ablation) were "
@@ -1373,6 +1529,9 @@ Every saved result table not shown in full above, in full, formatted with 95% CI
 """)
 
 code(r"""
+IN_APPENDIX = True
+for i, (t_, d_) in enumerate(DEFERRED, 1):
+    show(d_, f"A.D{i} {t_}")
 def full(rel, title, d=4):
     t = rd(rel)
     if {"estimate", "ci_low", "ci_high"} <= set(t.columns):
