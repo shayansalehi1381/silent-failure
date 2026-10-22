@@ -308,6 +308,11 @@ anomalous - exactly the hard case family C was built for. Full tables: `per_sign
 `dose_response.csv`, `transform_variability.csv`, `sanity_stage4.json`, `summary_stage4.md`, figures in `figures/`.
 
 ## Stage 5 - sample-level detection (`python scripts/run_stage5.py --config configs/full.yaml`)
+> **Note on an earlier (classmate) result:** a classmate's pipeline found representation drift adds ~0 over uncertainty. The
+> difference is explained by her silent-failure label: the Blueprint `sf_tau` rule is degenerate (val_cal precision is already
+> >= 95%, so it labels every error a silent failure). With our `sf_tau` / `sf_099` labels the M1-M0 gain is only +0.01 to +0.02 AUROC
+> (sensitivity table below); with the primary `sf_090` label it is +0.093 (A) and +0.038 (B).
+
 Pre-registration: `docs/analysis_plan_frozen.md`, frozen at commit **e388dd63b5bc97b146f614fbda6c038aee237da8** before any
 Phase 5 statistic. Code: `sfd/stage5.py`. Outputs: `outputs/stage5/` (`table2.csv`, `fig3_data.csv`, `sensitivity.csv`,
 `secondary_breakdowns.csv`, `incremental_logit.csv`, `seed_stability*.csv`, `fusion_weights.csv`, `inversion_diagnosis.json`,
@@ -362,6 +367,77 @@ B: dAUROC -0.004 [-0.011, 0.000]). This is a negative result for explanation dri
   identical inputs (the family-A clean images are byte-identical to the stored id_test images), not float saturation.
 - Runtime: 53 min CPU (primary 4 min, sensitivity 41 min, breakdowns 5 min).
 
+## Stage 6 - batch (window) monitoring (`python scripts/run_stage6.py --config configs/full.yaml --steps extract,windows,analysis[,windows_a1,analysis_a1]`)
+Pre-registration: `docs/batch_plan_frozen.md`, frozen at commit **931fb36dfb3b7dcd329b4c3b332363555329c84f** before any batch
+statistic; amendment `docs/batch_plan_amendment_1.md` (commit **4ea78c37b69531e4c0c218747d3d70314fdfa94a**, written after the
+FAR check failed and before any A1 statistic). Code: `sfd/stage6.py`. Outputs: `outputs/stage6/` (pre-registered) and
+`outputs/stage6/a1/` (amendment A1): `far_table.csv`, `power_cells.csv`, `power_pooled.csv`, `contrasts.csv`,
+`detection_delay.csv`, `seed_spread.csv`, `thresholds_silent_bounds.csv`, `combined_weights.csv`, `summary_stage6.md`, figures
+`figures_fig5_power.png`, `figures_fig5_delay.png`. Per-image arrays (features, CAMs at 3 layers) and window tables are git-ignored.
+
+Design in one paragraph: windows of n = 100 (also 50, 200) mix ID rows with shifted rows at fractions {0, .1, .25, .5, .75, 1}
+(200 windows per cell and seed, 5 classifier seeds, rows without replacement, seeded). Statistics: log-uncertainty mean /
+90th percentile / KS vs val_cal; unbiased RBF-MMD vs a fixed 2,000-row train reference (bandwidth = median heuristic on
+val_cal); layer4 (primary) / layer3 / layer2 window-mean Grad-CAM vs the class-conditional reference mixture (JS);
+a combined monitor (non-negative fusion tuned on two families' windows, tested on the third). Alarm thresholds = 95th
+percentile over 3,000 source-only windows. A window is "silently failed" when its error rate exceeds the source 95% bound while
+its mean confidence stays in the source 95% interval (evaluation only). Primary endpoint: power on silent windows at 5% nominal
+false alarm; paired bootstrap B = 2,000 over seeds x cluster units (window weight = mean cluster multiplicity of its rows).
+
+**1. The pre-registered false-alarm check FAILED.** With thresholds from `val_cal` windows, the actual false-alarm rate on
+held-out `id_test` source windows is outside 3-7% for **46 of 55** (statistic x family x kind) cells at n = 100 (e.g. mean
+log-uncertainty 0.37 on PathMNIST and 0.25 on Camelyon; MMD 0.26 / 0.41; combined monitor 0.56 / 0.29; layer4 CAM JS 0.84 on
+the shortcut v1 models). Diagnosis (`outputs/stage6/far_table.csv`): fresh windows drawn from `val_cal` itself alarm at 4.6-6.2%,
+so the pipeline is unbiased; `val_cal` and `id_test` are simply not exchangeable at window level (id_test has slightly heavier
+uncertainty tails: 95th percentile of log-uncertainty -5.6 vs -6.2), and averaging 100 rows turns a ~0.1 sd row-level
+difference into a ~1 sd shift of the window statistic. **Consequence:** the pre-registered powers are measured at very
+different actual false-alarm rates (statistic A at 37% FAR vs statistic B at 6%) and are not comparable; they are reported but
+must not be read as a ranking. Thresholds set on one source split do not transfer to another source split for window-mean statistics.
+
+**2. Amendment A1 (post-freeze, outcome-informed; sensitivity, not primary).** Thresholds, silent bounds and fusion
+standardisation from a calibration half of the ID pool (row-level split by hash of the uid), mixtures and FAR windows from the
+other half. Actual FAR becomes 4-8% for the main statistics at n = 100 (A: u_mean 0.082, MMD 0.054, CAM-l4 0.056, combined 0.073;
+B: 0.044 / 0.052 / 0.042 / 0.046); 23 of 55 cells are still outside 3-7%, mostly marginally and, for the shortcut models, BELOW 3%
+(conservative).
+
+**3. Power on silent windows, declared primary contrasts (held-out family; paired bootstrap 95% CI; no multiplicity adjustment)**
+
+| held-out | contrast | pre-registered (val_cal thr.; FAR not matched) | A1 (FAR-matched) |
+|---|---|---|---|
+| A | combined - u_mean | +0.114 [0.076, 0.176] improves | -0.135 [-0.229, -0.046] worse |
+| A | MMD - u_mean | -0.469 [-0.570, -0.342] worse | -0.428 [-0.493, -0.380] worse |
+| A | CAM-l4 - MMD | -0.266 [-0.311, -0.221] worse | -0.027 [-0.064, 0.007] inconclusive |
+| B | combined - u_mean | -0.061 [-0.232, 0.072] inconclusive | -0.081 [-0.289, 0.081] inconclusive |
+| B | MMD - u_mean | +0.249 [0.078, 0.379] improves | **+0.306 [0.191, 0.448] improves** |
+| B | CAM-l4 - MMD | -0.563 [-0.739, -0.396] worse | -0.640 [-0.844, -0.408] worse |
+| C (v2) | combined - u_mean | -0.005 [-0.011, 0.000] inconclusive | -0.012 [-0.036, 0.007] inconclusive |
+| C (v2) | MMD - u_mean | -0.887 [-0.908, -0.860] worse | -0.980 [-0.992, -0.967] worse |
+| C (v2) | CAM-l4 - MMD | +0.827 [0.780, 0.864] improves | +0.369 [0.323, 0.414] improves |
+| X (suppl.) | combined - u_mean | +0.022 [-0.001, 0.070] inconclusive | -0.130 [-0.189, -0.093] worse |
+
+(v1 weak shortcut for C, A1: combined - u_mean +0.042 [0.019, 0.059] improves; CAM-l4 - MMD +0.158 [0.115, 0.253].) Silent
+windows are rare except on Camelyon: the share of shifted windows that are silently failed is 3.0% (A), 36.9% (B, A1; 48% pre),
+7.0% (C v2) and 7.5% (X). In family A silent windows occur only at small shifted fractions (0.1); at fraction >= 0.5 every
+statistic with a mean-uncertainty component alarms on essentially all windows, and the mean confidence leaves the source
+interval, so no silent windows remain.
+
+**Answer (negative-result-ready).** Representation MMD adds power on silent windows beyond log-uncertainty ONLY on the Camelyon
+hospital shift (B: +0.31 [0.19, 0.45] FAR-matched); it is much worse than uncertainty on A, C and X. Explanation (layer4 CAM JS)
+is not better than uncertainty anywhere; it beats MMD only where MMD is blind (C v2: MMD power 0.01 vs CAM 0.38, but uncertainty 0.99),
+and is worse than MMD on B. The combined monitor does not beat uncertainty alone on silent windows in any held-out family
+(A1: worse on A and X, inconclusive on B and C v2). Note the plan's statement that uncertainty statistics "cannot see silent
+windows by construction" holds for mean CONFIDENCE, not for the log-scale mean uncertainty used here: it still alarms on 44-99%
+of silent windows (A1: A 0.52, B 0.44, C v2 0.99, X 0.79), because the silent definition constrains the mean confidence, not the tails.
+
+**4. Detection delay** (`detection_delay.csv`; abrupt onset at fraction 1.0, A1): median 1 window for u_mean, u_ks, u_p90, MMD and the
+combined monitor on A, B (except MMD on hospital 1: 80% of streams never alarm), C and X; the 90th-percentile statistic is slower on
+hospital 2 (median 11 windows, 24% censored); layer4 CAM JS needs 1-9 windows with up to 21% censored streams (horizon 30).
+Pre-onset alarm rates and per-onset (0.25, 0.5, ramp) results are in the table.
+**5. Sensitivities** (`contrasts.csv`, BH within window size / CAM layer / per-corruption / per-severity families): window sizes 50 and 200
+give the same direction as n = 100 for every contrast whose CI excludes zero; near-zero contrasts (combined vs u_mean on B and C, and on
+X pre-registered) change sign. Layer2 CAM beats MMD on C (v2) but not on B; layer3 is worse than MMD on B and X.
+**6. Seed spread** in `seed_spread.csv`; runtime: extraction 8 min (GPU), windows 9 min x 2 variants, analysis 3 min x 2.
+
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),
@@ -408,7 +484,9 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | 3 | Shift families A (MedMNIST-C), B, C (shortcut v1 weak + v2 strong), X | done |
 | 4 | Monitoring references, signals, frozen tau, validity checks | done |
 | 5 | Sample-level detection: frozen plan, M0/M1/M2 rotation, paired cluster bootstrap | done |
-| 6-9 | Stages 6-9 of the roadmap | not started |
+| 6 | Batch-level monitoring: frozen plan + amendment, FAR check, power, delay | done |
+| 7-9 | Stages 7-9 of the roadmap | not started |
+
 
 
 

@@ -51,6 +51,9 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Stage 5 follows docs/analysis_plan_frozen.md (frozen at e388dd63). Never change the primary label (sf_090), the primary
   signals (Mahalanobis, layer4 normalised CAM JS) or the rotation after seeing results; extra views are sensitivities.
   Report rule-based verdicts together with effect magnitudes (zero-weight fusion can give |delta| ~ 1e-6 with tight CIs).
+- Stage 6 follows docs/batch_plan_frozen.md (931fb36) + amendment A1 (4ea78c3). Thresholds set on one source split (val_cal)
+  do NOT transfer to another source split (id_test) for window-mean statistics (actual FAR 46/55 cells outside 3-7%): always
+  report the actual FAR next to power, compare powers only at matched actual FAR (A1), and never rank statistics at unequal FAR.
 - Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are
