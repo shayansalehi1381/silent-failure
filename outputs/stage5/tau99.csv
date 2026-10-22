@@ -1,0 +1,21 @@
+dataset,kind,seed,tau,degenerate,val_cal_acc
+camelyon17,standard,0,0.9191431967772816,,0.9574
+camelyon17,standard,1,0.9379872926650319,,0.9394
+camelyon17,standard,2,0.9019263639608107,,0.9662
+camelyon17,standard,3,0.9082361869775806,,0.9556
+camelyon17,standard,4,0.9017391447162042,,0.9722
+pathmnist,shortcut,0,0.5655027753777291,accepts every val_cal prediction,0.9993998799759952
+pathmnist,shortcut,1,0.5687635750888563,accepts every val_cal prediction,0.9993998799759952
+pathmnist,shortcut,2,0.5017131381852654,accepts every val_cal prediction,0.9981996399279855
+pathmnist,shortcut,3,0.49111798068925466,accepts every val_cal prediction,0.9983996799359872
+pathmnist,shortcut,4,0.5017502008010603,accepts every val_cal prediction,0.9987997599519904
+pathmnist,shortcutv2,0,1.0,accepts every val_cal prediction,1.0
+pathmnist,shortcutv2,1,1.0,accepts every val_cal prediction,1.0
+pathmnist,shortcutv2,2,1.0,accepts every val_cal prediction,1.0
+pathmnist,shortcutv2,3,1.0,accepts every val_cal prediction,1.0
+pathmnist,shortcutv2,4,1.0,accepts every val_cal prediction,1.0
+pathmnist,standard,0,0.27497545717172384,accepts every val_cal prediction,0.9961992398479695
+pathmnist,standard,1,0.3375158549343055,accepts every val_cal prediction,0.9957991598319664
+pathmnist,standard,2,0.3122886176185193,accepts every val_cal prediction,0.9957991598319664
+pathmnist,standard,3,0.4593029321151433,accepts every val_cal prediction,0.9971994398879775
+pathmnist,standard,4,0.4094426927609784,accepts every val_cal prediction,0.9971994398879775

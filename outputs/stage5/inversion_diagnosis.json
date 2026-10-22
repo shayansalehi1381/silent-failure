@@ -1,0 +1,89 @@
+{
+ "auroc_sf090": {
+  "pooled": {
+   "n_per_seed": 9000,
+   "sf_rate": 0.42935555555555555,
+   "acc": 0.5515555555555556,
+   "u_log1msp": 0.7037802292303457,
+   "r_maha_pred": 0.6007311755331196,
+   "r_knn": 0.6385553625530089,
+   "e_js_norm_l4": 0.5566953631782546
+  },
+  "aligned": {
+   "n_per_seed": 3000,
+   "sf_rate": 0.0,
+   "acc": 1.0,
+   "u_log1msp": null,
+   "r_maha_pred": null,
+   "r_knn": null,
+   "e_js_norm_l4": null
+  },
+  "removed": {
+   "n_per_seed": 3000,
+   "sf_rate": 0.39566666666666667,
+   "acc": 0.5542666666666667,
+   "u_log1msp": 0.6150228933956544,
+   "r_maha_pred": 0.42389768990702814,
+   "r_knn": 0.6645504145655118,
+   "e_js_norm_l4": 0.5185490662701093
+  },
+  "reversed": {
+   "n_per_seed": 3000,
+   "sf_rate": 0.8924,
+   "acc": 0.1004,
+   "u_log1msp": 0.12248183635495388,
+   "r_maha_pred": 0.05210661534286916,
+   "r_knn": 0.03925785845764297,
+   "e_js_norm_l4": 0.20015276165208534
+  }
+ },
+ "reversed_profile": {
+  "correct": {
+   "n_per_seed": 301.2,
+   "mean_confidence": 0.9826705818827631,
+   "class_counts": {
+    "0": 15,
+    "1": 14,
+    "8": 1477
+   },
+   "median_pct_u_log1msp": 0.9999686998614414,
+   "median_pct_r_maha_pred": 0.9993998799759952,
+   "median_pct_r_knn": 0.9999611563209415,
+   "median_pct_e_js_norm_l4": 0.9687937587517503
+  },
+  "wrong_confident (sf_090)": {
+   "n_per_seed": 2677.2,
+   "mean_confidence": 0.9996303309784825,
+   "class_counts": {
+    "0": 1507,
+    "1": 1880,
+    "2": 1685,
+    "3": 1690,
+    "4": 1305,
+    "5": 1980,
+    "6": 1284,
+    "7": 1530,
+    "8": 525
+   },
+   "median_pct_u_log1msp": 0.9993998799759952,
+   "median_pct_r_maha_pred": 0.912382476495299,
+   "median_pct_r_knn": 0.9657931586317263,
+   "median_pct_e_js_norm_l4": 0.8769753950790158
+  },
+  "wrong_low_conf": {
+   "n_per_seed": 21.6,
+   "mean_confidence": 0.7175254963740912,
+   "class_counts": {
+    "0": 3,
+    "1": 11,
+    "6": 1,
+    "8": 93
+   },
+   "median_pct_u_log1msp": 0.9999798238752431,
+   "median_pct_r_maha_pred": 0.9985997199439888,
+   "median_pct_r_knn": 0.9999689480951299,
+   "median_pct_e_js_norm_l4": 0.9999744393648097
+  }
+ },
+ "reading": "inversion holds WITHIN the reversed state (not a pooling artefact)"
+}

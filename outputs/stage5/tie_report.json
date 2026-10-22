@@ -1,0 +1,18 @@
+{
+ "camelyon17/standard": {
+  "u_log1msp": 0.00015384615384617106,
+  "u_1msp": 0.00025384615384616005
+ },
+ "pathmnist/shortcut": {
+  "u_log1msp": 0.0,
+  "u_1msp": 0.002885920422887378
+ },
+ "pathmnist/shortcutv2": {
+  "u_log1msp": 0.0,
+  "u_1msp": 0.8087434816772626
+ },
+ "pathmnist/standard": {
+  "u_log1msp": 0.01509247686765458,
+  "u_1msp": 0.015093527144402596
+ }
+}
