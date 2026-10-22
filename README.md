@@ -1,4 +1,4 @@
-﻿# Silent failure in medical image classifiers under distribution shift
+# Silent failure in medical image classifiers under distribution shift
 
 Do representation drift and Grad-CAM explanation drift detect *silent failures*
 (wrong prediction with high calibrated confidence) beyond calibrated uncertainty, and do
@@ -436,8 +436,8 @@ B: 0.044 / 0.052 / 0.042 / 0.046); 23 of 55 cells are still outside 3-7%, mostly
 | X (suppl.) | combined - u_mean | +0.022 [-0.001, 0.070] inconclusive | -0.130 [-0.189, -0.093] worse |
 
 (v1 weak shortcut for C, A1: combined - u_mean +0.042 [0.019, 0.059] improves; CAM-l4 - MMD +0.158 [0.115, 0.253].) Silent
-windows are rare except on Camelyon: the share of shifted windows that are silently failed is 3.0% (A), 36.9% (B, A1; 48% pre),
-7.0% (C v2) and 7.5% (X). In family A silent windows occur only at small shifted fractions (0.1); at fraction >= 0.5 every
+windows are rare except on Camelyon: the share of shifted windows that are silently failed is 6.6% (A), 36.9% (B, A1; 48% pre),
+7.0% (C v2) and 7.5% (X) (definition: silent windows / all windows with shifted fraction > 0, window size 100, summed over the primary cells (A severity 1-5, B ood_c1/ood_c2, C reversed, X) and 5 seeds; an earlier figure of 3.0% for A wrongly also pooled the 55 per-corruption cells, which exist only at fraction 1.0 and contain almost no silent windows). In family A silent windows occur only at small shifted fractions (0.1); at fraction >= 0.5 every
 statistic with a mean-uncertainty component alarms on essentially all windows, and the mean confidence leaves the source
 interval, so no silent windows remain.
 

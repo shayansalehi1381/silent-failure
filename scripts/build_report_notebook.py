@@ -54,6 +54,13 @@ minutes. The heavy pipeline that produced these files is in `sfd/` and `scripts/
 - [Appendix B: file index](#sB)
 """)
 
+md(r"""
+> **Known gaps (Blueprint items not done).** (1) a second classifier architecture; (2) ensemble / MC-dropout uncertainty baselines;
+> (3) Grad-CAM alternatives (Grad-CAM++, ScoreCAM, Integrated Gradients); (4) the in-family vs out-of-family comparison;
+> (5) the artefact-patch (non-tissue) removal ablation in Camelyon. They are listed as DEVIATIONS in Section 12; no result in this
+> notebook depends on them.
+""")
+
 code(r"""
 # ---------------------------------------------------------------- setup: imports, style, helpers (defined once) ----
 import json, subprocess, time, warnings
@@ -725,7 +732,7 @@ def share(t):
 sh = share(pc).merge(share(pca1), on=["H", "kind"], suffixes=(" (pre-reg.)", " (A1)"))
 show(sh, "Share of shifted windows (f > 0, primary cells, size 100) that are silently failed (computed from outputs/stage6/*/power_cells.csv)")
 say(f"**What this shows:** silently failed windows are rare except for the new hospitals (B: {one(sh, H='B', kind='standard')['silent share (A1)']:.1%} "
-    f"under A1). **Plan-wording correction:** the plan expected uncertainty statistics to be blind to silent windows by construction; that "
+    f"under A1; share = silent windows / all windows with shifted fraction > 0, window size 100, summed over the primary cells and 5 seeds). **Plan-wording correction:** the plan expected uncertainty statistics to be blind to silent windows by construction; that "
     "holds for mean confidence, but the log-scale mean uncertainty still alarms on many silent windows because the silent definition constrains "
     "the mean confidence, not its tails (see the power figure).")
 w = c6a[(c6a["set"] == "primary") & (c6a["mask"] == "silent_pooled")]
