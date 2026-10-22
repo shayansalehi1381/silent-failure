@@ -438,6 +438,68 @@ give the same direction as n = 100 for every contrast whose CI excludes zero; ne
 X pre-registered) change sign. Layer2 CAM beats MMD on C (v2) but not on B; layer3 is worse than MMD on B and X.
 **6. Seed spread** in `seed_spread.csv`; runtime: extraction 8 min (GPU), windows 9 min x 2 variants, analysis 3 min x 2.
 
+## Stage 7 - referral policy (`python scripts/run_stage7.py --config configs/full.yaml`)
+Pre-registration: `docs/referral_plan_frozen.md`, frozen at commit **aa962a924dcacdf247f420f4350094a07b0e48dd** before any
+referral result. Code: `sfd/stage7.py`; tests `tests/test_stage7.py` (exact budget, ties, unbiased random, oracle ceiling, AURC =
+Phase 5 definition, leakage of weights/thresholds, paired bootstrap, verdict rule). Outputs: `outputs/stage7/` (`table3_referral.csv`,
+`fig6_data.csv`, `figures/fig6_residual_vs_budget.png`, `tiers.csv`, `threshold_transfer.csv`, `sensitivity.csv`, `breakdowns.csv`,
+`seed_jackknife.csv`, `boundary_ties.csv`, `fusion_weights.csv`, `summary_stage7.md`). Runtime 26 min CPU.
+
+Design: Phase 5 pools and rotation weights (re-fitted and ASSERTED equal to `outputs/stage5/fusion_weights.csv`); **primary =
+exact-budget ranking**: the top B% (B = 5, 10, 20%) of the held-out family's pool by score leaves automatic acceptance (no threshold
+transfer; ties flagged fractionally so workload is exactly B for every method), compared with random referral and an oracle ceiling.
+Accept / review / refer: refer = top B/2, review = next B/2 (no cost model). The policy is re-applied inside every bootstrap replicate
+(paired seeds x cluster bootstrap, B = 2,000). Verdict rule: "reduces" only if the CI lies below 0 AND |d| >= 0.1 point.
+
+**Residual silent-failure rate among accepted cases (sf_090; mean of 5 seeds; 95% CI)**
+
+| held-out (prevalence) | B | random | M0 | M1 | M2 | oracle | M1-M0 | M2-M1 |
+|---|---|---|---|---|---|---|---|---|
+| A (10.9%) | 5% | 10.86 | 11.43 | 11.43 | 11.43 | 6.17 | 0.00 pt (no practical diff.) | 0.00 |
+| | 10% | 10.86 | 12.07 | 11.48 | 11.48 | 0.96 | **-0.59 [-0.99, -0.32]** reduces | 0.00 |
+| | 20% | 10.86 | 13.11 | 8.79 | 8.79 | 0.00 | **-4.32 [-5.15, -3.43]** reduces | 0.00 |
+| B (12.1%) | 5% | 12.12 | 12.76 | 12.76 | 12.75 | 7.49 | 0.00 (no practical diff.) | 0.00 |
+| | 10% | 12.12 | 13.47 | 13.34 | 13.39 | 2.35 | -0.12 [-0.49, 0.00] inconclusive | +0.05 (no practical diff.) |
+| | 20% | 12.12 | 15.09 | 13.66 | 13.77 | 0.00 | **-1.43 [-2.47, -0.45]** reduces | +0.11 [-0.01, 0.42] inconclusive |
+| C (42.9%) | 5% | 42.94 | 43.91 | 44.71 | 44.71 | 39.93 | **+0.80 [0.31, 1.25]** increases | 0.00 |
+| | 10% | 42.94 | 43.16 | 45.37 | 45.37 | 36.60 | **+2.21 [1.30, 3.06]** increases | 0.00 |
+| | 20% | 42.94 | 41.37 | 44.97 | 44.97 | 28.67 | **+3.61 [1.92, 5.27]** increases | 0.00 |
+| X supplement (0.9%) | 5/10/20% | 0.93 | 0.70/0.30/0.14 | 0.55/0.40/0.21 | same as M1 | 0 | -0.14 / +0.10 / +0.07 pt | 0.00 |
+
+(values in %; CIs of every cell are in `table3_referral.csv` / `summary_stage7.md`.) AURC (M0 / M1 / M2 / random / oracle): A 0.0550 / 0.0402 /
+0.0402 / 0.1086 / 0.0118; B 0.0813 / 0.0740 / 0.0748 / 0.1212 / 0.0150; C 0.2390 / 0.2653 / 0.2653 / 0.4294 / 0.1852; dAURC M1-M0:
+A -0.0147 (CI excludes 0), B -0.0073 (excludes 0), C +0.0263 (excludes 0).
+
+**Answer (generated from the numbers, negative-result-ready):** out-of-family, representation drift (M1) lowers the residual
+silent-failure rate relative to calibrated uncertainty (M0) only at the 20% budget on A (-4.32 pt, i.e. 33% fewer) and B (-1.43 pt) and at
+10% on A (-0.59 pt); at 5% it makes no practical difference, and on the strong-shortcut family C it INCREASES residual silent failures at
+every budget (+0.8 to +3.6 pt). **Explanation drift (M2) does not reduce residual silent failures at any budget on any family**
+(M2-M1 = 0.00 pt on A, C, X because its fusion weight is exactly 0; +0.05 / +0.11 pt, CI includes 0, on B). The seed jackknife keeps every sign.
+- **Why small budgets do nothing (structural, important):** a silent failure has confidence >= 0.90, whereas every uncertainty-based
+  ranking sends the LOW-confidence cases first. 19.3% (A) / 20.8% (B) of the pool has confidence < 0.9, so a 5% or 10% budget is spent
+  on already-visible cases: M0 captures 0.0% of silent failures at 5% and 10% on A and B (oracle: 46% and 92% at 5% / 10% on A), and
+  M0 referral leaves MORE residual silent failures than random (+0.6 to +3.0 pt on A, B; CI excludes 0). M0 does reduce the residual
+  ERROR rate (A at 20%: 13.1% vs 22.0% random) - it removes visible errors, not silent ones. M1 captures 35% (A) / 9% (B) of silent failures at
+  20%. Practical consequence: residual silent failures under a fixed budget are reduced by representation drift only when the budget is
+  large enough to exhaust the uncertain cases; M2 adds nothing.
+- **Family C (strong shortcut):** the confident errors look in-distribution on every signal (Phase 5 inversion), so ranking by M0 or M1
+  is no better than random for silent failures (M0 vs random: +0.97 pt at 5%, inconclusive at 10 / 20%; M1 +1.8 to +2.4 pt, inconclusive at 20%).
+- **Tiers:** the refer tier (top B/2) captures essentially no silent failures for M0 and M1 at B <= 10% on A and B (`tiers.csv`; the oracle's refer tier captures 21-23% of all silent failures at B = 5%).
+- **Secondary threshold transfer (Blueprint-literal; `threshold_transfer.csv`): all 36 cells fail the +-1 point workload check.**
+  Thresholds tuned on the pooled two tuning families give a realised workload of 0.0-0.7% on A (M1: 0.1 / 0.4 / 9.0% for B = 5 / 10 / 20%),
+  ~0.0% on B, 37-61% on C and 0.0-0.9% on X: score scales differ across families, the same threshold non-transfer found for window
+  statistics in Phase 6. Hence the primary protocol uses exact-budget ranking; transferred-threshold residual rates are not comparable
+  across methods and are reported only with their realised workloads.
+- **Sensitivities (BH within the family, `sensitivity.csv`):** M2-M1 is 0.00 pt or "no practical difference" in every variant (kNN M1, layer3 /
+  layer2 CAM, labels sf_095 / sf_tau, v1 shortcut, X). M1-M0 keeps its pattern: reduces at 20% on A and B (kNN +/- smaller: A -1.0 pt, B
+  -0.24 pt inconclusive; sf_095: A -2.9 pt), increases on C (layer3 / layer2 variants +0.8 to +3.6 pt; v1 shortcut +0.5 / +0.7 pt at 10 / 20%, inconclusive at 5%). With the degenerate sf_tau label
+  (every error counts) differences shrink to <= 0.6 pt. kNN on C reduces at 5% (-1.2 pt) and is inconclusive at 20%.
+- **Breakdowns (BH within each, `breakdowns.csv`; policy re-applied inside the level, 20% budget):** M1-M0 reduces residual silent failures
+  for 8 of 11 MedMNIST-C corruptions (largest: saturate -4.3, contrast_down -4.2, motion_blur -4.0 pt) and at severities 2-5
+  (-0.02 to -0.04), not at severity 1 or clean; on B for ood_c1 (-0.29) and ood_c2 (-0.52); on C it is worse in `removed` (+5.8 pt).
+- Caveats: pools differ in composition (prevalence 0.9% to 43%), so absolute residual rates compare methods within a family only; tie
+  groups at the budget boundary are at most 3.7% of the pool (C) and <= 0.6% elsewhere; no cost model was used.
+
 ## Fixed decisions
 - **Datasets / versions** (agreed with the group, do not change without asking): PathMNIST 128x128
   (MedMNIST v2), MedMNIST-C v0.1.0 (corruptions applied at 224, then resized to 128),
@@ -485,7 +547,8 @@ Card limits (`nvidia-smi -q -d TEMPERATURE`): target 87 C, slowdown 102 C, max o
 | 4 | Monitoring references, signals, frozen tau, validity checks | done |
 | 5 | Sample-level detection: frozen plan, M0/M1/M2 rotation, paired cluster bootstrap | done |
 | 6 | Batch-level monitoring: frozen plan + amendment, FAR check, power, delay | done |
-| 7-9 | Stages 7-9 of the roadmap | not started |
+| 7 | Referral policy: frozen plan, exact-budget ranking vs random / oracle, threshold-transfer check | done |
+| 8-9 | Stages 8-9 of the roadmap | not started |
 
 
 

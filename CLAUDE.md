@@ -54,6 +54,11 @@ rate under a fixed human-review budget? Full design: `ROADMAP_Shayan.md`
 - Stage 6 follows docs/batch_plan_frozen.md (931fb36) + amendment A1 (4ea78c3). Thresholds set on one source split (val_cal)
   do NOT transfer to another source split (id_test) for window-mean statistics (actual FAR 46/55 cells outside 3-7%): always
   report the actual FAR next to power, compare powers only at matched actual FAR (A1), and never rank statistics at unequal FAR.
+- Stage 7 follows docs/referral_plan_frozen.md (aa962a9). Primary referral protocol = EXACT-budget ranking (top B% of the held-out pool
+  by score; never transfer thresholds); compare methods only at equal workload against random and an oracle; verdict rule = CI excludes 0
+  AND |d| >= 0.1 pt. Silent failures need confidence >= 0.9, so uncertainty-first ranking spends small budgets (< ~19% of the pool) on
+  non-silent cases: always report the residual ERROR rate and SF capture next to the residual silent-failure rate. Blueprint-literal
+  transferred thresholds fail the +-1 point workload check (36/36); report realised workload with every threshold-based number.
 - Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are
