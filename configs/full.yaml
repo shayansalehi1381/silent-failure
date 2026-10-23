@@ -172,3 +172,13 @@ stage10:                                           # pre-registered in docs/exte
 stage11:                                           # Phase 11a: post-hoc / descriptive presentation additions (not pre-registered)
   cam_cases: {model: pathmnist_shortcutv2_seed0, condition: reversed, seed: 0, n_silent: 8, n_correct: 4, min_conf: 0.90}
   accepted_only: {bootstrap_B: 2000, accept_conf: 0.90}   # sensitivity: AUROC/AUPRC among accepted rows (calibrated confidence >= accept_conf)
+report:                                            # Phase 11b: PDF report + LaTeX source (scripts/build_pdf_report.py), written OUTSIDE the repo
+  export_dir: ../silent-failure-export             # relative to the repository root; nothing here is committed
+  pdf_name: Silent_failure_Shayan_report.pdf
+  latex_zip: report_latex_source.zip
+  author: Shayan Salehi
+  browsers:                                        # headless Chromium used to print the HTML version to PDF (first one found)
+    - chrome
+    - msedge
+    - C:/Program Files/Google/Chrome/Application/chrome.exe
+    - C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe
