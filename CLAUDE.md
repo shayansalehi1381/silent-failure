@@ -69,6 +69,8 @@ rate under a fixed human-review budget? Full design: the frozen plans in `docs/`
   never replacing M0/M1/M2; the ensemble for seed unit s excludes s (leave-seed-out).
 - Phase 11a items (RQ answers, evidence map, excluded-benefit bounds, accepted-rows-only sensitivity, CAM case study) are post-hoc / descriptive and labelled so; the primary
   population stays ALL deployed rows; they never change an earlier number.
+- After ANY change to sfd/, scripts/, tests/, configs/ or requirements.txt: `git add` new files, rebuild (`python scripts/build_report_notebook.py`) and re-execute the notebook;
+  tests/test_notebook_source.py checks that Appendix C matches the repo.
 - Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are

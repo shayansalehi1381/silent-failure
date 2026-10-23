@@ -39,6 +39,7 @@ This notebook is the single final report. It **reads saved results only** (small
 minutes. The heavy pipeline that produced these files is in `sfd/` and `scripts/` (see Section 14).
 
 ## Contents
+0a. [How to reproduce (quick check, full re-run, per-row-array analyses, result-to-script map)](#s0a)
 0. [How to read this notebook, glossary, executive summary, main findings](#s0)
 0b. [Answers to the research questions](#s0b)
 1. [Problem and definitions](#s1)
@@ -61,6 +62,7 @@ minutes. The heavy pipeline that produced these files is in `sfd/` and `scripts/
 14. [Reproducibility](#s14)
 - [Appendix A: all remaining tables](#sA)
 - [Appendix B: file index](#sB)
+- [Appendix C: complete source code (every module, script, config and test)](#sC)
 """)
 
 md(r"""
@@ -198,6 +200,59 @@ print("setup ok; results folder:", OUT)
 """)
 
 # =====================================================================================================================
+
+md(r"""
+<a id="s0a"></a>
+## 0a. How to reproduce
+All commands run from the repository root. Everything in this notebook is read from small committed files; the heavy pipeline that produced them is in `sfd/` and `scripts/`
+(full source in Appendix C).
+
+**A. Quick check (about 20 s, no data, no GPU).**
+1. `git clone https://github.com/shayansalehi1381/silent-failure.git && cd silent-failure`
+2. Create a Python 3.11 environment and install the pinned packages: `pip install -r requirements.txt` (the notebook itself needs only pandas, matplotlib, numpy and jupyter; PyTorch is not needed).
+3. `jupyter nbconvert --to notebook --execute --inplace silent_failure_report.ipynb` (the saved outputs are replaced by a fresh run that reads `outputs/` and `docs/`).
+
+**B. Full re-run from the raw data (needs a CUDA GPU; Windows 11 / RTX 3060 Laptop 6 GB in the original run).**
+1. Environment: `pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128`, then `pip install -r requirements.txt`; `medmnistc` and `Wand` with `--no-deps`, ImageMagick 7 as a system install (family A corruptions).
+2. Data (downloaded automatically into `data/` by stage 1 when absent; about 35 GB in total together with the caches): PathMNIST 128 px (`data/pathmnist_128.npz`, 4.3 GB) and the 224 px version used for MedMNIST-C (`data/pathmnist_224.npz`, 12 GB); the Camelyon17-WILDS v1.0 patches from the Hugging Face mirror
+   `wltjr1007/Camelyon17-WILDS` (about 10 GB of transfer; extracted subset `data/camelyon17_subset_96.npz`, 1.8 GB); training caches `data/classifier_cache` (6.7 GB) and `data/stage3_cache` (8.2 GB).
+3. Commands, in order (each stage is resumable with `--resume` and writes `outputs/stage<N>/`):
+   `python scripts/env_record.py --config configs/full.yaml` ; `python scripts/run_all.py --config configs/full.yaml` (data, frozen splits, leakage audit, source classifiers with temperature scaling) ;
+   `python scripts/run_stage3.py --config configs/full.yaml --steps sample,shortcut,corrupt,inferA,tables` (shift families, shortcut models) ;
+   `python scripts/run_stage4.py --config configs/full.yaml` (references and per-image signals) ;
+   `python scripts/run_stage5.py --config configs/full.yaml` ; `python scripts/run_stage6.py --config configs/full.yaml --steps extract,windows,analysis,windows_a1,analysis_a1` ;
+   `python scripts/run_stage7.py --config configs/full.yaml` ; `python scripts/run_stage8.py --config configs/full.yaml` ; extensions: `python scripts/run_stage10.py --config configs/full.yaml` ;
+   Phase 11a: `python scripts/run_stage11.py --config configs/full.yaml` and `python scripts/make_cam_cases.py --config configs/full.yaml` ; `python scripts/export_reliability_bins.py --config configs/full.yaml` ;
+   finally `python scripts/build_report_notebook.py` and `jupyter nbconvert --to notebook --execute --inplace silent_failure_report.ipynb`.
+4. Approximate cost (measured, original machine): classifier training about 104 min (PathMNIST, 5 seeds) + 18 min (Camelyon); shortcut models 10 runs of 22-28 min; corruption generation about 25 min; Grad-CAM signal and window extraction minutes; CPU analyses 53 min (Phase 5), 26 min (Phase 7), 143 min (Phase 8), 16 min (Phase 10), 12 min (Phase 11a). Disk: `data/` about 35 GB and `outputs/` about 13 GB (checkpoints, per-image arrays).
+5. Git-ignored on purpose (size, licence or because they are regenerated): `data/`, model checkpoints (`*.pt`), `*.npz` arrays, `outputs/**/*.parquet` (per-image signal tables), logs. Only small CSV / JSON / PNG / Markdown results are committed. A frozen plan commit hash is recorded in each `docs/*_frozen.md`.
+
+**C. Analyses that need the local per-row arrays.** The post-hoc accepted-rows-only sensitivity (Section 6b), the leave-seed-out ensemble (Section 10b) and the Grad-CAM case-study figure (Figure 7b) were computed from git-ignored per-image arrays
+(`outputs/stage4/monitoring.parquet`, `outputs/stage6/rows/*.npz`); only their summary CSVs / PNG are committed (`outputs/stage11/`, `outputs/stage10/`), so the notebook reproduces their tables and text but not the underlying computation without the full pipeline.
+
+**D. Where each result comes from.**
+""")
+
+code(r"""
+MAP = [
+ ("Dataset sizes, splits, leakage audit (Section 2)", "Table S1, dedup / leakage tables", "outputs/stage1/", "scripts/run_all.py -> sfd/data/stage1.py"),
+ ("Classifier accuracy and calibration (Section 4)", "Table 1, Figure S3", "outputs/stage2/", "scripts/run_all.py (stage 2) -> sfd/stage2.py; scripts/export_reliability_bins.py"),
+ ("Behaviour under shift (Section 5)", "Figure 2, family tables", "outputs/stage3/", "scripts/run_stage3.py -> sfd/stage3.py, sfd/corrupt.py, sfd/shortcut.py"),
+ ("References and per-image signals", "Section 11 cue mass, dose response", "outputs/stage4/", "scripts/run_stage4.py -> sfd/stage4.py, sfd/signals/"),
+ ("Representation drift helps on A and B, hurts on C; explanation drift adds nothing as a monotone alarm", "Figures 3-4, Table 2", "outputs/stage5/", "scripts/run_stage5.py -> sfd/stage5.py (plan docs/analysis_plan_frozen.md)"),
+ ("Batch FAR check failed; power and delay at matched FAR", "Figure 5, FAR tables", "outputs/stage6/, outputs/stage6/a1/", "scripts/run_stage6.py -> sfd/stage6.py (plans docs/batch_plan_frozen.md, amendment A1)"),
+ ("Uncertainty-first referral misses silent failures at small budgets", "Figure 6, Table 3, threshold transfer", "outputs/stage7/", "scripts/run_stage7.py -> sfd/stage7.py (plan docs/referral_plan_frozen.md)"),
+ ("Sign-free CAM drift reduces residual silent failures on A and C; ablations G1-G9", "Figures 8a-8c, ablation tables", "outputs/stage8/", "scripts/run_stage8.py -> sfd/stage8.py (plan docs/ablation_plan_frozen.md)"),
+ ("Confidence-gated ranking (exploratory, post-hoc)", "Figure 8d, exploratory table", "outputs/stage8/tables/exploratory_targeted.csv", "scripts/run_stage8.py -> sfd/stage8.py"),
+ ("Deep-ensemble baseline (extension)", "Figure 10, E1 tables", "outputs/stage10/", "scripts/run_stage10.py -> sfd/stage10.py (plan docs/extension_plan_frozen.md)"),
+ ("Accepted-rows-only sensitivity (post-hoc)", "Section 6b table", "outputs/stage11/accepted_only.csv", "scripts/run_stage11.py -> sfd/stage11.py"),
+ ("Qualitative Grad-CAM case study (post-hoc)", "Figure 7b", "outputs/stage11/figures/fig7b_cam_cases.png", "scripts/make_cam_cases.py"),
+ ("Research-question answers, evidence map, excluded-benefit bounds (post-hoc)", "Sections 0b, 10c, 10d", "computed in the notebook from the tables above", "scripts/build_report_notebook.py"),
+]
+show(pd.DataFrame(MAP, columns=["claim / result", "table or figure in this notebook", "saved results", "script that produces it"]),
+     "Map: result -> table / figure -> saved files -> script", keep=True)
+say("**What this shows:** every number in the notebook comes from a saved file under `outputs/`; the script that generated each file is named, and the complete source of every script and module is in Appendix C.")
+""")
 md(r"""
 <a id="s0"></a>
 ## 0. How to read this notebook
@@ -1835,6 +1890,53 @@ idx["size (KB)"] = [round((ROOT / f).stat().st_size / 1024, 1) for f in idx.file
 show(idx, "Files read by this notebook")
 print(f"notebook executed in {time.time() - T_START:.0f} s")
 """)
+
+
+
+# ======================================================================================================================
+# Appendix C: complete source code (generated from the files in the repo; embedded as hidden markdown cells, never executed)
+import ast
+import subprocess
+
+
+def _embedded_files() -> list[str]:
+    tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, timeout=30, check=True).stdout.split("\n")
+    keep = [f for f in tracked if (f.startswith(("sfd/", "scripts/", "tests/")) and f.endswith(".py")) or f.startswith("configs/") or f == "requirements.txt"]
+    return sorted(f for f in keep if (ROOT / f).exists())
+
+
+def _purpose(path: str, text: str) -> str:
+    if path.endswith(".py"):
+        doc = ast.get_docstring(ast.parse(text.lstrip(chr(0xFEFF)))) or ""
+        first = next((ln.strip() for ln in doc.split("\n") if ln.strip()), "")
+        return (first[:117] + "...") if len(first) > 120 else (first or "package marker (no code)")
+    return {"requirements.txt": "pinned Python packages", "configs/full.yaml": "main configuration: all paths and hyperparameters of every stage",
+            "configs/smoke.yaml": "tiny configuration for the end-to-end smoke test",
+            "configs/camelyon_assignment_phase1b_rank1.json": "frozen Camelyon patient-to-split assignment (Phase 1b rank 1)"}.get(path, "configuration")
+
+
+files = _embedded_files()
+src_text = {f: (ROOT / f).read_bytes().decode("utf-8").replace("\r\n", "\n") for f in files}
+nlines = {f: src_text[f].count("\n") + (0 if src_text[f].endswith("\n") or not src_text[f] else 1) for f in files}
+md("""
+<a id="sC"></a>
+## Appendix C: complete source code
+Generated by `scripts/build_report_notebook.py` from the tracked files (never edited by hand); line endings normalised to LF. Each file is in a collapsed markdown cell (expand it to read);
+nothing here is executed. `tests/test_notebook_source.py` checks that every embedded file is identical to the file in the repository, so this appendix cannot go stale.
+
+| file | purpose | lines |
+|---|---|---|
+""" + "\n".join(f"| `{f}` | {_purpose(f, src_text[f]).replace('|', '/')} | {nlines[f]:,} |" for f in files) + f"\n| **total ({len(files)} files)** | | **{sum(nlines.values()):,}** |")
+for f in files:
+    text = src_text[f]
+    run = max([len(r) for r in __import__("re").findall(r"`+", text)] or [0])
+    fence = "`" * max(3, run + 1)
+    lang = "python" if f.endswith(".py") else "yaml" if f.endswith(".yaml") else "json" if f.endswith(".json") else "text"
+    md(f"#### `{f}` ({nlines[f]:,} lines)")
+    body = text if text.endswith("\n") else text + "\n"
+    cell = nbf.v4.new_markdown_cell(f"{fence}{lang}\n{body}{fence}")
+    cell["metadata"] = {"embedded_file": f, "eof_newline": text.endswith("\n"), "jupyter": {"source_hidden": True}, "collapsed": True}
+    cells.append(cell)
 
 nb = nbf.v4.new_notebook()
 nb["cells"] = cells
