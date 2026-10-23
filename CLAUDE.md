@@ -67,6 +67,8 @@ rate under a fixed human-review budget? Full design: the frozen plans in `docs/`
   per-row arrays, data or weights. Every number in its text is computed from a saved table; keep exploratory results in their own section.
 - Stage 10 (docs/extension_plan_frozen.md, 6e6f05c): ensemble baseline and source-vs-shifted analysis are post-hoc EXTENSIONS, labelled as such,
   never replacing M0/M1/M2; the ensemble for seed unit s excludes s (leave-seed-out).
+- Phase 11a items (RQ answers, evidence map, excluded-benefit bounds, accepted-rows-only sensitivity, CAM case study) are post-hoc / descriptive and labelled so; the primary
+  population stays ALL deployed rows; they never change an earlier number.
 - Family C primary = v2 (100% cue, 16 px; chosen by the pre-registered pilot on val_es); v1 (95%) is the supplement.
 - Stage 3: family A = all 11 MedMNIST-C PathMNIST corruptions, applied at 224 px then PIL-bilinear resize to 128 px
   (exact match to the stored data); one fixed 3,000-image id_test sample for all conditions. `medmnistc` and `Wand` are

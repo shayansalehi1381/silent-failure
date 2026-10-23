@@ -40,17 +40,21 @@ minutes. The heavy pipeline that produced these files is in `sfd/` and `scripts/
 
 ## Contents
 0. [How to read this notebook, glossary, executive summary, main findings](#s0)
+0b. [Answers to the research questions](#s0b)
 1. [Problem and definitions](#s1)
 2. [Data, splits and shift families](#s2)
 3. [Methods](#s3)
 4. [Classifier performance and calibration (Table 1)](#s4)
 5. [Behaviour under shift (Figure 2)](#s5)
 6. [Sample-level detection (Figures 3-4, Table 2)](#s6)
+6b. [Population sensitivity: all rows vs accepted rows (post-hoc)](#s6b)
 7. [Batch (window) monitoring (Figure 5)](#s7)
 8. [Referral policy under a review budget (Figure 6, Table 3)](#s8)
 9. [Ablations and sensitivity (Figure 8)](#s9)
 10. [EXPLORATORY, POST-HOC: targeted (confidence-gated) fusion](#s10)
 10b. [Extensions (post-hoc): deep-ensemble baseline and in-family vs out-of-family](#sx)
+10c. [Evidence map across all endpoints (post-hoc)](#sxc)
+10d. [How large a benefit can still be excluded (post-hoc)](#sxd)
 11. [Shortcut case study (Figure 7)](#s11)
 12. [Blueprint compliance checklist and deviations](#s12)
 13. [Honest limitations](#s13)
@@ -64,7 +68,8 @@ md(r"""
 > was added afterwards as a post-hoc extension, Section 10b); (3) Grad-CAM alternatives (Grad-CAM++, ScoreCAM, Integrated Gradients);
 > (4) a within-family tuned in-family vs out-of-family comparison (only source-vs-shifted and in-sample evidence, Section 10b);
 > (5) the artefact-patch (non-tissue) removal ablation in Camelyon. They are listed as DEVIATIONS in Section 12; no result in the
-> main sections depends on them.
+> main sections depends on them. (Added in Phase 11a as post-hoc / descriptive items, no longer gaps: qualitative Grad-CAM examples, Section 11; accepted-rows-only
+> sensitivity, Section 6b; evidence map and excluded-benefit bounds, Sections 10c-10d.)
 """)
 
 code(r"""
@@ -352,6 +357,56 @@ say("**What this shows:** the robust pre-registered results are mixed: relative 
 """)
 
 # =====================================================================================================================
+
+md(r"""
+<a id="s0b"></a>
+## 0b. Answers to the research questions
+> Numbers below are read from the saved tables of the sections referenced; evidential status is stated for each. "Single-model" = one-seed
+> uncertainty (M0); "ensemble" = the post-hoc 4-seed deep-ensemble baseline of Section 10b.
+""")
+
+code(r"""
+def pt(r, d=2): return rc(r, d, 100)
+_ao = rd("stage11/accepted_only.csv")
+_a = one(_ao[_ao.kind == "contrast"], heldout="A", quantity="sf_M2-sf_M1", metric="dauroc")
+_c = one(_ao[_ao.kind == "contrast"], heldout="C", quantity="sf_M2-sf_M1", metric="dauroc")
+RQ = [
+ ("RQ1. Does representation drift (Mahalanobis, M1) detect silent failures beyond calibrated uncertainty, out-of-family?",
+  f"vs single-model M0: dAUROC A {rc(t2r('A','M1-M0','dAUROC'))}, B {rc(t2r('B','M1-M0','dAUROC'))}, C {rc(t2r('C','M1-M0','dAUROC'))}; "
+  f"vs the 4-seed ensemble (20% budget, residual SF): B {e20('B','M1-E_fuse')} pt, C {e20('C','M1-E_fuse')} pt (worse), A {e20('A','M1-E_fuse')} pt",
+  "moderate (helps vs a single model on A and B, not vs an ensemble; harmful on C)"),
+ ("RQ2. Does Grad-CAM explanation drift (M2) add beyond representation drift?",
+  f"monotone M2 - M1 dAUROC: A {rc(t2r('A','M2-M1','dAUROC'),4)}, B {rc(t2r('B','M2-M1','dAUROC'),4)}, C {rc(t2r('C','M2-M1','dAUROC'),4)}; "
+  f"sign-free P2 (residual SF, 10%): A {g8('A','sf_M2-sf_M1',0.1).estimate*100:+.2f} pt, C {g8('C','sf_M2-sf_M1',0.1).estimate*100:+.2f} pt, B {g8('B','sf_M2-sf_M1',0.1).estimate*100:+.2f} pt",
+  "none as a monotone alarm (strong negative result); moderate for the sign-free variant (pre-registered ablation, mechanism untested)"),
+ ("RQ3. Do batch (window) monitors detect silently failed windows beyond mean uncertainty?",
+  f"FAR check failed ({nfar_pre}/{ncell} cells outside 3-7%); at matched FAR (A1): MMD - u_mean on B {rc6(c6r(c6a,'B','r_mmd','u_mean'))}, "
+  f"on A {rc6(c6r(c6a,'A','r_mmd','u_mean'))}; CAM - MMD on C {rc6(c6r(c6a,'C','e_cam_l4','r_mmd','shortcutv2'))}; combined - u_mean on A {rc6(c6r(c6a,'A','comb','u_mean'))}",
+  "weak (only MMD on new hospitals beats mean uncertainty; thresholds do not transfer; A1 is post-freeze)"),
+ ("RQ4. Do they lower the residual silent-failure rate under a fixed review budget?",
+  f"M1 - M0 residual SF at 20%: A {pt(t3r('A','M1-M0','dresid_sf',0.2))} pt, B {pt(t3r('B','M1-M0','dresid_sf',0.2))} pt, C {pt(t3r('C','M1-M0','dresid_sf',0.2))} pt; "
+  f"at 5%: A {pt(t3r('A','M1-M0','dresid_sf',0.05))} pt (no effect); M0 - random at 5% on A {pt(t3r('A','M0-random','dresid_sf',0.05))} pt",
+  "weak (only at a 20% budget; no effect at 5%; harmful on the shortcut; vanishes vs an ensemble)"),
+]
+show(pd.DataFrame(RQ, columns=["research question", "headline result [95% CI]", "strength of evidence"]), "Synthesis: research questions, headline results and strength of evidence", keep=True)
+say(f'''
+**RQ1.** Relative to single-model uncertainty, adding Mahalanobis drift improves detection of silent failures on corrupted images
+({rc(t2r('A','M1-M0','dAUROC'))}) and new hospitals ({rc(t2r('B','M1-M0','dAUROC'))}) but lowers it on the strong shortcut ({rc(t2r('C','M1-M0','dAUROC'))}). The gain is
+larger at high severity (Section 9, G7). Against a 4-seed ensemble (post-hoc extension) the advantage disappears on B and C and is inconclusive on A, while
+Mahalanobis added to the ensemble still helps on A and B. Evidence: moderate.
+
+**RQ2.** As a monotone (non-negative) alarm, explanation drift adds nothing: M2 - M1 is zero on A and C and {rc(t2r('B','M2-M1','dAUROC'),4)} on B. In-sample, CAM drift carries
+information but with a negative coefficient (Section 10b, E2), and a pre-registered sign-free fusion turns it into a benefit on A and C (P2). Evidence: strong for "no benefit as a monotone alarm",
+moderate for the sign-free benefit; the explanation (confident errors look typical) is a hypothesis. Caveat (post-hoc sensitivity, Section 6b): among accepted rows only, the sign-free AUROC change is {ci(_a.estimate, _a.ci_low, _a.ci_high, 3, 1, True)} on A and {ci(_c.estimate, _c.ci_low, _c.ci_high, 3, 1, True)} on C, so that benefit is not uniform across populations.
+
+**RQ3.** The pre-registered batch FAR check failed, so power could not be compared across statistics at the pre-registered thresholds. At matched FAR (amendment A1, post-freeze) MMD beats mean
+uncertainty only on the new hospitals ({rc6(c6r(c6a,'B','r_mmd','u_mean'))}); window CAM drift beats MMD only where MMD is blind (shortcut C), and the combined monitor never beats mean uncertainty. Evidence: weak.
+
+**RQ4.** Uncertainty-first referral leaves more silent failures than random review at a 5% budget ({pt(t3r('A','M0-random','dresid_sf',0.05))} pt on A). M1 reduces the residual rate only at a 20% budget
+(A {pt(t3r('A','M1-M0','dresid_sf',0.2))} pt, B {pt(t3r('B','M1-M0','dresid_sf',0.2))} pt) and raises it on C ({pt(t3r('C','M1-M0','dresid_sf',0.2))} pt); M2 adds nothing. A confidence-gated ranking
+(exploratory, post-hoc) cuts residual silent failures substantially on A and B. Evidence: weak for the pre-registered detectors, exploratory for gating.
+''')
+""")
 md(r"""
 <a id="s1"></a>
 ## 1. Problem and definitions
@@ -774,6 +829,52 @@ say(f"**What this shows:** within the reversed state every signal is far below 0
 """)
 
 # =====================================================================================================================
+
+md(r"""
+<a id="s6b"></a>
+## 6b. Population sensitivity: all rows vs accepted rows only (post-hoc / descriptive)
+The primary population is **all deployed rows** (Blueprint 5.1, "among deployed images"; Sections 6-8). As a sensitivity analysis the same detectors, fusion weights and bootstrap are evaluated on
+**accepted rows only** (calibrated confidence >= 0.90, the acceptance rule behind `sf_090`; the Blueprint 95%-precision threshold is degenerate here). Among accepted rows silent failures are the only
+errors, so the question becomes: can a monitor separate silent failures from confident correct predictions? Nothing is retrained; the accepted-only numbers are recomputed from the saved per-row signals
+(`outputs/stage11/accepted_only.csv`, git-tracked summary), the all-rows numbers are the saved Phase 5 / Phase 8 tables. The primary stays "all rows".
+""")
+
+code(r"""
+ao = rd("stage11/accepted_only.csv")
+g2l = G["G2"]; g2l = g2l[g2l.level_col.isna()]
+def lvl_all(H, q, m):
+    if q in ("M0", "M1", "M2"):
+        return one(t2, heldout=H, quantity=q, metric=m.upper())
+    return one(g2l[g2l.kind == "level"], heldout=H, quantity=q, metric=m)
+def con_all(H, q, m):
+    if q in ("M1-M0", "M2-M1"):
+        return one(t2, heldout=H, quantity=q, metric="d" + m.upper())
+    return one(g2l[g2l.kind == "contrast"], heldout=H, quantity=q, metric="d" + m)
+def lvl_acc(H, q, m): return one(ao[ao.kind == "level"], heldout=H, quantity=q, metric=m)
+def con_acc(H, q, m): return one(ao[ao.kind == "contrast"], heldout=H, quantity=q, metric="d" + m)
+rows = []
+for H in "ABC":
+    for m in ("auroc", "auprc"):
+        for pop, lv_, cn_ in (("all rows (primary)", lvl_all, con_all), ("accepted rows only (sensitivity)", lvl_acc, con_acc)):
+            r = {"held-out family": H, "metric": m.upper(), "population": pop}
+            r["SF prevalence"] = round(float(lv_(H, "M0", m)["sf_rate" if pop.startswith("all") else "prevalence"]), 4)
+            for q in ("M0", "M1", "M2", "sf_M2"):
+                d = lv_(H, q, m); r[q.replace("sf_M2", "sign-free M2")] = ci(d.estimate, d.ci_low, d.ci_high, 3, 1, False)
+            for q, lab in (("M1-M0", "M1 - M0"), ("M2-M1", "M2 - M1"), ("sf_M2-sf_M1", "sign-free M2 - M1")):
+                d = cn_(H, q, m); r[lab + " [95% CI]"] = ci(d.estimate, d.ci_low, d.ci_high, 3, 1, True)
+            rows.append(r)
+pop = pd.DataFrame(rows)
+show(pop, "Population sensitivity: AUROC and AUPRC of silent-failure detection on all rows (primary) vs accepted rows only (confidence >= 0.90), held-out-family rotation, 5 seeds", keep=True)
+sh = ao[["heldout", "accepted_share"]].drop_duplicates().set_index("heldout").accepted_share
+say(f"**What this shows (post-hoc / descriptive):** accepted rows are {100*sh['A']:.0f}% (A), {100*sh['B']:.0f}% (B) and {100*sh['C']:.0f}% (C) of the pools. On accepted rows M1 - M0 dAUROC is "
+    f"{ci(con_acc('A','M1-M0','auroc').estimate, con_acc('A','M1-M0','auroc').ci_low, con_acc('A','M1-M0','auroc').ci_high, 3, 1, True)} (A; all rows {rc(con_all('A','M1-M0','auroc'))}), "
+    f"{ci(con_acc('B','M1-M0','auroc').estimate, con_acc('B','M1-M0','auroc').ci_low, con_acc('B','M1-M0','auroc').ci_high, 3, 1, True)} (B) and "
+    f"{ci(con_acc('C','M1-M0','auroc').estimate, con_acc('C','M1-M0','auroc').ci_low, con_acc('C','M1-M0','auroc').ci_high, 3, 1, True)} (C). Sign-free M2 - M1 dAUROC on accepted rows: "
+    f"A {ci(con_acc('A','sf_M2-sf_M1','auroc').estimate, con_acc('A','sf_M2-sf_M1','auroc').ci_low, con_acc('A','sf_M2-sf_M1','auroc').ci_high, 3, 1, True)}, "
+    f"C {ci(con_acc('C','sf_M2-sf_M1','auroc').estimate, con_acc('C','sf_M2-sf_M1','auroc').ci_low, con_acc('C','sf_M2-sf_M1','auroc').ci_high, 3, 1, True)} "
+    "(derived from saved Phase 8 tables for all rows and recomputed with the same weights for accepted rows). The primary population remains all rows; accepted-only is a sensitivity analysis, and AUPRC baselines differ "
+    "because the prevalence of silent failures is higher among accepted rows.")
+""")
 md(r"""
 <a id="s7"></a>
 ## 7. Batch (window) monitoring (Phase 6; plan `docs/batch_plan_frozen.md`, commit 931fb36; amendment A1, commit 4ea78c3)
@@ -1307,12 +1408,102 @@ say(f"**What this shows (EXTENSION):** inside the family, CAM drift carries sign
     "evidence about information content, not a within-family generalisation estimate.")
 """)
 
+
+md(r"""
+<a id="sxc"></a>
+## 10c. Evidence map across all endpoints (post-hoc / descriptive)
+Every paired-bootstrap contrast of the two components in the saved tables is classified by one fixed rule: the 95% CI **excludes 0 in the favourable direction** = *improves*;
+**excludes 0 in the unfavourable direction** = *worsens*; otherwise *no detectable effect*. Favourable = higher for dAUROC, dAUPRC and window power; lower for dAURC and the residual silent-failure rate.
+Components: **representation** (M1 - M0; MMD - u_mean; ensemble extension E-M1 - E-fuse) and **explanation** (M2 - M1; sign-free M2 - M1; CAM drift - MMD; CAM layer/form variants).
+Counting uses the strict rule; the last column counts classified cells whose effect is below a practical margin (0.1 pt residual rate / dAURC, 0.005 AUROC / AUPRC, 1 pt power).
+""")
+
+code(r"""
+LOWER = {"daurc", "dresid_sf"}
+MARGIN = {"daurc": 0.001, "dresid_sf": 0.001, "dauroc": 0.005, "dauprc": 0.005, "power": 0.01}
+ev = []
+def add(df, component, source, status, est="estimate", fam="heldout", metric="metric", metric_fix=None, budget="budget"):
+    for _, r in df.iterrows():
+        m = metric_fix or str(r[metric]).lower()
+        ev.append({"component": component, "source": source, "status": status, "family": r[fam], "metric": m,
+                   "budget": r[budget] if budget in df.columns else np.nan, "est": r[est], "lo": r["ci_low"], "hi": r["ci_high"]})
+comp5 = {"M1-M0": "representation", "M2-M1": "explanation"}
+for q, comp in comp5.items():
+    add(t2[(t2.quantity == q) & t2.metric.isin(["dAUROC", "dAUPRC", "dAURC"])], comp, "Phase 5 sample level (dAUROC, dAUPRC, dAURC)", "pre-registered primary", budget="none")
+    add(t3[(t3.quantity == q) & (t3.metric == "dresid_sf")], comp, "Phase 7 referral (residual SF at 5/10/20%)", "pre-registered primary")
+for H, k in (("A", "standard"), ("B", "standard"), ("C", "shortcutv2"), ("X", "standard")):
+    for (a_, b_), comp in ((("r_mmd", "u_mean"), "representation"), (("e_cam_l4", "r_mmd"), "explanation")):
+        r = c6r(c6, H, a_, b_, k)
+        ev.append({"component": comp, "source": "Phase 6 batch power on silent windows (pre-registered thresholds)", "status": "pre-registered primary", "family": H,
+                   "metric": "power", "budget": np.nan, "est": r["diff"], "lo": r["ci_low"], "hi": r["ci_high"]})
+g2 = G["G2"]; g2 = g2[(g2.kind == "contrast") & g2.level_col.isna() & (g2.quantity == "sf_M2-sf_M1") & g2.metric.isin(["dresid_sf", "dauroc", "dauprc", "daurc"])]
+add(g2, "explanation", "Phase 8 sign-free M2 - M1 (P2)", "pre-registered primary")
+g3 = G["G3"]; g3 = g3[(g3.kind == "contrast") & g3.level_col.isna() & (g3.metric == "dresid_sf") & g3.quantity.str.contains(r"M1\+") & g3.quantity.str.endswith("M1")]
+add(g3, "explanation", "Phase 8 CAM layer/form variants (residual SF)", "secondary")
+x10 = t10_[(t10_.kind == "contrast") & (t10_.quantity == "E_M1-E_fuse") & t10_.metric.isin(["dresid_sf", "dauroc", "dauprc", "daurc"])]
+add(x10, "representation", "Phase 10 Mahalanobis added to the ensemble", "extension (post-hoc)")
+EV = pd.DataFrame(ev)
+EV["favourable_low"] = EV.metric.isin(LOWER)
+better = np.where(EV.favourable_low, EV.hi < 0, EV.lo > 0); worse = np.where(EV.favourable_low, EV.lo > 0, EV.hi < 0)
+EV["class"] = np.where(better, "improves", np.where(worse, "worsens", "no detectable effect"))
+EV["negligible"] = (EV["class"] != "no detectable effect") & (EV.est.abs() < EV.metric.map(MARGIN))
+EV["unit"] = np.where(EV.metric.isin(["dresid_sf", "power"]), "pt", "units")
+sc_ = np.where(EV.metric.isin(["dresid_sf", "power"]), 100.0, 1.0)
+EV["benefit bound"] = np.where(EV.favourable_low, -EV.lo, EV.hi) * sc_            # largest benefit not excluded by the CI (pt for rates / power)
+cnt = EV.groupby(["component", "source", "status"])["class"].value_counts().unstack(fill_value=0).reindex(columns=["improves", "no detectable effect", "worsens"], fill_value=0)
+cnt["cells"] = cnt.sum(1); cnt["classified but below practical margin"] = EV.groupby(["component", "source", "status"]).negligible.sum()
+show(cnt.reset_index(), "Evidence map: number of endpoint cells by paired-CI outcome, per component and source", keep=True)
+tot = EV.groupby("component")["class"].value_counts().unstack(fill_value=0).reindex(columns=["improves", "no detectable effect", "worsens"], fill_value=0)
+tot["cells"] = tot.sum(1)
+show(tot.reset_index(), "Evidence map: totals per component (all sources)", keep=True)
+fig, ax = plt.subplots(1, 2, figsize=(14, 4.4), gridspec_kw={"width_ratios": [1.6, 1]})
+c_ = cnt.reset_index(); lab = [f"{r.component}: {r.source}" for r in c_.itertuples()]
+left = np.zeros(len(c_))
+for k, col in (("improves", OI["green"]), ("no detectable effect", OI["grey"]), ("worsens", OI["vermillion"])):
+    ax[0].barh(range(len(c_)), c_[k], left=left, color=col, label=k); left += c_[k].to_numpy()
+ax[0].set_yticks(range(len(c_))); ax[0].set_yticklabels(lab, fontsize=7); ax[0].invert_yaxis(); ax[0].set_xlabel("endpoint cells"); ax[0].legend(fontsize=7, ncol=3)
+fam_ = EV.groupby(["component", "family"])["class"].value_counts().unstack(fill_value=0).reindex(columns=["improves", "no detectable effect", "worsens"], fill_value=0).reset_index()
+bl = np.zeros(len(fam_))
+for k, col in (("improves", OI["green"]), ("no detectable effect", OI["grey"]), ("worsens", OI["vermillion"])):
+    ax[1].bar(range(len(fam_)), fam_[k], bottom=bl, color=col); bl += fam_[k].to_numpy()
+ax[1].set_xticks(range(len(fam_))); ax[1].set_xticklabels([f"{c[:4]}.\n{f}" for c, f in zip(fam_.component, fam_.family)], fontsize=7); ax[1].set_ylabel("endpoint cells")
+ax[1].set_title("by family (rep. = representation, expl. = explanation)", fontsize=8)
+plt.tight_layout(); plt.show()
+n_imp, n_wor = int((EV["class"] == "improves").sum()), int((EV["class"] == "worsens").sum())
+figcap("11", "Evidence map (post-hoc / descriptive): number of paired-bootstrap endpoint cells whose 95% CI excludes 0 favourably (improves), unfavourably (worsens) or not at all, per component and source (left) and per family (right).",
+       f"of {len(EV)} cells, {n_imp} improve and {n_wor} worsen; explanation drift: {int(((EV.component=='explanation')&(EV['class']=='improves')).sum())} improve / {int(((EV.component=='explanation')&(EV['class']=='worsens')).sum())} worsen "
+       f"(monotone Phase 5 and Phase 7 cells: {int(((EV.component=='explanation')&EV.source.str.startswith(('Phase 5','Phase 7'))&(EV['class']=='improves')).sum())} improve); representation: {int(((EV.component=='representation')&(EV['class']=='improves')).sum())} improve / {int(((EV.component=='representation')&(EV['class']=='worsens')).sum())} worsen.")
+say(f"**What this shows (post-hoc / descriptive):** the favourable cells for explanation drift come almost entirely from the sign-free ablation (P2) and layer/form variants, not from the pre-registered monotone detectors; "
+    f"{int(EV.negligible.sum())} of the {n_imp + n_wor} classified cells have effects below the practical margin. Note that the CAM layer/form variants contribute {int((EV.source.str.contains('layer/form')).sum())} of the {int((EV.component=='explanation').sum())} explanation cells.")
+""")
+
+md(r"""
+<a id="sxd"></a>
+## 10d. How large a benefit can still be excluded (post-hoc / descriptive)
+For every endpoint cell of Section 10c whose CI **includes 0** (no detectable effect), the upper end of the favourable side of the CI is the **largest benefit the data do not exclude**
+(dAUROC / dAUPRC in AUROC units; residual-rate and power differences in percentage points; for dAURC and residual rates the benefit is the largest reduction, i.e. minus the lower CI end).
+""")
+
+code(r"""
+nd = EV[EV["class"] == "no detectable effect"].copy()
+nd["endpoint"] = nd.metric.map({"dauroc": "dAUROC", "dauprc": "dAUPRC", "daurc": "dAURC (reduction)", "dresid_sf": "residual SF rate (reduction, pt)", "power": "power on silent windows (pt)"})
+summ_ = nd.groupby(["component", "source", "endpoint"])["benefit bound"].agg(cells="size", median="median", maximum="max").round(4).reset_index().rename(
+    columns={"median": "median largest benefit not excluded", "maximum": "maximum largest benefit not excluded"})
+show(summ_, "Largest benefit not excluded by the 95% CI, summarised over the no-detectable-effect cells", keep=True)
+show(nd[["component", "source", "family", "endpoint", "budget", "est", "lo", "hi", "benefit bound", "unit"]].round(4).rename(columns={"est": "estimate", "lo": "CI low", "hi": "CI high"}),
+     "Every no-detectable-effect cell and the largest benefit not excluded (full list)")
+m2 = nd[(nd.component == "explanation") & nd.source.str.startswith("Phase 5")]
+r2 = nd[(nd.component == "explanation") & nd.source.str.startswith("Phase 7")]
+say(f"**What this shows (post-hoc / descriptive):** for the pre-registered monotone explanation detector the data exclude any AUROC gain larger than {m2[m2.metric=='dauroc']['benefit bound'].max():.4f} "
+    f"(Phase 5, largest upper CI end over the cells without a detectable effect) and any residual-rate reduction larger than {r2['benefit bound'].max():.2f} pt at the 5-20% budgets (Phase 7); "
+    "the sign-free and ensemble cells are listed in the full table.")
+""")
 md(r"""
 <a id="s11"></a>
 ## 11. Shortcut case study (Figure 7)
 Does Grad-CAM *see* the shortcut cue, and why do all monitors fail on it? Inputs: the share of CAM mass on the cue patch (Phase 4), the
-inversion diagnosis (Phase 5) and the cue-state results (Phase 8). No per-image Grad-CAM example PNGs were saved in the pipeline, so no
-qualitative CAM overlays are shown (a limitation).
+inversion diagnosis (Phase 5), the cue-state results (Phase 8) and, new in Phase 11a, a small qualitative case study (Figure 7b, post-hoc / descriptive) built from the saved
+CAMs of 12 deterministically selected cases (images re-read from the local cache; no model was run).
 """)
 
 code(r"""
@@ -1344,7 +1535,7 @@ show(cm, "CAM mass on the cue patch (outputs/stage4/cue_mass.csv)")
 say("**What this shows:** Grad-CAM is a valid detector of the cue's *use* (mass moves with the cue), but cue-driven errors are confident and "
     "typical; post-hoc monitoring cannot flag them unless the monitor is allowed to treat typicality as suspicious (sign-free CAM, Section 9).")
 fig8c()
-figcap("7b", "Cue-state results repeated from Figure 8c for the case study.", "the inversion persists for every detector; sign-free M2 recovers part of it.")
+figcap("7c", "Cue-state results repeated from Figure 8c for the case study.", "the inversion persists for every detector; sign-free M2 recovers part of it.")
 dr = rd("stage4/dose_response.csv")
 show(dr.round(4), "Dose response of every signal over severity per corruption (outputs/stage4/dose_response.csv)")
 say(f"**What this shows:** {int(dr.monotone_nondecreasing.astype(str).eq('True').sum())} of {len(dr)} (corruption, signal) curves are monotone "
@@ -1356,6 +1547,20 @@ figcap("S6", "The v2 shortcut cue palette (one colour per class).", "the cue is 
 """)
 
 # =====================================================================================================================
+
+code(r"""
+cc = rd("stage11/cam_cases.csv")
+png("stage11/figures/fig7b_cam_cases.png", width=1050)
+sf_m = cc[cc.kind == "silent failure"].cam_mass_top_left_2x2_cells_l4.mean(); ok_m = cc[cc.kind == "correct"].cam_mass_top_left_2x2_cells_l4.mean()
+figcap("7b", "Qualitative case study (post-hoc / descriptive): 8 silent failures and 4 correct predictions of the shortcut-v2 model (seed 0) under the REVERSED cue, drawn with a fixed rule "
+             "(numpy default_rng seed 0, uniform without replacement among silent failures = wrong with confidence >= 0.90, and among correct predictions); left: image with the pasted cue (dashed square), "
+             "right: saved layer4 Grad-CAM (8x8, upsampled).",
+       f"in the silent failures the model predicts the class coded by the cue, not the tissue, with confidence ~1.000, and the saved CAM puts more mass on the top-left 2x2 cells around the cue "
+       f"(mean {sf_m:.3f}; uniform would be 0.0625) than for the correct tumour-epithelium cases ({ok_m:.3f}). Eight cases are an illustration, not evidence.")
+show(cc, "Selected cases (outputs/stage11/cam_cases.csv)", keep=True)
+say("**What this shows (post-hoc / descriptive):** the confident errors are visually unremarkable tissue patches carrying a cue of another class; the CAM shows no sign that the model is 'unsure where to look', "
+    "consistent with the quantitative finding that these cases look typical to every monitor (Sections 6 and 9). All 12 cases come from one seed and one condition.")
+""")
 md(r"""
 <a id="s12"></a>
 ## 12. Blueprint compliance checklist and deviations
@@ -1411,7 +1616,10 @@ C = [
  ("8 Ablation", "Grad-CAM sensitivity (layer, PCA, resolution)", "PASS", "outputs/stage8/tables/ablation_G3.csv"),
  ("8 Ablation", "removal of artefact (non-tissue) patches in Camelyon", "DEVIATION", "outputs/stage1/subset_manifest.parquet"),
  ("8 Ablation", "seed stability; BH-FDR in secondary families", "PASS", "outputs/stage8/tables/seed_jackknife_G10.csv"),
- ("9 Synthesis", "Figure 1 study schematic; evidence map; automated conclusions", "PASS", "silent_failure_report.ipynb"),
+ ("9 Synthesis", "Figure 1 study schematic; automated conclusions; research-question answers (Section 0b)", "PASS", "silent_failure_report.ipynb"),
+ ("9 Synthesis", "evidence map across all endpoints and excluded-benefit bounds (Sections 10c-10d; post-hoc / descriptive)", "PASS", "silent_failure_report.ipynb"),
+ ("4 Signals", "qualitative Grad-CAM examples, reversed-cue case study (Figure 7b; post-hoc / descriptive)", "PASS", "outputs/stage11/figures/fig7b_cam_cases.png"),
+ ("5 Sample level", "evaluation population: all deployed rows (primary) vs accepted rows only (sensitivity, post-hoc)", "PASS", "outputs/stage11/accepted_only.csv"),
  ("9 Synthesis", "one self-contained final notebook + README + requirements", "PASS", "requirements.txt"),
 ]
 comp = pd.DataFrame(C, columns=["stage", "Blueprint item", "status", "evidence"])
@@ -1468,7 +1676,9 @@ md(r"""
    any deployment would need local calibration.
 10. **Ensemble baseline (extension).** The ensemble is built from the same 5 training runs; its probabilities are reconstructed from fp16 features; the seed
     level partly ignores which members form the ensemble (Section 10b).
-11. **No qualitative CAM overlays** were saved; the case study is quantitative only.
+11. **Thin qualitative evidence.** The Grad-CAM case study (Figure 7b, post-hoc) shows 12 cases of one seed and one condition; it illustrates, it does not test.
+12. **Post-hoc presentation items.** The evidence map, excluded-benefit bounds and the accepted-rows-only sensitivity were added after all pre-registered analyses; they only re-read
+    saved tables or recompute detection metrics on a subset of rows with unchanged detectors, and are labelled post-hoc / descriptive.
 """)
 
 # =====================================================================================================================

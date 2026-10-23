@@ -169,3 +169,6 @@ stage8:                                            # pre-registered in docs/abla
 stage10:                                           # pre-registered in docs/extension_plan_frozen.md (post-hoc EXTENSIONS)
   bootstrap_B: 2000
   budgets: [0.05, 0.10, 0.20]
+stage11:                                           # Phase 11a: post-hoc / descriptive presentation additions (not pre-registered)
+  cam_cases: {model: pathmnist_shortcutv2_seed0, condition: reversed, seed: 0, n_silent: 8, n_correct: 4, min_conf: 0.90}
+  accepted_only: {bootstrap_B: 2000, accept_conf: 0.90}   # sensitivity: AUROC/AUPRC among accepted rows (calibrated confidence >= accept_conf)

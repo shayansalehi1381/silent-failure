@@ -1,0 +1,13 @@
+kind,uid,true,pred,confidence,cam_mass_top_left_2x2_cells_l4
+silent failure,pathmnist/train/84693,debris,lymphocytes,1.0,0.165069580078125
+silent failure,pathmnist/train/7807,stroma,smooth_muscle,1.0,0.1572265625
+silent failure,pathmnist/train/1476,normal_mucosa,stroma,1.0,0.160247802734375
+silent failure,pathmnist/train/51615,smooth_muscle,mucus,1.0,0.1590576171875
+silent failure,pathmnist/train/31004,background,tumor_epithelium,1.0,0.167633056640625
+silent failure,pathmnist/train/28102,adipose,debris,1.0,0.17437744140625
+silent failure,pathmnist/train/3774,smooth_muscle,mucus,1.0,0.1566162109375
+silent failure,pathmnist/train/63179,normal_mucosa,stroma,1.0,0.1424560546875
+correct,pathmnist/train/53242,tumor_epithelium,tumor_epithelium,1.0,0.0936279296875
+correct,pathmnist/train/62777,tumor_epithelium,tumor_epithelium,1.0,0.105926513671875
+correct,pathmnist/train/73027,tumor_epithelium,tumor_epithelium,1.0,0.10308837890625
+correct,pathmnist/train/55887,tumor_epithelium,tumor_epithelium,1.0,0.1013336181640625

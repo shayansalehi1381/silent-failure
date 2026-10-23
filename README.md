@@ -33,6 +33,10 @@ they reduce the residual silent-failure rate under a fixed human-review budget?
   outputs. Full regeneration of every result needs the raw data (tens of GB), a CUDA GPU and the stage scripts (`scripts/run_all.py`, `run_stage3.py`
   ... `run_stage10.py`); see the development log below. Project rules: `CLAUDE.md`.
 
+- **Phase 11a (post-hoc / descriptive presentation additions to the notebook, no number changed):** research-question answers (Section 0b), accepted-rows-only
+  sensitivity (6b, `outputs/stage11/accepted_only.csv`, `python scripts/run_stage11.py`), evidence map and excluded-benefit bounds (10c-10d), and a qualitative
+  Grad-CAM case study of 12 deterministically selected reversed-cue cases (Figure 7b, `python scripts/make_cam_cases.py`).
+
 ## Development log by phase
 
 ## Setup (Windows 11, conda env `sfd`, Python 3.11)
